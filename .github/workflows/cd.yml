@@ -17,8 +17,10 @@ jobs:
         with:
           java-version: "17"
           distribution: "oracle"
-      - name: Run the Maven tests
-        run: mvn test
+      - name: Maven tests
+        run: |
+          ./tools/mvn_test.sh
+        shell: bash
         
   publish:
     runs-on: ubuntu-latest
@@ -28,7 +30,7 @@ jobs:
         uses: dev-vince/actions-publish-javadoc@v1.0.1
         with:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            java-version: "17" # Replace with your java version. Default is 17
-            java-distribution: "adopt" # The distributor of the target JDK. See https://github.com/actions/setup-java for more information. Defauly is adopt
-            project: maven # The project type. By default maven
-            branch: "gh-pages" # The branch for the javadoc contents. By default gh-pages
+            java-version: "17"
+            java-distribution: "adopt" # The distributor of the target JDK. See https://github.com/actions/setup-java for more information.
+            project: maven # The project type.
+            branch: "gh-pages" # The branch for the javadoc contents.
