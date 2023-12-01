@@ -17,6 +17,9 @@ jobs:
         with:
           java-version: "17"
           distribution: "oracle"
+      - name: Set execute permission
+        run: |
+          chmod +x ./tools/mvn_test.sh
       - name: Maven tests
         run: |
           ./tools/mvn_test.sh
