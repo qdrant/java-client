@@ -191,7 +191,7 @@ public class QdrantClient {
             .setVectorsConfig(config)
             .setCollectionName(collectionName)
             .build();
-    return collectionsStub.create(details);
+    return createCollection(details);
   }
 
   /**
@@ -216,7 +216,6 @@ public class QdrantClient {
   public Collections.CollectionOperationResponse recreateCollection(
       String collectionName, long vectorSize, Collections.Distance distance) {
 
-    deleteCollection(collectionName);
     Collections.VectorParams.Builder params =
         Collections.VectorParams.newBuilder().setDistance(distance).setSize(vectorSize);
     Collections.VectorsConfig config =
@@ -226,7 +225,7 @@ public class QdrantClient {
             .setVectorsConfig(config)
             .setCollectionName(collectionName)
             .build();
-    return collectionsStub.create(details);
+    return recreateCollection(details);
   }
 
   /**
@@ -1190,7 +1189,7 @@ public class QdrantClient {
    * @param collectionName The name of the collection.
    * @return The response containing the list of full snapshots.
    */
-  public SnapshotsService.ListSnapshotsResponse listFullSnapshots(String collectionName) {
+  public SnapshotsService.ListSnapshotsResponse listFullSnapshots() {
     SnapshotsService.ListFullSnapshotsRequest request =
         SnapshotsService.ListFullSnapshotsRequest.newBuilder().build();
     return snapshotStub.listFull(request);
