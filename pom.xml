@@ -6,6 +6,7 @@
 
     <groupId>io.qdrant</groupId>
     <artifactId>client</artifactId>
+    <!-- UPDATE THE VERSION IN README.MD TOO-->
     <version>1.0</version>
 
     <dependencies>
