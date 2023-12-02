@@ -4,8 +4,10 @@ import io.qdrant.client.grpc.Points.NamedVectors;
 import io.qdrant.client.grpc.Points.PointVectors;
 import io.qdrant.client.grpc.Points.Vector;
 import io.qdrant.client.grpc.Points.Vectors;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /** Utility class for working with vector data. */
 public class VectorUtil {
@@ -82,5 +84,48 @@ public class VectorUtil {
     PointVectors.Builder pointVectorsBuilder = PointVectors.newBuilder();
     Vectors vectors = Vectors.newBuilder().setVectors(namedVector(name, vector)).build();
     return pointVectorsBuilder.setId(PointUtil.pointId(id)).setVectors(vectors).build();
+  }
+
+  /**
+   * Generates dummy embeddings of the specified size.
+   *
+   * @param size The size of the embeddings to generate.
+   * @return An array of floats representing the generated embeddings.
+   * @throws IllegalArgumentException If the size is less than or equal to zero.
+   */
+  public static List<Float> dummyEmbeddings(int size) {
+    if (size <= 0) {
+      throw new IllegalArgumentException("Size must be greater than zero");
+    }
+
+    List<Float> embeddings = new ArrayList<>();
+    Random random = new Random();
+
+    for (int i = 0; i < size; i++) {
+      embeddings.add(random.nextFloat());
+    }
+
+    return embeddings;
+  }
+
+  /**
+   * Generates a dummy vector of the specified size.
+   *
+   * @param size The size of the vector.
+   * @return The generated dummy vector.
+   */
+  public static Vector dummyVector(int size) {
+    return toVector(dummyEmbeddings(size));
+  }
+
+  /**
+   * Generates a dummy named vector of the specified size.
+   *
+   * @param name The name of the vector.
+   * @param size The size of the vector.
+   * @return The generated dummy vector.
+   */
+  public static NamedVectors dummyNamedVector(String name, int size) {
+    return namedVector(name, dummyEmbeddings(size));
   }
 }

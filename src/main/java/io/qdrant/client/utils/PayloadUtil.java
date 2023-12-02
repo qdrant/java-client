@@ -49,8 +49,8 @@ public class PayloadUtil {
    * @param struct The payload struct to convert.
    * @return The converted hash map.
    */
-  public static Map<String, Object> payloadStructToHashMap(Struct struct) {
-    Map<String, Object> structMap = toHashMap(struct.getFieldsMap());
+  public static Map<String, Object> toMap(Struct struct) {
+    Map<String, Object> structMap = toMap(struct.getFieldsMap());
     return structMap;
   }
 
@@ -60,7 +60,7 @@ public class PayloadUtil {
    * @param payload The payload map to convert.
    * @return The converted hash map.
    */
-  public static Map<String, Object> toHashMap(Map<String, Value> payload) {
+  public static Map<String, Object> toMap(Map<String, Value> payload) {
     Map<String, Object> hashMap = new HashMap<>();
     for (Map.Entry<String, Value> entry : payload.entrySet()) {
       String fieldName = entry.getKey();
@@ -144,7 +144,7 @@ public class PayloadUtil {
     } else if (value.hasNullValue()) {
       return null;
     } else if (value.hasStructValue()) {
-      return payloadStructToHashMap(value.getStructValue());
+      return toMap(value.getStructValue());
     } else if (value.hasListValue()) {
       return listValueToList(value.getListValue());
     }
