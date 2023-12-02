@@ -4,6 +4,7 @@ import io.qdrant.client.grpc.Points.NamedVectors;
 import io.qdrant.client.grpc.Points.PointVectors;
 import io.qdrant.client.grpc.Points.Vector;
 import io.qdrant.client.grpc.Points.Vectors;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -92,16 +93,16 @@ public class VectorUtil {
    * @return An array of floats representing the generated embeddings.
    * @throws IllegalArgumentException If the size is less than or equal to zero.
    */
-  public static float[] dummyEmbeddings(int size) {
+  public static List<Float> dummyEmbeddings(int size) {
     if (size <= 0) {
       throw new IllegalArgumentException("Size must be greater than zero");
     }
 
-    float[] embeddings = new float[size];
+    List<Float> embeddings = new ArrayList<>();
     Random random = new Random();
 
     for (int i = 0; i < size; i++) {
-      embeddings[i] = random.nextFloat();
+      embeddings.add(random.nextFloat());
     }
 
     return embeddings;

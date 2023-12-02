@@ -542,6 +542,62 @@ public class QdrantClient {
     return upsertPointsBatch(collectionName, points, ordering, true, chunkSize);
   }
 
+  /** Internal update method */
+  private Points.PointsOperationResponse setPayload(
+      String collectionName,
+      Points.PointsSelector points,
+      Map<String, Value> payload,
+      Points.WriteOrderingType ordering,
+      Boolean wait) {
+    Points.SetPayloadPoints.Builder request =
+        Points.SetPayloadPoints.newBuilder()
+            .setCollectionName(collectionName)
+            .setPointsSelector(points)
+            .putAllPayload(payload)
+            .setWait(wait);
+
+    if (ordering != null) {
+      request.setOrdering(PointUtil.ordering(ordering));
+    }
+    return pointsStub.setPayload(request.build());
+  }
+
+  /**
+   * Sets the payload of the specified points in a collection. Does not wait for the operation to
+   * complete before returning.
+   *
+   * @param collectionName The name of the collection.
+   * @param points The selector for the points to be updated.
+   * @param payload The new payload to be assigned to the points.
+   * @param ordering The ordering of the write operation.
+   * @return The response of the points operation.
+   */
+  public Points.PointsOperationResponse setPayload(
+      String collectionName,
+      Points.PointsSelector points,
+      Map<String, Value> payload,
+      Points.WriteOrderingType ordering) {
+    return setPayload(collectionName, points, payload, ordering, false);
+  }
+
+  /**
+   * Sets the payload of the specified points in a collection. Waits for the operation to complete
+   * before returning.
+   *
+   * @param collectionName The name of the collection.
+   * @param points The selector for the points to be updated.
+   * @param payload The new payload to be assigned to the points.
+   * @param ordering The ordering of the write operation.
+   * @return The response of the points operation.
+   */
+  public Points.PointsOperationResponse setPayloadBlocking(
+      String collectionName,
+      Points.PointsSelector points,
+      Map<String, Value> payload,
+      Points.WriteOrderingType ordering) {
+    return setPayload(collectionName, points, payload, ordering, true);
+  }
+
   /** Internal payload overwrite method */
   private Points.PointsOperationResponse overwritePayload(
       String collectionName,
@@ -559,7 +615,7 @@ public class QdrantClient {
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
     }
-    return pointsStub.setPayload(request.build());
+    return pointsStub.overwritePayload(request.build());
   }
 
   /**
@@ -598,7 +654,7 @@ public class QdrantClient {
     return overwritePayload(collectionName, points, payload, ordering, true);
   }
 
-  /** Internal payload update method */
+  /** Internal payload delete method */
   private Points.PointsOperationResponse deletePayload(
       String collectionName,
       Points.PointsSelector points,
@@ -1186,7 +1242,6 @@ public class QdrantClient {
   /**
    * Retrieves a list of full snapshots for a given collection.
    *
-   * @param collectionName The name of the collection.
    * @return The response containing the list of full snapshots.
    */
   public SnapshotsService.ListSnapshotsResponse listFullSnapshots() {
