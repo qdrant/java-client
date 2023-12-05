@@ -8,6 +8,8 @@ import io.qdrant.client.grpc.Points.PointsSelector;
 import io.qdrant.client.grpc.Points.VectorsSelector;
 import io.qdrant.client.grpc.Points.WithPayloadSelector;
 import io.qdrant.client.grpc.Points.WithVectorsSelector;
+
+import java.util.Arrays;
 import java.util.List;
 
 /** Utility class for working with Selectors. */
@@ -39,7 +41,7 @@ public class SelectorUtil {
    */
   public static WithPayloadSelector withPayload(String... fields) {
     PayloadIncludeSelector include =
-        PayloadIncludeSelector.newBuilder().addAllFields(List.of(fields)).build();
+        PayloadIncludeSelector.newBuilder().addAllFields(Arrays.asList(fields)).build();
     return WithPayloadSelector.newBuilder().setInclude(include).build();
   }
 
@@ -50,7 +52,7 @@ public class SelectorUtil {
    * @return The created {@link WithVectorsSelector} object.
    */
   public static WithVectorsSelector withVectors(String... vectors) {
-    VectorsSelector include = VectorsSelector.newBuilder().addAllNames(List.of(vectors)).build();
+    VectorsSelector include = VectorsSelector.newBuilder().addAllNames(Arrays.asList(vectors)).build();
     return WithVectorsSelector.newBuilder().setInclude(include).build();
   }
 
@@ -74,7 +76,7 @@ public class SelectorUtil {
    */
   public static PointsSelector idsSelector(PointId... ids) {
     return PointsSelector.newBuilder()
-        .setPoints(PointsIdsList.newBuilder().addAllIds(List.of(ids)).build())
+        .setPoints(PointsIdsList.newBuilder().addAllIds(Arrays.asList(ids)).build())
         .build();
   }
 

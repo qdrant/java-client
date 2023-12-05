@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v3
         with:
-          java-version: "17"
+          java-version: "8"
           distribution: "oracle"
       - name: Set execute permission
         run: |
@@ -33,7 +33,7 @@ jobs:
         uses: dev-vince/actions-publish-javadoc@v1.0.1
         with:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            java-version: "17"
+            java-version: "8"
             java-distribution: "adopt" # The distributor of the target JDK. See https://github.com/actions/setup-java for more information.
             project: maven # The project type.
             branch: "gh-pages" # The branch for the javadoc contents.

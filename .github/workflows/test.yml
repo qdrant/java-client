@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v3
         with:
-          java-version: "17"
+          java-version: "8"
           distribution: "oracle"
       - name: Set execute permission
         run: |

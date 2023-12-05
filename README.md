@@ -25,7 +25,11 @@ Java client library with handy utility methods and overloads for interfacing wit
 
 > Not yet published.
 
-To install the library, add the following lines to your build config file. Requires JDK 17 or above.
+> [!IMPORTANT]  
+> Requires Java 8 or above.
+
+To install the library, add the following lines to your build config file.
+
 #### Maven
 ```xml
 <dependency>
