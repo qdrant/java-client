@@ -25,7 +25,11 @@ Java client library with handy utility methods and overloads for interfacing wit
 
 > Not yet published.
 
-To install the library, add the following lines to your build config file. Requires JDK 17 or above.
+> [!IMPORTANT]  
+> Requires Java 8 or above.
+
+To install the library, add the following lines to your build config file.
+
 #### Maven
 ```xml
 <dependency>
@@ -98,6 +102,7 @@ time: 7.04541E-4
 The library offers handy utility methods for constructing GRPC structures.
 
 ```java
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,12 +123,13 @@ PointStruct point =
     0,
     VectorUtil.toVector(0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f),
     PayloadUtil.toPayload(map));
-List<PointStruct> points = List.of(point);
+List<PointStruct> points = Arrays.asList;
 client.upsertPoints(collectionName, points, null);
 ```
 
 #### Performing a search on the vectors with filtering
 ```java
+import io.qdrant.client.grpc.Points.Filter;
 import io.qdrant.client.grpc.Points.SearchPoints;
 import io.qdrant.client.grpc.Points.SearchResponse;
 
@@ -133,41 +139,22 @@ Filter filter = FilterUtil.must(FilterUtil.fieldCondition("age", FilterUtil.matc
       
 SearchPoints request = SearchPoints.newBuilder()
         .setCollectionName(collectionName)
-        .addAllVector(List.of(0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f))
+        .addAllVector(Arrays.asList(0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f))
         .setFilter(filter)
         .setWithPayload(SelectorUtil.withPayload())
         .setLimit(10)
         .build();
 SearchResponse result = client.searchPoints(request);
-System.out.println(result);
+
+ScoredPoint result = results.getResult(0);
+            
+System.out.println("Similarity: " + result.getScore());
+System.out.println("Payload: " + PayloadUtil.toMap(result.getPayload()));
 ```
 *Output*:
 ```
-result {
-id {
-num: 0
-}
-payload {
-key: "age"
-value {
-integer_value: 42
-}
-}
-payload {
-key: "married"
-value {
-bool_value: true
-}
-}
-payload {
-key: "name"
-value {
-string_value: "John Doe"
-}
-}
-score: 0.9999999
-}
-time: 4.63542E-4
+Similarity: 0.9999999
+Payload: {name=John Doe, married=true, age=42}
 ```
 
 </details>

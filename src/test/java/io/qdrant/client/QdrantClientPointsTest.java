@@ -17,6 +17,7 @@ import io.qdrant.client.utils.PointUtil;
 import io.qdrant.client.utils.SelectorUtil;
 import io.qdrant.client.utils.VectorUtil;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +59,7 @@ class QdrantClientPointsTest {
     Points.GetResponse response =
         qdrantClient.getPoints(
             collectionName,
-            List.of(pointIds),
+            Arrays.asList(pointIds),
             SelectorUtil.withVectors(),
             SelectorUtil.withPayload(),
             null);
@@ -79,12 +80,12 @@ class QdrantClientPointsTest {
         PointUtil.point(
             pointID, VectorUtil.dummyVector(EMBEDDINGS_SIZE), PayloadUtil.toPayload(data));
 
-    List<PointStruct> points = List.of(point);
+    List<PointStruct> points = Arrays.asList(point);
     qdrantClient.upsertPointsBlocking(collectionName, points, null);
     response =
         qdrantClient.getPoints(
             collectionName,
-            List.of(pointIds),
+            Arrays.asList(pointIds),
             SelectorUtil.withVectors(),
             SelectorUtil.withPayload(),
             null);
@@ -101,7 +102,7 @@ class QdrantClientPointsTest {
     response =
         qdrantClient.getPoints(
             collectionName,
-            List.of(pointIds),
+            Arrays.asList(pointIds),
             SelectorUtil.withVectors(),
             SelectorUtil.withPayload(),
             null);
@@ -122,7 +123,7 @@ class QdrantClientPointsTest {
     Points.GetResponse response =
         qdrantClient.getPoints(
             collectionName,
-            List.of(pointIds),
+            Arrays.asList(pointIds),
             SelectorUtil.withVectors(),
             SelectorUtil.withPayload(),
             null);
@@ -130,12 +131,12 @@ class QdrantClientPointsTest {
     assertEquals(0, response.getResultCount());
 
     PointStruct point = PointUtil.point(pointID, VectorUtil.dummyVector(EMBEDDINGS_SIZE), null);
-    List<PointStruct> points = List.of(point);
+    List<PointStruct> points = Arrays.asList(point);
     qdrantClient.upsertPointsBlocking(collectionName, points, null);
     response =
         qdrantClient.getPoints(
             collectionName,
-            List.of(pointIds),
+            Arrays.asList(pointIds),
             SelectorUtil.withVectors(),
             SelectorUtil.withPayload(),
             null);
@@ -146,7 +147,7 @@ class QdrantClientPointsTest {
     response =
         qdrantClient.getPoints(
             collectionName,
-            List.of(pointIds),
+            Arrays.asList(pointIds),
             SelectorUtil.withVectors(),
             SelectorUtil.withPayload(),
             null);
