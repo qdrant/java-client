@@ -346,11 +346,7 @@ public class QdrantClient {
             .build();
     return collectionsStub.collectionClusterInfo(request);
   }
-
-  public Collections.CreateShardKeyResponse createShardKey(Collections.CreateShardKeyRequest request) {
-    return collectionsStub.createShardKey(request);
-  }
-
+  
   /**
    * Updates the cluster setup for a collection.
    *
