@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.qdrant.client.grpc.Collections.ShardKey;
-
 import org.junit.jupiter.api.Test;
 
 class CollectionUtilTest {

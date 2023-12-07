@@ -30,7 +30,7 @@ class SelectorUtilTest {
 
   @Test
   void testWithPayloadWithFields() {
-    String[] fields = { "field1", "field2" };
+    String[] fields = {"field1", "field2"};
     WithPayloadSelector selector = SelectorUtil.withPayload(fields);
     List<String> expectedFields = Arrays.asList(fields);
     assertEquals(expectedFields, selector.getInclude().getFieldsList());
@@ -38,7 +38,7 @@ class SelectorUtilTest {
 
   @Test
   void testWithVectorsWithNames() {
-    String[] vectors = { "vector1", "vector2" };
+    String[] vectors = {"vector1", "vector2"};
     WithVectorsSelector selector = SelectorUtil.withVectors(vectors);
     List<String> expectedVectors = Arrays.asList(vectors);
     assertEquals(expectedVectors, selector.getInclude().getNamesList());
@@ -53,7 +53,7 @@ class SelectorUtilTest {
 
   @Test
   void testIdsSelectorWithArray() {
-    PointId[] ids = { PointUtil.pointId(1), PointUtil.pointId(2) };
+    PointId[] ids = {PointUtil.pointId(1), PointUtil.pointId(2)};
     PointsSelector selector = SelectorUtil.idsSelector(ids);
     List<PointId> expectedIds = Arrays.asList(ids);
     assertEquals(expectedIds, selector.getPoints().getIdsList());
@@ -68,7 +68,7 @@ class SelectorUtilTest {
 
   @Test
   void testShardKeySelectorWithShardKeys() {
-    ShardKey[] shardKeys = { CollectionUtil.shardKey("key1"), CollectionUtil.shardKey("key2") };
+    ShardKey[] shardKeys = {CollectionUtil.shardKey("key1"), CollectionUtil.shardKey("key2")};
     ShardKeySelector selector = SelectorUtil.shardKeySelector(shardKeys);
     List<ShardKey> expectedShardKeys = Arrays.asList(shardKeys);
     assertEquals(expectedShardKeys, selector.getShardKeysList());
@@ -76,22 +76,19 @@ class SelectorUtilTest {
 
   @Test
   void testShardKeySelectorWithKeywords() {
-    String[] keywords = { "keyword1", "keyword2" };
+    String[] keywords = {"keyword1", "keyword2"};
     ShardKeySelector selector = SelectorUtil.shardKeySelector(keywords);
-    List<ShardKey> expectedShardKeys = Arrays.asList(
-        CollectionUtil.shardKey("keyword1"),
-        CollectionUtil.shardKey("keyword2"));
+    List<ShardKey> expectedShardKeys =
+        Arrays.asList(CollectionUtil.shardKey("keyword1"), CollectionUtil.shardKey("keyword2"));
     assertEquals(expectedShardKeys, selector.getShardKeysList());
   }
 
   @Test
   void testShardKeySelectorWithNumbers() {
-    long[] numbers = { 1, 2 };
+    long[] numbers = {1, 2};
     ShardKeySelector selector = SelectorUtil.shardKeySelector(numbers);
-    List<ShardKey> expectedShardKeys = Arrays.asList(
-        CollectionUtil.shardKey(1),
-        CollectionUtil.shardKey(2));
+    List<ShardKey> expectedShardKeys =
+        Arrays.asList(CollectionUtil.shardKey(1), CollectionUtil.shardKey(2));
     assertEquals(expectedShardKeys, selector.getShardKeysList());
-
   }
 }

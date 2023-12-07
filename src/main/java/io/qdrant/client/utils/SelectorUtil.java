@@ -35,20 +35,19 @@ public class SelectorUtil {
   }
 
   /**
-   * Creates a {@link WithPayloadSelector} with the specified fields included in
-   * the payload.
+   * Creates a {@link WithPayloadSelector} with the specified fields included in the payload.
    *
    * @param fields The fields to include in the payload.
    * @return The created {@link WithPayloadSelector} object.
    */
   public static WithPayloadSelector withPayload(String... fields) {
-    PayloadIncludeSelector include = PayloadIncludeSelector.newBuilder().addAllFields(Arrays.asList(fields)).build();
+    PayloadIncludeSelector include =
+        PayloadIncludeSelector.newBuilder().addAllFields(Arrays.asList(fields)).build();
     return WithPayloadSelector.newBuilder().setInclude(include).build();
   }
 
   /**
-   * Creates a {@link WithVectorsSelector} with the specified vector fields
-   * included.
+   * Creates a {@link WithVectorsSelector} with the specified vector fields included.
    *
    * @param vectors The names of the vectors to include.
    * @return The created {@link WithVectorsSelector} object.
@@ -130,5 +129,4 @@ public class SelectorUtil {
     }
     return builder.build();
   }
-
 }
