@@ -16,7 +16,6 @@ import io.qdrant.client.grpc.Points.WriteOrderingType;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /** Utility class for working with Points. */

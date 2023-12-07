@@ -2,9 +2,9 @@ syntax = "proto3";
 
 import "collections.proto";
 
-option java_package = "io.qdrant.client.grpc";
-
 package qdrant;
+option csharp_namespace = "Qdrant.Client.Grpc";
+option java_package = "io.qdrant.client.grpc";
 
 service Collections {
   /*
@@ -47,4 +47,12 @@ service Collections {
   Update cluster setup for a collection
   */
   rpc UpdateCollectionClusterSetup (UpdateCollectionClusterSetupRequest) returns (UpdateCollectionClusterSetupResponse) {}
+  /*
+  Create shard key
+  */
+  rpc CreateShardKey (CreateShardKeyRequest) returns (CreateShardKeyResponse) {}
+  /*
+  Delete shard key
+  */
+  rpc DeleteShardKey (DeleteShardKeyRequest) returns (DeleteShardKeyResponse) {}
 }

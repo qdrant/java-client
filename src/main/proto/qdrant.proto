@@ -5,7 +5,7 @@ import "points_service.proto";
 import "snapshots_service.proto";
 
 package qdrant;
-
+option csharp_namespace = "Qdrant.Client.Grpc";
 option java_package = "io.qdrant.client.grpc";
 
 service Qdrant {

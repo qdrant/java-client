@@ -3,7 +3,7 @@
 syntax = "proto3";
 
 package qdrant;
-
+option csharp_namespace = "Qdrant.Client.Grpc";
 option java_package = "io.qdrant.client.grpc";
 
 // `Struct` represents a structured data value, consisting of fields
