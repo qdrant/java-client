@@ -31,7 +31,8 @@ public class PointUtil {
 
     PointsIdsList pointsIdsList =
         PointsIdsList.newBuilder()
-            .addAllIds(Arrays.stream(pointIds).mapToObj(PointUtil::pointId).collect(Collectors.toList()))
+            .addAllIds(
+                Arrays.stream(pointIds).mapToObj(PointUtil::pointId).collect(Collectors.toList()))
             .build();
 
     return PointsSelector.newBuilder().setPoints(pointsIdsList).build();
@@ -52,7 +53,10 @@ public class PointUtil {
     // Using map() instead
     PointsIdsList pointsIdsList =
         PointsIdsList.newBuilder()
-            .addAllIds(Arrays.stream(pointIds).map((String id) -> PointUtil.pointId(id)).collect(Collectors.toList()))
+            .addAllIds(
+                Arrays.stream(pointIds)
+                    .map((String id) -> PointUtil.pointId(id))
+                    .collect(Collectors.toList()))
             .build();
 
     return PointsSelector.newBuilder().setPoints(pointsIdsList).build();

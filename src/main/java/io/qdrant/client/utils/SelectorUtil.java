@@ -10,7 +10,6 @@ import io.qdrant.client.grpc.Points.ShardKeySelector;
 import io.qdrant.client.grpc.Points.VectorsSelector;
 import io.qdrant.client.grpc.Points.WithPayloadSelector;
 import io.qdrant.client.grpc.Points.WithVectorsSelector;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -55,7 +54,8 @@ public class SelectorUtil {
    * @return The created {@link WithVectorsSelector} object.
    */
   public static WithVectorsSelector withVectors(String... vectors) {
-    VectorsSelector include = VectorsSelector.newBuilder().addAllNames(Arrays.asList(vectors)).build();
+    VectorsSelector include =
+        VectorsSelector.newBuilder().addAllNames(Arrays.asList(vectors)).build();
     return WithVectorsSelector.newBuilder().setInclude(include).build();
   }
 
