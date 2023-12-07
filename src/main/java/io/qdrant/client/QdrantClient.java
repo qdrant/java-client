@@ -1077,6 +1077,26 @@ public class QdrantClient {
   }
 
   /**
+   * Discover points most similar to the given target constrained by a context
+   *
+   * @param request The discover request
+   * @return The response containing the discovery operation result.
+   */
+  public Points.DiscoverResponse discover(Points.DiscoverPoints request) {
+    return pointsStub.discover(request);
+  }
+
+  /**
+   * Batch discover points on pairs of examples or targets
+   *
+   * @param request The batch discover request
+   * @return The response containing the batch discovery operation result.
+   */
+  public Points.DiscoverBatchResponse discoverBatch(Points.DiscoverBatchPoints request) {
+    return pointsStub.discoverBatch(request);
+  }
+
+  /**
    * Retrieve points from a collection based on filters.
    *
    * @param request The search request containing the query parameters.
