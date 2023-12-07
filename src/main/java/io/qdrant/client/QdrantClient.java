@@ -334,6 +334,58 @@ public class QdrantClient {
   }
 
   /**
+   * Create a shard key for a collection.
+   *
+   * @param collectionName The name of the collection.
+   * @param shardKey The shard key to create.
+   * @param shardsNumber The number of shards to create per shard key.
+   * @param replicationFactor The replication factor of each created shard.
+   * @param placements List of peer ids, allowed to create shards. If empty - all peers are allowed
+   * @return The response of containing the operation result.
+   */
+  public Collections.CreateShardKeyResponse createShardKey(
+      String collectionName,
+      Collections.ShardKey shardKey,
+      int shardsNumber,
+      int replicationFactor,
+      List<Long> placements) {
+
+    Collections.CreateShardKey key =
+        Collections.CreateShardKey.newBuilder()
+            .setShardKey(shardKey)
+            .setShardsNumber(shardsNumber)
+            .setReplicationFactor(replicationFactor)
+            .addAllPlacement(placements)
+            .build();
+    Collections.CreateShardKeyRequest request =
+        Collections.CreateShardKeyRequest.newBuilder()
+            .setCollectionName(collectionName)
+            .setRequest(key)
+            .build();
+
+    return collectionsStub.createShardKey(request);
+  }
+
+  /**
+   * Deletes a shard key for a given collection.
+   *
+   * @param collectionName The name of the collection.
+   * @param shardKey The shard key to be deleted.
+   * @return The response containing the operation result.
+   */
+  public Collections.DeleteShardKeyResponse deleteShard(
+      String collectionName, Collections.ShardKey shardKey) {
+    Collections.DeleteShardKey key =
+        Collections.DeleteShardKey.newBuilder().setShardKey(shardKey).build();
+    Collections.DeleteShardKeyRequest request =
+        Collections.DeleteShardKeyRequest.newBuilder()
+            .setCollectionName(collectionName)
+            .setRequest(key)
+            .build();
+    return collectionsStub.deleteShardKey(request);
+  }
+
+  /**
    * Retrieves the cluster information for a specific collection.
    *
    * @param collectionName The name of the collection.
@@ -410,6 +462,7 @@ public class QdrantClient {
   /** Internal upsert method */
   private Points.PointsOperationResponse upsertPoints(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       List<Points.PointStruct> points,
       Points.WriteOrderingType ordering,
       Boolean wait) {
@@ -418,6 +471,10 @@ public class QdrantClient {
             .setCollectionName(collectionName)
             .addAllPoints(points)
             .setWait(wait);
+
+    if (shardKeySelector != null) {
+      request.setShardKeySelector(shardKeySelector);
+    }
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -430,13 +487,17 @@ public class QdrantClient {
    * complete before returning.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The list of points to be upserted.
    * @param ordering The write ordering for the upsert operation.
    * @return The response of the upsert operation.
    */
   public Points.PointsOperationResponse upsertPoints(
-      String collectionName, List<Points.PointStruct> points, Points.WriteOrderingType ordering) {
-    return upsertPoints(collectionName, points, ordering, false);
+      String collectionName,
+      Points.ShardKeySelector shardKeySelector,
+      List<Points.PointStruct> points,
+      Points.WriteOrderingType ordering) {
+    return upsertPoints(collectionName, shardKeySelector, points, ordering, false);
   }
 
   /**
@@ -444,18 +505,23 @@ public class QdrantClient {
    * before returning.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The list of points to be upserted.
    * @param ordering The write ordering for the upsert operation.
    * @return The response of the upsert operation.
    */
   public Points.PointsOperationResponse upsertPointsBlocking(
-      String collectionName, List<Points.PointStruct> points, Points.WriteOrderingType ordering) {
-    return upsertPoints(collectionName, points, ordering, true);
+      String collectionName,
+      Points.ShardKeySelector shardKeySelector,
+      List<Points.PointStruct> points,
+      Points.WriteOrderingType ordering) {
+    return upsertPoints(collectionName, shardKeySelector, points, ordering, true);
   }
 
   /** Internal batch upsert method */
   private Points.PointsOperationResponse upsertPointsBatch(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       List<Points.PointStruct> points,
       Points.WriteOrderingType ordering,
       Boolean wait,
@@ -467,7 +533,8 @@ public class QdrantClient {
     for (int i = 0; i < listSize; i += chunkSize) {
       int end = Math.min(i + chunkSize, listSize);
       List<Points.PointStruct> chunk = points.subList(i, end);
-      Points.PointsOperationResponse response = upsertPoints(collectionName, chunk, ordering, wait);
+      Points.PointsOperationResponse response =
+          upsertPoints(collectionName, shardKeySelector, chunk, ordering, wait);
       timeTaken += response.getTime();
       result = response.getResult();
     }
@@ -479,15 +546,17 @@ public class QdrantClient {
    * complete before returning.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The list of points to upsert.
    * @return The response of the points operation.
    */
   public Points.PointsOperationResponse upsertPointsBatch(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       List<Points.PointStruct> points,
       Points.WriteOrderingType ordering,
       int chunkSize) {
-    return upsertPointsBatch(collectionName, points, ordering, false, chunkSize);
+    return upsertPointsBatch(collectionName, shardKeySelector, points, ordering, false, chunkSize);
   }
 
   /**
@@ -495,20 +564,23 @@ public class QdrantClient {
    * before returning.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The list of points to upsert.
    * @return The response of the points operation.
    */
   public Points.PointsOperationResponse upsertPointsBatchBlocking(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       List<Points.PointStruct> points,
       Points.WriteOrderingType ordering,
       int chunkSize) {
-    return upsertPointsBatch(collectionName, points, ordering, true, chunkSize);
+    return upsertPointsBatch(collectionName, shardKeySelector, points, ordering, true, chunkSize);
   }
 
   /** Internal update method */
   private Points.PointsOperationResponse setPayload(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Points.PointsSelector points,
       Map<String, Value> payload,
       Points.WriteOrderingType ordering,
@@ -519,6 +591,10 @@ public class QdrantClient {
             .setPointsSelector(points)
             .putAllPayload(payload)
             .setWait(wait);
+
+    if (shardKeySelector != null) {
+      request.setShardKeySelector(shardKeySelector);
+    }
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -531,6 +607,7 @@ public class QdrantClient {
    * complete before returning.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The selector for the points to be updated.
    * @param payload The new payload to be assigned to the points.
    * @param ordering The ordering of the write operation.
@@ -538,10 +615,11 @@ public class QdrantClient {
    */
   public Points.PointsOperationResponse setPayload(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Points.PointsSelector points,
       Map<String, Value> payload,
       Points.WriteOrderingType ordering) {
-    return setPayload(collectionName, points, payload, ordering, false);
+    return setPayload(collectionName, shardKeySelector, points, payload, ordering, false);
   }
 
   /**
@@ -549,6 +627,7 @@ public class QdrantClient {
    * before returning.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The selector for the points to be updated.
    * @param payload The new payload to be assigned to the points.
    * @param ordering The ordering of the write operation.
@@ -556,15 +635,17 @@ public class QdrantClient {
    */
   public Points.PointsOperationResponse setPayloadBlocking(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Points.PointsSelector points,
       Map<String, Value> payload,
       Points.WriteOrderingType ordering) {
-    return setPayload(collectionName, points, payload, ordering, true);
+    return setPayload(collectionName, shardKeySelector, points, payload, ordering, true);
   }
 
   /** Internal payload overwrite method */
   private Points.PointsOperationResponse overwritePayload(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Points.PointsSelector points,
       Map<String, Value> payload,
       Points.WriteOrderingType ordering,
@@ -579,6 +660,10 @@ public class QdrantClient {
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
     }
+
+    if (ordering != null) {
+      request.setOrdering(PointUtil.ordering(ordering));
+    }
     return pointsStub.overwritePayload(request.build());
   }
 
@@ -587,6 +672,7 @@ public class QdrantClient {
    * to complete before returning.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The selector for the points to be overwritten.
    * @param payload The new payload to be assigned to the points.
    * @param ordering The ordering of the write operation.
@@ -594,10 +680,11 @@ public class QdrantClient {
    */
   public Points.PointsOperationResponse overwritePayload(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Points.PointsSelector points,
       Map<String, Value> payload,
       Points.WriteOrderingType ordering) {
-    return overwritePayload(collectionName, points, payload, ordering, false);
+    return overwritePayload(collectionName, shardKeySelector, points, payload, ordering, false);
   }
 
   /**
@@ -605,6 +692,7 @@ public class QdrantClient {
    * complete before returning.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The selector for the points to be overwritten.
    * @param payload The new payload to be assigned to the points.
    * @param ordering The ordering of the write operation.
@@ -612,15 +700,17 @@ public class QdrantClient {
    */
   public Points.PointsOperationResponse overwritePayloadBlocking(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Points.PointsSelector points,
       Map<String, Value> payload,
       Points.WriteOrderingType ordering) {
-    return overwritePayload(collectionName, points, payload, ordering, true);
+    return overwritePayload(collectionName, shardKeySelector, points, payload, ordering, true);
   }
 
   /** Internal payload delete method */
   private Points.PointsOperationResponse deletePayload(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Points.PointsSelector points,
       List<String> keys,
       Points.WriteOrderingType ordering,
@@ -631,6 +721,10 @@ public class QdrantClient {
             .addAllKeys(keys)
             .setWait(wait)
             .setPointsSelector(points);
+
+    if (shardKeySelector != null) {
+      request.setShardKeySelector(shardKeySelector);
+    }
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -643,6 +737,7 @@ public class QdrantClient {
    * not wait for the operation to complete before returning.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The points selector.
    * @param keys The list of keys.
    * @param ordering The write ordering.
@@ -650,10 +745,11 @@ public class QdrantClient {
    */
   public Points.PointsOperationResponse deletePayload(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Points.PointsSelector points,
       List<String> keys,
       Points.WriteOrderingType ordering) {
-    return deletePayload(collectionName, points, keys, ordering, false);
+    return deletePayload(collectionName, shardKeySelector, points, keys, ordering, false);
   }
 
   /**
@@ -661,6 +757,7 @@ public class QdrantClient {
    * for the operation to complete before returning.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The points selector.
    * @param keys The list of keys.
    * @param ordering The write ordering.
@@ -668,15 +765,17 @@ public class QdrantClient {
    */
   public Points.PointsOperationResponse deletePayloadBlocking(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Points.PointsSelector points,
       List<String> keys,
       Points.WriteOrderingType ordering) {
-    return deletePayload(collectionName, points, keys, ordering, true);
+    return deletePayload(collectionName, shardKeySelector, points, keys, ordering, true);
   }
 
   /** Internal payload clear method */
   private Points.PointsOperationResponse clearPayload(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Points.PointsSelector points,
       Points.WriteOrderingType ordering,
       Boolean wait) {
@@ -685,6 +784,10 @@ public class QdrantClient {
             .setCollectionName(collectionName)
             .setPoints(points)
             .setWait(wait);
+
+    if (shardKeySelector != null) {
+      request.setShardKeySelector(shardKeySelector);
+    }
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -698,12 +801,16 @@ public class QdrantClient {
    * for the operation to complete before returning.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The points to be cleared.
    * @return The response of the clearPayload operation.
    */
   public Points.PointsOperationResponse clearPayload(
-      String collectionName, Points.PointsSelector points, Points.WriteOrderingType ordering) {
-    return clearPayload(collectionName, points, ordering, false);
+      String collectionName,
+      Points.ShardKeySelector shardKeySelector,
+      Points.PointsSelector points,
+      Points.WriteOrderingType ordering) {
+    return clearPayload(collectionName, shardKeySelector, points, ordering, false);
   }
 
   /**
@@ -711,18 +818,23 @@ public class QdrantClient {
    * operation to complete before returning.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The points to be cleared.
    * @return The response of the clearPayload operation.
    */
   public Points.PointsOperationResponse clearPayloadBlocking(
-      String collectionName, Points.PointsSelector points, Points.WriteOrderingType ordering) {
-    return clearPayload(collectionName, points, ordering, true);
+      String collectionName,
+      Points.ShardKeySelector shardKeySelector,
+      Points.PointsSelector points,
+      Points.WriteOrderingType ordering) {
+    return clearPayload(collectionName, shardKeySelector, points, ordering, true);
   }
 
   /**
    * Retrieves points from a collection.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The IDs of the points to retrieve.
    * @param withVectors The selector for including vectors in the response.
    * @param withPayload The selector for including payload in the response.
@@ -731,6 +843,7 @@ public class QdrantClient {
    */
   public Points.GetResponse getPoints(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Iterable<? extends Points.PointId> points,
       Points.WithVectorsSelector withVectors,
       Points.WithPayloadSelector withPayload,
@@ -741,6 +854,10 @@ public class QdrantClient {
             .addAllIds(points)
             .setWithVectors(withVectors)
             .setWithPayload(withPayload);
+
+    if (shardKeySelector != null) {
+      request.setShardKeySelector(shardKeySelector);
+    }
 
     if (readConsistency != null) {
       request.setReadConsistency(PointUtil.consistency(readConsistency));
@@ -782,6 +899,7 @@ public class QdrantClient {
   /** Internal delete method */
   private Points.PointsOperationResponse deletePoints(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Points.PointsSelector points,
       Points.WriteOrderingType ordering,
       Boolean wait) {
@@ -790,6 +908,10 @@ public class QdrantClient {
             .setCollectionName(collectionName)
             .setPoints(points)
             .setWait(wait);
+
+    if (shardKeySelector != null) {
+      request.setShardKeySelector(shardKeySelector);
+    }
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -801,31 +923,40 @@ public class QdrantClient {
    * Deletes points from a collection. Does not wait for the operation to complete before returning.
    *
    * @param collectionName The name of the collection from which points will be deleted.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The selector for the points to be deleted.
    * @param ordering The ordering of the write operation.
    * @return The response of the points deletion operation.
    */
   public Points.PointsOperationResponse deletePoints(
-      String collectionName, Points.PointsSelector points, Points.WriteOrderingType ordering) {
-    return deletePoints(collectionName, points, ordering, false);
+      String collectionName,
+      Points.ShardKeySelector shardKeySelector,
+      Points.PointsSelector points,
+      Points.WriteOrderingType ordering) {
+    return deletePoints(collectionName, shardKeySelector, points, ordering, false);
   }
 
   /**
    * Deletes points from a collection. Waits for the operation to complete before returning.
    *
    * @param collectionName The name of the collection from which points will be deleted.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The selector for the points to be deleted.
    * @param ordering The ordering of the write operation.
    * @return The response of the points deletion operation.
    */
   public Points.PointsOperationResponse deletePointsBlocking(
-      String collectionName, Points.PointsSelector points, Points.WriteOrderingType ordering) {
-    return deletePoints(collectionName, points, ordering, true);
+      String collectionName,
+      Points.ShardKeySelector shardKeySelector,
+      Points.PointsSelector points,
+      Points.WriteOrderingType ordering) {
+    return deletePoints(collectionName, shardKeySelector, points, ordering, true);
   }
 
   /** Internal delete vectors method */
   private Points.PointsOperationResponse deleteVectors(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Points.PointsSelector points,
       Points.VectorsSelector vectors,
       Points.WriteOrderingType ordering,
@@ -836,6 +967,10 @@ public class QdrantClient {
             .setPointsSelector(points)
             .setVectors(vectors)
             .setWait(wait);
+
+    if (shardKeySelector != null) {
+      requests.setShardKeySelector(shardKeySelector);
+    }
 
     if (ordering != null) {
       requests.setOrdering(PointUtil.ordering(ordering));
@@ -848,6 +983,7 @@ public class QdrantClient {
    * returning.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The selector for points to delete.
    * @param vectors The selector for vectors to delete.
    * @param ordering The write ordering for the operation.
@@ -855,16 +991,18 @@ public class QdrantClient {
    */
   public Points.PointsOperationResponse deleteVectors(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Points.PointsSelector points,
       Points.VectorsSelector vectors,
       Points.WriteOrderingType ordering) {
-    return deleteVectors(collectionName, points, vectors, ordering, false);
+    return deleteVectors(collectionName, shardKeySelector, points, vectors, ordering, false);
   }
 
   /**
    * Deletes vectors from a collection. Waits for the operation to complete before returning.
    *
    * @param collectionName The name of the collection.
+   * @param shardKeySelector The shard keys selector for the request.
    * @param points The selector for points to delete.
    * @param vectors The selector for vectors to delete.
    * @param ordering The write ordering for the operation.
@@ -872,10 +1010,11 @@ public class QdrantClient {
    */
   public Points.PointsOperationResponse deleteVectorsBlocking(
       String collectionName,
+      Points.ShardKeySelector shardKeySelector,
       Points.PointsSelector points,
       Points.VectorsSelector vectors,
       Points.WriteOrderingType ordering) {
-    return deleteVectors(collectionName, points, vectors, ordering, true);
+    return deleteVectors(collectionName, shardKeySelector, points, vectors, ordering, true);
   }
 
   /** Internal update vectors method */

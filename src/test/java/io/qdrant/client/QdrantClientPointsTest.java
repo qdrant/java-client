@@ -59,6 +59,7 @@ class QdrantClientPointsTest {
     Points.GetResponse response =
         qdrantClient.getPoints(
             collectionName,
+            null,
             Arrays.asList(pointIds),
             SelectorUtil.withVectors(),
             SelectorUtil.withPayload(),
@@ -81,10 +82,11 @@ class QdrantClientPointsTest {
             pointID, VectorUtil.dummyVector(EMBEDDINGS_SIZE), PayloadUtil.toPayload(data));
 
     List<PointStruct> points = Arrays.asList(point);
-    qdrantClient.upsertPointsBlocking(collectionName, points, null);
+    qdrantClient.upsertPointsBlocking(collectionName, null, points, null);
     response =
         qdrantClient.getPoints(
             collectionName,
+            null,
             Arrays.asList(pointIds),
             SelectorUtil.withVectors(),
             SelectorUtil.withPayload(),
@@ -97,11 +99,13 @@ class QdrantClientPointsTest {
             FilterUtil.fieldCondition("name", FilterUtil.match("Anush")),
             FilterUtil.fieldCondition("favourites.color", FilterUtil.match("Blue")),
             FilterUtil.fieldCondition("favourites.movie", FilterUtil.match("Man Of Steel")));
-    qdrantClient.deletePointsBlocking(collectionName, SelectorUtil.filterSelector(filter), null);
+    qdrantClient.deletePointsBlocking(
+        collectionName, null, SelectorUtil.filterSelector(filter), null);
 
     response =
         qdrantClient.getPoints(
             collectionName,
+            null,
             Arrays.asList(pointIds),
             SelectorUtil.withVectors(),
             SelectorUtil.withPayload(),
@@ -123,6 +127,7 @@ class QdrantClientPointsTest {
     Points.GetResponse response =
         qdrantClient.getPoints(
             collectionName,
+            null,
             Arrays.asList(pointIds),
             SelectorUtil.withVectors(),
             SelectorUtil.withPayload(),
@@ -132,21 +137,24 @@ class QdrantClientPointsTest {
 
     PointStruct point = PointUtil.point(pointID, VectorUtil.dummyVector(EMBEDDINGS_SIZE), null);
     List<PointStruct> points = Arrays.asList(point);
-    qdrantClient.upsertPointsBlocking(collectionName, points, null);
+    qdrantClient.upsertPointsBlocking(collectionName, null, points, null);
     response =
         qdrantClient.getPoints(
             collectionName,
+            null,
             Arrays.asList(pointIds),
             SelectorUtil.withVectors(),
             SelectorUtil.withPayload(),
             null);
     assertEquals(1, response.getResultCount());
 
-    qdrantClient.deletePointsBlocking(collectionName, SelectorUtil.idsSelector(pointIds), null);
+    qdrantClient.deletePointsBlocking(
+        collectionName, null, SelectorUtil.idsSelector(pointIds), null);
 
     response =
         qdrantClient.getPoints(
             collectionName,
+            null,
             Arrays.asList(pointIds),
             SelectorUtil.withVectors(),
             SelectorUtil.withPayload(),
@@ -172,7 +180,7 @@ class QdrantClientPointsTest {
 
     assertDoesNotThrow(
         () -> {
-          qdrantClient.upsertPointsBatchBlocking(collectionName, points, null, 100);
+          qdrantClient.upsertPointsBatchBlocking(collectionName, null, points, null, 100);
         });
   }
 
@@ -193,7 +201,7 @@ class QdrantClientPointsTest {
 
     assertDoesNotThrow(
         () -> {
-          qdrantClient.upsertPointsBlocking(collectionName, points, null);
+          qdrantClient.upsertPointsBlocking(collectionName, null, points, null);
         });
 
     SearchPoints request =
@@ -226,7 +234,7 @@ class QdrantClientPointsTest {
 
     assertDoesNotThrow(
         () -> {
-          qdrantClient.upsertPointsBlocking(collectionName, points, null);
+          qdrantClient.upsertPointsBlocking(collectionName, null, points, null);
         });
 
     Map<String, Object> data = new HashMap<>();
@@ -242,7 +250,7 @@ class QdrantClientPointsTest {
     Map<String, Value> payload = PayloadUtil.toPayload(data);
 
     qdrantClient.setPayloadBlocking(
-        collectionName, SelectorUtil.filterSelector(FilterUtil.must()), payload, null);
+        collectionName, null, SelectorUtil.filterSelector(FilterUtil.must()), payload, null);
 
     Points.ScrollPoints request =
         Points.ScrollPoints.newBuilder()
