@@ -28,9 +28,9 @@ public class QdrantClient {
    * Constructs a new QdrantClient with the specified URL and API key<br>
    * Uses TLS if the URL is https, otherwise uses plaintext.
    *
-   * @param url The URL of the Qdrant service.
+   * @param url    The URL of the Qdrant service.
    * @param apiKey The API key for authentication.
-   * @throws MalformedURLException If the URL is malformed.
+   * @throws MalformedURLException    If the URL is malformed.
    * @throws IllegalArgumentException If the protocol is invalid.
    */
   public QdrantClient(String url, String apiKey)
@@ -45,7 +45,7 @@ public class QdrantClient {
    * Uses TLS if the URL is https, otherwise uses plaintext.
    *
    * @param url the URL of the Qdrant service
-   * @throws MalformedURLException If the URL is malformed
+   * @throws MalformedURLException    If the URL is malformed
    * @throws IllegalArgumentException If the protocol is invalid.
    */
   public QdrantClient(String url) throws MalformedURLException, IllegalArgumentException {
@@ -56,18 +56,18 @@ public class QdrantClient {
   /**
    * Creates a managed channel based on the provided URL and interceptor.
    *
-   * @param url The URL of the gRPC server.
+   * @param url         The URL of the gRPC server.
    * @param interceptor The token interceptor to be added to the channel.
    * @return The created managed channel.
-   * @throws MalformedURLException If the provided URL is malformed.
+   * @throws MalformedURLException    If the provided URL is malformed.
    * @throws IllegalArgumentException If the provided protocol is invalid.
    */
   private ManagedChannel createManagedChannel(String url, TokenInterceptor interceptor)
       throws MalformedURLException, IllegalArgumentException {
     URL parsedUrl = new URL(url);
 
-    ManagedChannelBuilder<?> channelBuilder =
-        ManagedChannelBuilder.forAddress(parsedUrl.getHost(), parsedUrl.getPort());
+    ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress(parsedUrl.getHost(),
+        parsedUrl.getPort());
 
     switch (parsedUrl.getProtocol().toUpperCase()) {
       case "HTTPS":
@@ -109,8 +109,7 @@ public class QdrantClient {
    * @return The response containing the list of collections.
    */
   public Collections.ListCollectionsResponse listCollections() {
-    Collections.ListCollectionsRequest request =
-        Collections.ListCollectionsRequest.newBuilder().build();
+    Collections.ListCollectionsRequest request = Collections.ListCollectionsRequest.newBuilder().build();
     return collectionsStub.list(request);
   }
 
@@ -120,8 +119,7 @@ public class QdrantClient {
    * @return The health check reply from the Qdrant service.
    */
   public QdrantOuterClass.HealthCheckReply healthCheck() {
-    QdrantOuterClass.HealthCheckRequest request =
-        QdrantOuterClass.HealthCheckRequest.newBuilder().build();
+    QdrantOuterClass.HealthCheckRequest request = QdrantOuterClass.HealthCheckRequest.newBuilder().build();
     return qdrantStub.healthCheck(request);
   }
 
@@ -137,24 +135,23 @@ public class QdrantClient {
   }
 
   /**
-   * Creates a new collection with the specified name, vector size, and distance metric.
+   * Creates a new collection with the specified name, vector size, and distance
+   * metric.
    *
    * @param collectionName The name of the collection to be created.
-   * @param vectorSize The size of the vectors in the collection.
-   * @param distance The distance metric to be used for vector comparison.
+   * @param vectorSize     The size of the vectors in the collection.
+   * @param distance       The distance metric to be used for vector comparison.
    * @return The response containing the operation status.
    */
   public Collections.CollectionOperationResponse createCollection(
       String collectionName, long vectorSize, Collections.Distance distance) {
-    Collections.VectorParams.Builder params =
-        Collections.VectorParams.newBuilder().setDistance(distance).setSize(vectorSize);
-    Collections.VectorsConfig config =
-        Collections.VectorsConfig.newBuilder().setParams(params).build();
-    Collections.CreateCollection details =
-        Collections.CreateCollection.newBuilder()
-            .setVectorsConfig(config)
-            .setCollectionName(collectionName)
-            .build();
+    Collections.VectorParams.Builder params = Collections.VectorParams.newBuilder().setDistance(distance)
+        .setSize(vectorSize);
+    Collections.VectorsConfig config = Collections.VectorsConfig.newBuilder().setParams(params).build();
+    Collections.CreateCollection details = Collections.CreateCollection.newBuilder()
+        .setVectorsConfig(config)
+        .setCollectionName(collectionName)
+        .build();
     return createCollection(details);
   }
 
@@ -170,25 +167,24 @@ public class QdrantClient {
   }
 
   /**
-   * Deletes and creates a new collection with the specified name, vector size, and distance metric.
+   * Deletes and creates a new collection with the specified name, vector size,
+   * and distance metric.
    *
    * @param collectionName The name of the collection to be created.
-   * @param vectorSize The size of the vectors in the collection.
-   * @param distance The distance metric to be used for vector comparison.
+   * @param vectorSize     The size of the vectors in the collection.
+   * @param distance       The distance metric to be used for vector comparison.
    * @return The response containing the operation status.
    */
   public Collections.CollectionOperationResponse recreateCollection(
       String collectionName, long vectorSize, Collections.Distance distance) {
 
-    Collections.VectorParams.Builder params =
-        Collections.VectorParams.newBuilder().setDistance(distance).setSize(vectorSize);
-    Collections.VectorsConfig config =
-        Collections.VectorsConfig.newBuilder().setParams(params).build();
-    Collections.CreateCollection details =
-        Collections.CreateCollection.newBuilder()
-            .setVectorsConfig(config)
-            .setCollectionName(collectionName)
-            .build();
+    Collections.VectorParams.Builder params = Collections.VectorParams.newBuilder().setDistance(distance)
+        .setSize(vectorSize);
+    Collections.VectorsConfig config = Collections.VectorsConfig.newBuilder().setParams(params).build();
+    Collections.CreateCollection details = Collections.CreateCollection.newBuilder()
+        .setVectorsConfig(config)
+        .setCollectionName(collectionName)
+        .build();
     return recreateCollection(details);
   }
 
@@ -222,8 +218,8 @@ public class QdrantClient {
    * @return the response of the collection deletion operation
    */
   public Collections.CollectionOperationResponse deleteCollection(String collectionName) {
-    Collections.DeleteCollection request =
-        Collections.DeleteCollection.newBuilder().setCollectionName(collectionName).build();
+    Collections.DeleteCollection request = Collections.DeleteCollection.newBuilder().setCollectionName(collectionName)
+        .build();
     return collectionsStub.delete(request);
   }
 
@@ -234,8 +230,8 @@ public class QdrantClient {
    * @return The response containing the collection information.
    */
   public Collections.GetCollectionInfoResponse getCollectionInfo(String collectionName) {
-    Collections.GetCollectionInfoRequest request =
-        Collections.GetCollectionInfoRequest.newBuilder().setCollectionName(collectionName).build();
+    Collections.GetCollectionInfoRequest request = Collections.GetCollectionInfoRequest.newBuilder()
+        .setCollectionName(collectionName).build();
     return collectionsStub.get(request);
   }
 
@@ -243,20 +239,18 @@ public class QdrantClient {
    * Creates an alias for a collection.
    *
    * @param collectionName The name of the collection.
-   * @param aliasName The name of the alias.
+   * @param aliasName      The name of the alias.
    * @return The response of the collection operation.
    */
   public Collections.CollectionOperationResponse createAlias(
       String collectionName, String aliasName) {
-    Collections.CreateAlias createAlias =
-        Collections.CreateAlias.newBuilder()
-            .setCollectionName(collectionName)
-            .setAliasName(aliasName)
-            .build();
-    Collections.AliasOperations operations =
-        Collections.AliasOperations.newBuilder().setCreateAlias(createAlias).build();
-    Collections.ChangeAliases changeAliases =
-        Collections.ChangeAliases.newBuilder().addActions(operations).build();
+    Collections.CreateAlias createAlias = Collections.CreateAlias.newBuilder()
+        .setCollectionName(collectionName)
+        .setAliasName(aliasName)
+        .build();
+    Collections.AliasOperations operations = Collections.AliasOperations.newBuilder().setCreateAlias(createAlias)
+        .build();
+    Collections.ChangeAliases changeAliases = Collections.ChangeAliases.newBuilder().addActions(operations).build();
 
     return this.updateAliases(changeAliases);
   }
@@ -268,12 +262,10 @@ public class QdrantClient {
    * @return the response of the collection operation
    */
   public Collections.CollectionOperationResponse deleteAlias(String aliasName) {
-    Collections.DeleteAlias deleteAlias =
-        Collections.DeleteAlias.newBuilder().setAliasName(aliasName).build();
-    Collections.AliasOperations operations =
-        Collections.AliasOperations.newBuilder().setDeleteAlias(deleteAlias).build();
-    Collections.ChangeAliases changeAliases =
-        Collections.ChangeAliases.newBuilder().addActions(operations).build();
+    Collections.DeleteAlias deleteAlias = Collections.DeleteAlias.newBuilder().setAliasName(aliasName).build();
+    Collections.AliasOperations operations = Collections.AliasOperations.newBuilder().setDeleteAlias(deleteAlias)
+        .build();
+    Collections.ChangeAliases changeAliases = Collections.ChangeAliases.newBuilder().addActions(operations).build();
 
     return this.updateAliases(changeAliases);
   }
@@ -287,15 +279,13 @@ public class QdrantClient {
    */
   public Collections.CollectionOperationResponse renameAlias(
       String oldAliasName, String newAliasName) {
-    Collections.RenameAlias renameAlias =
-        Collections.RenameAlias.newBuilder()
-            .setOldAliasName(oldAliasName)
-            .setNewAliasName(newAliasName)
-            .build();
-    Collections.AliasOperations operations =
-        Collections.AliasOperations.newBuilder().setRenameAlias(renameAlias).build();
-    Collections.ChangeAliases changeAliases =
-        Collections.ChangeAliases.newBuilder().addActions(operations).build();
+    Collections.RenameAlias renameAlias = Collections.RenameAlias.newBuilder()
+        .setOldAliasName(oldAliasName)
+        .setNewAliasName(newAliasName)
+        .build();
+    Collections.AliasOperations operations = Collections.AliasOperations.newBuilder().setRenameAlias(renameAlias)
+        .build();
+    Collections.ChangeAliases changeAliases = Collections.ChangeAliases.newBuilder().addActions(operations).build();
     return this.updateAliases(changeAliases);
   }
 
@@ -316,10 +306,9 @@ public class QdrantClient {
    * @return The response containing the list of aliases.
    */
   public Collections.ListAliasesResponse listCollectionAliases(String collectionName) {
-    Collections.ListCollectionAliasesRequest request =
-        Collections.ListCollectionAliasesRequest.newBuilder()
-            .setCollectionName(collectionName)
-            .build();
+    Collections.ListCollectionAliasesRequest request = Collections.ListCollectionAliasesRequest.newBuilder()
+        .setCollectionName(collectionName)
+        .build();
     return collectionsStub.listCollectionAliases(request);
   }
 
@@ -340,19 +329,20 @@ public class QdrantClient {
    * @return The cluster information for the collection.
    */
   public Collections.CollectionClusterInfoResponse getCollectionClusterInfo(String collectionName) {
-    Collections.CollectionClusterInfoRequest request =
-        Collections.CollectionClusterInfoRequest.newBuilder()
-            .setCollectionName(collectionName)
-            .build();
+    Collections.CollectionClusterInfoRequest request = Collections.CollectionClusterInfoRequest.newBuilder()
+        .setCollectionName(collectionName)
+        .build();
     return collectionsStub.collectionClusterInfo(request);
   }
-  
+
   /**
    * Updates the cluster setup for a collection.
    *
    * @param collectionName The name of the collection.
-   * @param request The request object containing the updated cluster setup.
-   * @return The response object indicating the success or failure of the update operation.
+   * @param request        The request object containing the updated cluster
+   *                       setup.
+   * @return The response object indicating the success or failure of the update
+   *         operation.
    */
   public Collections.UpdateCollectionClusterSetupResponse updateCollectionClusterSetup(
       String collectionName, Collections.UpdateCollectionClusterSetupRequest request) {
@@ -365,11 +355,10 @@ public class QdrantClient {
       List<Points.PointsUpdateOperation> operations,
       Points.WriteOrderingType ordering,
       Boolean wait) {
-    Points.UpdateBatchPoints.Builder request =
-        Points.UpdateBatchPoints.newBuilder()
-            .setCollectionName(collectionName)
-            .setWait(wait)
-            .addAllOperations(operations);
+    Points.UpdateBatchPoints.Builder request = Points.UpdateBatchPoints.newBuilder()
+        .setCollectionName(collectionName)
+        .setWait(wait)
+        .addAllOperations(operations);
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -378,11 +367,12 @@ public class QdrantClient {
   }
 
   /**
-   * Performs a batch update operation on a collection. Does not wait for the operation to complete
+   * Performs a batch update operation on a collection. Does not wait for the
+   * operation to complete
    * before returning.
    *
    * @param collectionName The name of the collection.
-   * @param operations The list of update operations to be performed.
+   * @param operations     The list of update operations to be performed.
    * @return The response of the batch update operation.
    */
   public Points.UpdateBatchResponse batchUpdate(
@@ -393,11 +383,12 @@ public class QdrantClient {
   }
 
   /**
-   * Performs a batch update operation on a collection. Waits for the operation to complete before
+   * Performs a batch update operation on a collection. Waits for the operation to
+   * complete before
    * returning.
    *
    * @param collectionName The name of the collection.
-   * @param operations The list of update operations to be performed.
+   * @param operations     The list of update operations to be performed.
    * @return The response of the batch update operation.
    */
   public Points.UpdateBatchResponse batchUpdateBlocking(
@@ -413,11 +404,10 @@ public class QdrantClient {
       List<Points.PointStruct> points,
       Points.WriteOrderingType ordering,
       Boolean wait) {
-    Points.UpsertPoints.Builder request =
-        Points.UpsertPoints.newBuilder()
-            .setCollectionName(collectionName)
-            .addAllPoints(points)
-            .setWait(wait);
+    Points.UpsertPoints.Builder request = Points.UpsertPoints.newBuilder()
+        .setCollectionName(collectionName)
+        .addAllPoints(points)
+        .setWait(wait);
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -426,12 +416,13 @@ public class QdrantClient {
   }
 
   /**
-   * Upserts the given points into the specified collection. Does not wait for the operation to
+   * Upserts the given points into the specified collection. Does not wait for the
+   * operation to
    * complete before returning.
    *
    * @param collectionName The name of the collection.
-   * @param points The list of points to be upserted.
-   * @param ordering The write ordering for the upsert operation.
+   * @param points         The list of points to be upserted.
+   * @param ordering       The write ordering for the upsert operation.
    * @return The response of the upsert operation.
    */
   public Points.PointsOperationResponse upsertPoints(
@@ -440,12 +431,13 @@ public class QdrantClient {
   }
 
   /**
-   * Upserts the given points into the specified collection. Waits for the operation to complete
+   * Upserts the given points into the specified collection. Waits for the
+   * operation to complete
    * before returning.
    *
    * @param collectionName The name of the collection.
-   * @param points The list of points to be upserted.
-   * @param ordering The write ordering for the upsert operation.
+   * @param points         The list of points to be upserted.
+   * @param ordering       The write ordering for the upsert operation.
    * @return The response of the upsert operation.
    */
   public Points.PointsOperationResponse upsertPointsBlocking(
@@ -475,11 +467,12 @@ public class QdrantClient {
   }
 
   /**
-   * Upserts a batch of points in the specified collection. Does not wait for the operation to
+   * Upserts a batch of points in the specified collection. Does not wait for the
+   * operation to
    * complete before returning.
    *
    * @param collectionName The name of the collection.
-   * @param points The list of points to upsert.
+   * @param points         The list of points to upsert.
    * @return The response of the points operation.
    */
   public Points.PointsOperationResponse upsertPointsBatch(
@@ -491,11 +484,12 @@ public class QdrantClient {
   }
 
   /**
-   * Upserts a batch of points in the specified collection. Waits for the operation to complete
+   * Upserts a batch of points in the specified collection. Waits for the
+   * operation to complete
    * before returning.
    *
    * @param collectionName The name of the collection.
-   * @param points The list of points to upsert.
+   * @param points         The list of points to upsert.
    * @return The response of the points operation.
    */
   public Points.PointsOperationResponse upsertPointsBatchBlocking(
@@ -513,12 +507,11 @@ public class QdrantClient {
       Map<String, Value> payload,
       Points.WriteOrderingType ordering,
       Boolean wait) {
-    Points.SetPayloadPoints.Builder request =
-        Points.SetPayloadPoints.newBuilder()
-            .setCollectionName(collectionName)
-            .setPointsSelector(points)
-            .putAllPayload(payload)
-            .setWait(wait);
+    Points.SetPayloadPoints.Builder request = Points.SetPayloadPoints.newBuilder()
+        .setCollectionName(collectionName)
+        .setPointsSelector(points)
+        .putAllPayload(payload)
+        .setWait(wait);
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -527,13 +520,14 @@ public class QdrantClient {
   }
 
   /**
-   * Sets the payload of the specified points in a collection. Does not wait for the operation to
+   * Sets the payload of the specified points in a collection. Does not wait for
+   * the operation to
    * complete before returning.
    *
    * @param collectionName The name of the collection.
-   * @param points The selector for the points to be updated.
-   * @param payload The new payload to be assigned to the points.
-   * @param ordering The ordering of the write operation.
+   * @param points         The selector for the points to be updated.
+   * @param payload        The new payload to be assigned to the points.
+   * @param ordering       The ordering of the write operation.
    * @return The response of the points operation.
    */
   public Points.PointsOperationResponse setPayload(
@@ -545,13 +539,14 @@ public class QdrantClient {
   }
 
   /**
-   * Sets the payload of the specified points in a collection. Waits for the operation to complete
+   * Sets the payload of the specified points in a collection. Waits for the
+   * operation to complete
    * before returning.
    *
    * @param collectionName The name of the collection.
-   * @param points The selector for the points to be updated.
-   * @param payload The new payload to be assigned to the points.
-   * @param ordering The ordering of the write operation.
+   * @param points         The selector for the points to be updated.
+   * @param payload        The new payload to be assigned to the points.
+   * @param ordering       The ordering of the write operation.
    * @return The response of the points operation.
    */
   public Points.PointsOperationResponse setPayloadBlocking(
@@ -569,12 +564,11 @@ public class QdrantClient {
       Map<String, Value> payload,
       Points.WriteOrderingType ordering,
       Boolean wait) {
-    Points.SetPayloadPoints.Builder request =
-        Points.SetPayloadPoints.newBuilder()
-            .setCollectionName(collectionName)
-            .setPointsSelector(points)
-            .putAllPayload(payload)
-            .setWait(wait);
+    Points.SetPayloadPoints.Builder request = Points.SetPayloadPoints.newBuilder()
+        .setCollectionName(collectionName)
+        .setPointsSelector(points)
+        .putAllPayload(payload)
+        .setWait(wait);
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -583,13 +577,14 @@ public class QdrantClient {
   }
 
   /**
-   * Overwrites the payload of the specified points in a collection. Does not wait for the operation
+   * Overwrites the payload of the specified points in a collection. Does not wait
+   * for the operation
    * to complete before returning.
    *
    * @param collectionName The name of the collection.
-   * @param points The selector for the points to be overwritten.
-   * @param payload The new payload to be assigned to the points.
-   * @param ordering The ordering of the write operation.
+   * @param points         The selector for the points to be overwritten.
+   * @param payload        The new payload to be assigned to the points.
+   * @param ordering       The ordering of the write operation.
    * @return The response of the points operation.
    */
   public Points.PointsOperationResponse overwritePayload(
@@ -601,13 +596,14 @@ public class QdrantClient {
   }
 
   /**
-   * Overwrites the payload of the specified points in a collection. Waits for the operation to
+   * Overwrites the payload of the specified points in a collection. Waits for the
+   * operation to
    * complete before returning.
    *
    * @param collectionName The name of the collection.
-   * @param points The selector for the points to be overwritten.
-   * @param payload The new payload to be assigned to the points.
-   * @param ordering The ordering of the write operation.
+   * @param points         The selector for the points to be overwritten.
+   * @param payload        The new payload to be assigned to the points.
+   * @param ordering       The ordering of the write operation.
    * @return The response of the points operation.
    */
   public Points.PointsOperationResponse overwritePayloadBlocking(
@@ -625,12 +621,11 @@ public class QdrantClient {
       List<String> keys,
       Points.WriteOrderingType ordering,
       Boolean wait) {
-    Points.DeletePayloadPoints.Builder request =
-        Points.DeletePayloadPoints.newBuilder()
-            .setCollectionName(collectionName)
-            .addAllKeys(keys)
-            .setWait(wait)
-            .setPointsSelector(points);
+    Points.DeletePayloadPoints.Builder request = Points.DeletePayloadPoints.newBuilder()
+        .setCollectionName(collectionName)
+        .addAllKeys(keys)
+        .setWait(wait)
+        .setPointsSelector(points);
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -639,13 +634,14 @@ public class QdrantClient {
   }
 
   /**
-   * Deletes the payload associated with the specified collection, points, keys, and ordering. Does
+   * Deletes the payload associated with the specified collection, points, keys,
+   * and ordering. Does
    * not wait for the operation to complete before returning.
    *
    * @param collectionName The name of the collection.
-   * @param points The points selector.
-   * @param keys The list of keys.
-   * @param ordering The write ordering.
+   * @param points         The points selector.
+   * @param keys           The list of keys.
+   * @param ordering       The write ordering.
    * @return The response of the points operation.
    */
   public Points.PointsOperationResponse deletePayload(
@@ -657,13 +653,14 @@ public class QdrantClient {
   }
 
   /**
-   * Deletes the payload associated with the specified collection, points, keys, and ordering. Waits
+   * Deletes the payload associated with the specified collection, points, keys,
+   * and ordering. Waits
    * for the operation to complete before returning.
    *
    * @param collectionName The name of the collection.
-   * @param points The points selector.
-   * @param keys The list of keys.
-   * @param ordering The write ordering.
+   * @param points         The points selector.
+   * @param keys           The list of keys.
+   * @param ordering       The write ordering.
    * @return The response of the points operation.
    */
   public Points.PointsOperationResponse deletePayloadBlocking(
@@ -680,11 +677,10 @@ public class QdrantClient {
       Points.PointsSelector points,
       Points.WriteOrderingType ordering,
       Boolean wait) {
-    Points.ClearPayloadPoints.Builder request =
-        Points.ClearPayloadPoints.newBuilder()
-            .setCollectionName(collectionName)
-            .setPoints(points)
-            .setWait(wait);
+    Points.ClearPayloadPoints.Builder request = Points.ClearPayloadPoints.newBuilder()
+        .setCollectionName(collectionName)
+        .setPoints(points)
+        .setWait(wait);
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -694,11 +690,12 @@ public class QdrantClient {
   }
 
   /**
-   * Clears the payload associated with the specified collection, points and ordering. Does not wait
+   * Clears the payload associated with the specified collection, points and
+   * ordering. Does not wait
    * for the operation to complete before returning.
    *
    * @param collectionName The name of the collection.
-   * @param points The points to be cleared.
+   * @param points         The points to be cleared.
    * @return The response of the clearPayload operation.
    */
   public Points.PointsOperationResponse clearPayload(
@@ -707,11 +704,12 @@ public class QdrantClient {
   }
 
   /**
-   * Clears the payload associated with the specified collection, points and ordering. Waits for the
+   * Clears the payload associated with the specified collection, points and
+   * ordering. Waits for the
    * operation to complete before returning.
    *
    * @param collectionName The name of the collection.
-   * @param points The points to be cleared.
+   * @param points         The points to be cleared.
    * @return The response of the clearPayload operation.
    */
   public Points.PointsOperationResponse clearPayloadBlocking(
@@ -722,10 +720,10 @@ public class QdrantClient {
   /**
    * Retrieves points from a collection.
    *
-   * @param collectionName The name of the collection.
-   * @param points The IDs of the points to retrieve.
-   * @param withVectors The selector for including vectors in the response.
-   * @param withPayload The selector for including payload in the response.
+   * @param collectionName  The name of the collection.
+   * @param points          The IDs of the points to retrieve.
+   * @param withVectors     The selector for including vectors in the response.
+   * @param withPayload     The selector for including payload in the response.
    * @param readConsistency The read consistency level for the operation.
    * @return The response containing the retrieved points.
    */
@@ -735,12 +733,11 @@ public class QdrantClient {
       Points.WithVectorsSelector withVectors,
       Points.WithPayloadSelector withPayload,
       Points.ReadConsistencyType readConsistency) {
-    Points.GetPoints.Builder request =
-        Points.GetPoints.newBuilder()
-            .setCollectionName(collectionName)
-            .addAllIds(points)
-            .setWithVectors(withVectors)
-            .setWithPayload(withPayload);
+    Points.GetPoints.Builder request = Points.GetPoints.newBuilder()
+        .setCollectionName(collectionName)
+        .addAllIds(points)
+        .setWithVectors(withVectors)
+        .setWithPayload(withPayload);
 
     if (readConsistency != null) {
       request.setReadConsistency(PointUtil.consistency(readConsistency));
@@ -772,7 +769,8 @@ public class QdrantClient {
   /**
    * Searches for point groups based on the given request.
    *
-   * @param request The search request containing the criteria for searching point groups.
+   * @param request The search request containing the criteria for searching point
+   *                groups.
    * @return The response containing the search results for point groups.
    */
   public Points.SearchGroupsResponse searchGroups(Points.SearchPointGroups request) {
@@ -785,11 +783,10 @@ public class QdrantClient {
       Points.PointsSelector points,
       Points.WriteOrderingType ordering,
       Boolean wait) {
-    Points.DeletePoints.Builder request =
-        Points.DeletePoints.newBuilder()
-            .setCollectionName(collectionName)
-            .setPoints(points)
-            .setWait(wait);
+    Points.DeletePoints.Builder request = Points.DeletePoints.newBuilder()
+        .setCollectionName(collectionName)
+        .setPoints(points)
+        .setWait(wait);
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -798,11 +795,13 @@ public class QdrantClient {
   }
 
   /**
-   * Deletes points from a collection. Does not wait for the operation to complete before returning.
+   * Deletes points from a collection. Does not wait for the operation to complete
+   * before returning.
    *
-   * @param collectionName The name of the collection from which points will be deleted.
-   * @param points The selector for the points to be deleted.
-   * @param ordering The ordering of the write operation.
+   * @param collectionName The name of the collection from which points will be
+   *                       deleted.
+   * @param points         The selector for the points to be deleted.
+   * @param ordering       The ordering of the write operation.
    * @return The response of the points deletion operation.
    */
   public Points.PointsOperationResponse deletePoints(
@@ -811,11 +810,13 @@ public class QdrantClient {
   }
 
   /**
-   * Deletes points from a collection. Waits for the operation to complete before returning.
+   * Deletes points from a collection. Waits for the operation to complete before
+   * returning.
    *
-   * @param collectionName The name of the collection from which points will be deleted.
-   * @param points The selector for the points to be deleted.
-   * @param ordering The ordering of the write operation.
+   * @param collectionName The name of the collection from which points will be
+   *                       deleted.
+   * @param points         The selector for the points to be deleted.
+   * @param ordering       The ordering of the write operation.
    * @return The response of the points deletion operation.
    */
   public Points.PointsOperationResponse deletePointsBlocking(
@@ -830,12 +831,11 @@ public class QdrantClient {
       Points.VectorsSelector vectors,
       Points.WriteOrderingType ordering,
       Boolean wait) {
-    Points.DeletePointVectors.Builder requests =
-        Points.DeletePointVectors.newBuilder()
-            .setCollectionName(collectionName)
-            .setPointsSelector(points)
-            .setVectors(vectors)
-            .setWait(wait);
+    Points.DeletePointVectors.Builder requests = Points.DeletePointVectors.newBuilder()
+        .setCollectionName(collectionName)
+        .setPointsSelector(points)
+        .setVectors(vectors)
+        .setWait(wait);
 
     if (ordering != null) {
       requests.setOrdering(PointUtil.ordering(ordering));
@@ -844,13 +844,14 @@ public class QdrantClient {
   }
 
   /**
-   * Deletes vectors from a collection. Does not wait for the operation to complete before
+   * Deletes vectors from a collection. Does not wait for the operation to
+   * complete before
    * returning.
    *
    * @param collectionName The name of the collection.
-   * @param points The selector for points to delete.
-   * @param vectors The selector for vectors to delete.
-   * @param ordering The write ordering for the operation.
+   * @param points         The selector for points to delete.
+   * @param vectors        The selector for vectors to delete.
+   * @param ordering       The write ordering for the operation.
    * @return The response of the delete operation.
    */
   public Points.PointsOperationResponse deleteVectors(
@@ -862,12 +863,13 @@ public class QdrantClient {
   }
 
   /**
-   * Deletes vectors from a collection. Waits for the operation to complete before returning.
+   * Deletes vectors from a collection. Waits for the operation to complete before
+   * returning.
    *
    * @param collectionName The name of the collection.
-   * @param points The selector for points to delete.
-   * @param vectors The selector for vectors to delete.
-   * @param ordering The write ordering for the operation.
+   * @param points         The selector for points to delete.
+   * @param vectors        The selector for vectors to delete.
+   * @param ordering       The write ordering for the operation.
    * @return The response of the delete operation.
    */
   public Points.PointsOperationResponse deleteVectorsBlocking(
@@ -882,13 +884,17 @@ public class QdrantClient {
   private Points.PointsOperationResponse updateVectors(
       String collectionName,
       Iterable<? extends Points.PointVectors> points,
+      Points.ShardKeySelector shardKeySelector,
       Points.WriteOrderingType ordering,
       Boolean wait) {
-    Points.UpdatePointVectors.Builder request =
-        Points.UpdatePointVectors.newBuilder()
-            .setCollectionName(collectionName)
-            .addAllPoints(points)
-            .setWait(wait);
+    Points.UpdatePointVectors.Builder request = Points.UpdatePointVectors.newBuilder()
+        .setCollectionName(collectionName)
+        .addAllPoints(points)
+        .setWait(wait);
+
+    if (shardKeySelector != null) {
+      request.setShardKeySelector(shardKeySelector);
+    }
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -897,35 +903,41 @@ public class QdrantClient {
   }
 
   /**
-   * Updates the vectors of points in a collection. Does not wait for the operation to complete
+   * Updates the vectors of points in a collection. Does not wait for the
+   * operation to complete
    * before returning.
    *
-   * @param collectionName The name of the collection.
-   * @param points An iterable of point vectors to update.
-   * @param ordering The write ordering for the update operation.
+   * @param collectionName   The name of the collection.
+   * @param points           An iterable of point vectors to update.
+   * @param shardKeySelector The shard keys selector for the request.
+   * @param ordering         The write ordering for the update operation.
    * @return The response of the points operation.
    */
   public Points.PointsOperationResponse updateVectors(
       String collectionName,
       Iterable<? extends Points.PointVectors> points,
+      Points.ShardKeySelector shardKeySelector,
       Points.WriteOrderingType ordering) {
-    return updateVectors(collectionName, points, ordering, false);
+    return updateVectors(collectionName, points, shardKeySelector, ordering, false);
   }
 
   /**
-   * Updates the vectors of points in a collection. Waits for the operation to complete before
+   * Updates the vectors of points in a collection. Waits for the operation to
+   * complete before
    * returning.
    *
    * @param collectionName The name of the collection.
-   * @param points An iterable of point vectors to update.
-   * @param ordering The write ordering for the update operation.
+   * @param points         An iterable of point vectors to update.
+   * @param shardKeySelector The shard keys selector for the request.
+   * @param ordering       The write ordering for the update operation.
    * @return The response of the points operation.
    */
   public Points.PointsOperationResponse updateVectorsBlocking(
       String collectionName,
       Iterable<? extends Points.PointVectors> points,
+      Points.ShardKeySelector shardKeySelector,
       Points.WriteOrderingType ordering) {
-    return updateVectors(collectionName, points, ordering, true);
+    return updateVectors(collectionName, points, shardKeySelector, ordering, true);
   }
 
   /**
@@ -939,7 +951,8 @@ public class QdrantClient {
   }
 
   /**
-   * Recommends points based on the given positive/negative points recommendation request.
+   * Recommends points based on the given positive/negative points recommendation
+   * request.
    *
    * @param request The points recommendation request.
    * @return The recommendation response.
@@ -949,7 +962,8 @@ public class QdrantClient {
   }
 
   /**
-   * Recommends points batch based on the given positive/negative points recommendation request.
+   * Recommends points batch based on the given positive/negative points
+   * recommendation request.
    *
    * @param request The batch recommendation points request.
    * @return The response containing the recommended points.
@@ -959,7 +973,8 @@ public class QdrantClient {
   }
 
   /**
-   * Recommends groups based on the given positive/negative points recommendation request.
+   * Recommends groups based on the given positive/negative points recommendation
+   * request.
    *
    * @param request The request containing the point groups to recommend.
    * @return The response containing the recommended groups.
@@ -972,12 +987,12 @@ public class QdrantClient {
    * Counts the number of points in a collection based on the given filters.
    *
    * @param collectionName The name of the collection.
-   * @param filter The filter to be applied.
+   * @param filter         The filter to be applied.
    * @return The response containing the points count result.
    */
   public Points.CountResponse count(String collectionName, Points.Filter filter) {
-    Points.CountPoints request =
-        Points.CountPoints.newBuilder().setCollectionName(collectionName).setFilter(filter).build();
+    Points.CountPoints request = Points.CountPoints.newBuilder().setCollectionName(collectionName).setFilter(filter)
+        .build();
     return pointsStub.count(request);
   }
 
@@ -997,11 +1012,10 @@ public class QdrantClient {
       Iterable<? extends Points.PointsUpdateOperation> operations,
       Points.WriteOrderingType ordering,
       Boolean wait) {
-    Points.UpdateBatchPoints.Builder request =
-        Points.UpdateBatchPoints.newBuilder()
-            .setCollectionName(collecionName)
-            .addAllOperations(operations)
-            .setWait(wait);
+    Points.UpdateBatchPoints.Builder request = Points.UpdateBatchPoints.newBuilder()
+        .setCollectionName(collecionName)
+        .addAllOperations(operations)
+        .setWait(wait);
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -1010,12 +1024,13 @@ public class QdrantClient {
   }
 
   /**
-   * Updates a batch of points in a collection. Does not wait for the operation to complete before
+   * Updates a batch of points in a collection. Does not wait for the operation to
+   * complete before
    * returning.
    *
    * @param collecionName The name of the collection.
-   * @param operations The operations to be performed on the points.
-   * @param ordering The ordering of the write operations.
+   * @param operations    The operations to be performed on the points.
+   * @param ordering      The ordering of the write operations.
    * @return The response of the batch points update operation.
    */
   public Points.UpdateBatchResponse updateBatchPoints(
@@ -1026,12 +1041,13 @@ public class QdrantClient {
   }
 
   /**
-   * Updates a batch of points in a collection. Waits for the operation to complete before
+   * Updates a batch of points in a collection. Waits for the operation to
+   * complete before
    * returning.
    *
    * @param collectionName The name of the collection.
-   * @param operations The operations to be performed on the points.
-   * @param ordering The ordering of the write operations.
+   * @param operations     The operations to be performed on the points.
+   * @param ordering       The ordering of the write operations.
    * @return The response of the batch points update operation.
    */
   public Points.UpdateBatchResponse updateBatchPointsBlocking(
@@ -1049,13 +1065,12 @@ public class QdrantClient {
       Collections.PayloadIndexParams fieldIndexParams,
       Points.WriteOrderingType ordering,
       Boolean wait) {
-    Points.CreateFieldIndexCollection.Builder request =
-        Points.CreateFieldIndexCollection.newBuilder()
-            .setCollectionName(collectionName)
-            .setFieldName(fieldName)
-            .setFieldType(fieldType)
-            .setFieldIndexParams(fieldIndexParams)
-            .setWait(wait);
+    Points.CreateFieldIndexCollection.Builder request = Points.CreateFieldIndexCollection.newBuilder()
+        .setCollectionName(collectionName)
+        .setFieldName(fieldName)
+        .setFieldType(fieldType)
+        .setFieldIndexParams(fieldIndexParams)
+        .setWait(wait);
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -1064,14 +1079,15 @@ public class QdrantClient {
   }
 
   /**
-   * Creates a field index in the specified collection with the given parameters. Does not wait for
+   * Creates a field index in the specified collection with the given parameters.
+   * Does not wait for
    * the operation to complete before returning.
    *
-   * @param collectionName The name of the collection.
-   * @param fieldName The name of the field.
-   * @param fieldType The type of the field.
+   * @param collectionName   The name of the collection.
+   * @param fieldName        The name of the field.
+   * @param fieldType        The type of the field.
    * @param fieldIndexParams The index parameters for the field.
-   * @param ordering The write ordering for the field.
+   * @param ordering         The write ordering for the field.
    * @return The response of the field index creation operation.
    */
   public Points.PointsOperationResponse createFieldIndex(
@@ -1085,14 +1101,15 @@ public class QdrantClient {
   }
 
   /**
-   * Creates a field index in the specified collection with the given parameters. Waits for the
+   * Creates a field index in the specified collection with the given parameters.
+   * Waits for the
    * operation to complete before returning.
    *
-   * @param collectionName The name of the collection.
-   * @param fieldName The name of the field.
-   * @param fieldType The type of the field.
+   * @param collectionName   The name of the collection.
+   * @param fieldName        The name of the field.
+   * @param fieldType        The type of the field.
    * @param fieldIndexParams The index parameters for the field.
-   * @param ordering The write ordering for the field.
+   * @param ordering         The write ordering for the field.
    * @return The response of the field index creation operation.
    */
   public Points.PointsOperationResponse createFieldIndexBlocking(
@@ -1107,11 +1124,10 @@ public class QdrantClient {
   /** Internal delete field index method */
   private Points.PointsOperationResponse deleteFieldIndex(
       String collectionName, String fieldName, Points.WriteOrderingType ordering, Boolean wait) {
-    Points.DeleteFieldIndexCollection.Builder request =
-        Points.DeleteFieldIndexCollection.newBuilder()
-            .setCollectionName(collectionName)
-            .setFieldName(fieldName)
-            .setWait(wait);
+    Points.DeleteFieldIndexCollection.Builder request = Points.DeleteFieldIndexCollection.newBuilder()
+        .setCollectionName(collectionName)
+        .setFieldName(fieldName)
+        .setWait(wait);
 
     if (ordering != null) {
       request.setOrdering(PointUtil.ordering(ordering));
@@ -1120,12 +1136,13 @@ public class QdrantClient {
   }
 
   /**
-   * Deletes the field index for a given collection and field name. Does not wait for the operation
+   * Deletes the field index for a given collection and field name. Does not wait
+   * for the operation
    * to complete before returning.
    *
    * @param collectionName The name of the collection.
-   * @param fieldName The name of the field.
-   * @param ordering The write ordering for the operation.
+   * @param fieldName      The name of the field.
+   * @param ordering       The write ordering for the operation.
    * @return The response of the delete operation.
    */
   public Points.PointsOperationResponse deleteFieldIndex(
@@ -1134,12 +1151,13 @@ public class QdrantClient {
   }
 
   /**
-   * Deletes the field index for a given collection and field name. Waits for the operation to
+   * Deletes the field index for a given collection and field name. Waits for the
+   * operation to
    * complete before returning.
    *
    * @param collectionName The name of the collection.
-   * @param fieldName The name of the field.
-   * @param ordering The write ordering for the operation.
+   * @param fieldName      The name of the field.
+   * @param ordering       The write ordering for the operation.
    * @return The response of the delete operation.
    */
   public Points.PointsOperationResponse deleteFieldIndexBlocking(
@@ -1154,10 +1172,9 @@ public class QdrantClient {
    * @return The response containing information about the created snapshot
    */
   public SnapshotsService.CreateSnapshotResponse createSnapshot(String collectionName) {
-    SnapshotsService.CreateSnapshotRequest request =
-        SnapshotsService.CreateSnapshotRequest.newBuilder()
-            .setCollectionName(collectionName)
-            .build();
+    SnapshotsService.CreateSnapshotRequest request = SnapshotsService.CreateSnapshotRequest.newBuilder()
+        .setCollectionName(collectionName)
+        .build();
     return snapshotStub.create(request);
   }
 
@@ -1168,10 +1185,9 @@ public class QdrantClient {
    * @return The response containing the list of snapshots
    */
   public SnapshotsService.ListSnapshotsResponse listSnapshots(String collectionName) {
-    SnapshotsService.ListSnapshotsRequest request =
-        SnapshotsService.ListSnapshotsRequest.newBuilder()
-            .setCollectionName(collectionName)
-            .build();
+    SnapshotsService.ListSnapshotsRequest request = SnapshotsService.ListSnapshotsRequest.newBuilder()
+        .setCollectionName(collectionName)
+        .build();
     return snapshotStub.list(request);
   }
 
@@ -1179,16 +1195,16 @@ public class QdrantClient {
    * Deletes a snapshot with the specified name from the given collection.
    *
    * @param collectionName The name of the collection.
-   * @param snapshotName The name of the snapshot to be deleted.
-   * @return The response indicating the success or failure of the snapshot deletion.
+   * @param snapshotName   The name of the snapshot to be deleted.
+   * @return The response indicating the success or failure of the snapshot
+   *         deletion.
    */
   public SnapshotsService.DeleteSnapshotResponse deleteSnapshot(
       String collectionName, String snapshotName) {
-    SnapshotsService.DeleteSnapshotRequest request =
-        SnapshotsService.DeleteSnapshotRequest.newBuilder()
-            .setCollectionName(collectionName)
-            .setSnapshotName(snapshotName)
-            .build();
+    SnapshotsService.DeleteSnapshotRequest request = SnapshotsService.DeleteSnapshotRequest.newBuilder()
+        .setCollectionName(collectionName)
+        .setSnapshotName(snapshotName)
+        .build();
     return snapshotStub.delete(request);
   }
 
@@ -1198,8 +1214,8 @@ public class QdrantClient {
    * @return The response indicating the status of the snapshot creation.
    */
   public SnapshotsService.CreateSnapshotResponse createFullSnapshot() {
-    SnapshotsService.CreateFullSnapshotRequest request =
-        SnapshotsService.CreateFullSnapshotRequest.newBuilder().build();
+    SnapshotsService.CreateFullSnapshotRequest request = SnapshotsService.CreateFullSnapshotRequest.newBuilder()
+        .build();
     return snapshotStub.createFull(request);
   }
 
@@ -1209,8 +1225,7 @@ public class QdrantClient {
    * @return The response containing the list of full snapshots.
    */
   public SnapshotsService.ListSnapshotsResponse listFullSnapshots() {
-    SnapshotsService.ListFullSnapshotsRequest request =
-        SnapshotsService.ListFullSnapshotsRequest.newBuilder().build();
+    SnapshotsService.ListFullSnapshotsRequest request = SnapshotsService.ListFullSnapshotsRequest.newBuilder().build();
     return snapshotStub.listFull(request);
   }
 
@@ -1221,10 +1236,9 @@ public class QdrantClient {
    * @return The response indicating the status of the snapshot deletion.
    */
   public SnapshotsService.DeleteSnapshotResponse deleteFullSnapshot(String snapshotName) {
-    SnapshotsService.DeleteFullSnapshotRequest request =
-        SnapshotsService.DeleteFullSnapshotRequest.newBuilder()
-            .setSnapshotName(snapshotName)
-            .build();
+    SnapshotsService.DeleteFullSnapshotRequest request = SnapshotsService.DeleteFullSnapshotRequest.newBuilder()
+        .setSnapshotName(snapshotName)
+        .build();
     return snapshotStub.deleteFull(request);
   }
 
