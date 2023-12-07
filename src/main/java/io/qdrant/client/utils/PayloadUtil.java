@@ -47,7 +47,7 @@ public class PayloadUtil {
    * Converts a payload struct to a Java Map.
    *
    * @param struct The payload struct to convert.
-   * @return The converted hash map.
+   * @return The converted map.
    */
   public static Map<String, Object> toMap(Struct struct) {
     Map<String, Object> structMap = toMap(struct.getFieldsMap());
@@ -58,7 +58,7 @@ public class PayloadUtil {
    * Converts a payload map to a Java Map.
    *
    * @param payload The payload map to convert.
-   * @return The converted hash map.
+   * @return The converted map.
    */
   public static Map<String, Object> toMap(Map<String, Value> payload) {
     Map<String, Object> hashMap = new HashMap<>();
