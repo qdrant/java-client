@@ -1,6 +1,7 @@
 package io.qdrant.client.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.qdrant.client.grpc.Points.NamedVectors;
@@ -75,5 +76,48 @@ class VectorUtilTest {
     assertEquals(
         Arrays.asList(1.0f, 2.0f, 3.0f),
         pointVectors.getVectors().getVectors().getVectorsMap().get(name).getDataList());
+  }
+
+  @Test
+  void testToSparseVector() {
+    List<Float> vectorData = Arrays.asList(1.0f, 2.0f, 3.0f);
+    List<Integer> indices = Arrays.asList(0, 2, 4);
+
+    Vector result = VectorUtil.toVector(vectorData, indices);
+
+    assertNotNull(result);
+    assertEquals(vectorData.size(), result.getDataCount());
+    assertNotNull(result.getIndices());
+    assertEquals(indices.size(), result.getIndices().getDataCount());
+  }
+
+  @Test
+  void testToSparseVectorEmptyInput() {
+    List<Float> emptyVectorData = Arrays.asList();
+    List<Integer> emptyIndices = Arrays.asList();
+
+    Vector result = VectorUtil.toVector(emptyVectorData, emptyIndices);
+
+    assertNotNull(result);
+    assertEquals(emptyVectorData.size(), result.getDataCount());
+    assertNotNull(result.getIndices());
+    assertEquals(emptyIndices.size(), result.getIndices().getDataCount());
+  }
+
+  @Test
+  void testNamedSparseVector() {
+    String name = "testVector";
+    List<Float> vector = Arrays.asList(1.0f, 2.0f, 3.0f);
+    List<Integer> indices = Arrays.asList(0, 1, 2);
+
+    NamedVectors result = VectorUtil.namedVector(name, vector, indices);
+
+    assertEquals(1, result.getVectorsCount());
+    assertTrue(result.getVectorsMap().containsKey(name));
+
+    Vector generatedVector = result.getVectorsMap().get(name);
+
+    assertEquals(vector.size(), generatedVector.getDataCount());
+    assertEquals(indices.size(), generatedVector.getIndices().getDataCount());
   }
 }

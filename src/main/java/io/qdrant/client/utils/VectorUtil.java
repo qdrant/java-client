@@ -2,6 +2,7 @@ package io.qdrant.client.utils;
 
 import io.qdrant.client.grpc.Points.NamedVectors;
 import io.qdrant.client.grpc.Points.PointVectors;
+import io.qdrant.client.grpc.Points.SparseIndices;
 import io.qdrant.client.grpc.Points.Vector;
 import io.qdrant.client.grpc.Points.Vectors;
 import java.util.ArrayList;
@@ -34,6 +35,25 @@ public class VectorUtil {
     for (Float f : vector) {
       vectorBuilder.addData(f);
     }
+    return vectorBuilder.build();
+  }
+
+  /**
+   * Creates a sparse vector from a list of floats and integers as indices
+   *
+   * @param vector The list of floats representing the vector.
+   * @param indices The list of integers representing the indices.
+   * @return The created vector
+   */
+  public static Vector toVector(List<Float> vector, List<Integer> indices) {
+    Vector.Builder vectorBuilder = Vector.newBuilder();
+    vectorBuilder.addAllData(vector);
+
+    SparseIndices.Builder indicesBuilder = SparseIndices.newBuilder();
+    indicesBuilder.addAllData(indices);
+
+    vectorBuilder.setIndices(indicesBuilder.build());
+
     return vectorBuilder.build();
   }
 
@@ -73,9 +93,25 @@ public class VectorUtil {
   }
 
   /**
+   * Creates a named sparse vector from a list of floats and integers as indices
+   *
+   * @param name The name of the named sparse vector.
+   * @param vector The list of floats representing the vector.
+   * @param indices The list of integers representing the indices.
+   * @return The created sparse vector.
+   */
+  public static NamedVectors namedVector(String name, List<Float> vector, List<Integer> indices) {
+    NamedVectors.Builder vectorBuilder = NamedVectors.newBuilder();
+
+    vectorBuilder.putVectors(name, VectorUtil.toVector(vector, indices));
+
+    return vectorBuilder.build();
+  }
+
+  /**
    * Creates point vectors from an ID, name, and an array of floats.
    *
-   * @param id The ID of the point vectors.
+   * @param id The ID of the point to update vectors for.
    * @param name The name of the point vectors.
    * @param vector The array of floats representing the point vectors.
    * @return The created point vectors.
