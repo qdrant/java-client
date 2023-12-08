@@ -123,7 +123,7 @@ PointStruct point =
     0,
     VectorUtil.toVector(0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f),
     PayloadUtil.toPayload(map));
-List<PointStruct> points = Arrays.asList;
+List<PointStruct> points = Arrays.asList(point);
 client.upsertPoints(collectionName, points, null);
 ```
 
