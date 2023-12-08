@@ -16,13 +16,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /** Client for interfacing with the Qdrant service. */
-public class QdrantClient {
+public class QdrantClient implements AutoCloseable {
   private QdrantGrpc.QdrantBlockingStub qdrantStub;
   private CollectionsGrpc.CollectionsBlockingStub collectionsStub;
   private PointsGrpc.PointsBlockingStub pointsStub;
   private SnapshotsGrpc.SnapshotsBlockingStub snapshotStub;
+  private ManagedChannel channel;
 
   /**
    * Constructs a new QdrantClient with the specified URL and API key<br>
@@ -97,10 +99,11 @@ public class QdrantClient {
    * @param channel The managed channel used for communication.
    */
   private void initializeStubs(ManagedChannel channel) {
-    qdrantStub = QdrantGrpc.newBlockingStub(channel);
-    collectionsStub = CollectionsGrpc.newBlockingStub(channel);
-    pointsStub = PointsGrpc.newBlockingStub(channel);
-    snapshotStub = SnapshotsGrpc.newBlockingStub(channel);
+    this.qdrantStub = QdrantGrpc.newBlockingStub(channel);
+    this.collectionsStub = CollectionsGrpc.newBlockingStub(channel);
+    this.pointsStub = PointsGrpc.newBlockingStub(channel);
+    this.snapshotStub = SnapshotsGrpc.newBlockingStub(channel);
+    this.channel = channel;
   }
 
   /**
@@ -153,6 +156,24 @@ public class QdrantClient {
     Collections.CreateCollection details =
         Collections.CreateCollection.newBuilder()
             .setVectorsConfig(config)
+            .setCollectionName(collectionName)
+            .build();
+    return createCollection(details);
+  }
+
+  /**
+   * Creates a new collection with the specified name, vector size, and distance metric.
+   *
+   * @param collectionName The name of the collection to be created.
+   * @param vectorsConfig The vectors configuration of the collection.
+   * @return The response containing the operation status.
+   */
+  public Collections.CollectionOperationResponse createCollection(
+      String collectionName, Collections.VectorsConfig vectorsConfig) {
+
+    Collections.CreateCollection details =
+        Collections.CreateCollection.newBuilder()
+            .setVectorsConfig(vectorsConfig)
             .setCollectionName(collectionName)
             .build();
     return createCollection(details);
@@ -1226,6 +1247,11 @@ public class QdrantClient {
             .setSnapshotName(snapshotName)
             .build();
     return snapshotStub.deleteFull(request);
+  }
+
+  @Override
+  public void close() throws InterruptedException {
+    this.channel.shutdown().awaitTermination(10, TimeUnit.SECONDS);
   }
 
   // TODO: Download snapshots REST
