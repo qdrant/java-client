@@ -7,7 +7,7 @@ import java.net.MalformedURLException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-class QdrantClientServiceTest {
+class QdrantClientTest {
 
   private static QdrantClient qdrantClient;
 

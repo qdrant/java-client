@@ -1,6 +1,7 @@
 package io.qdrant.client;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -90,6 +91,47 @@ class QdrantClientCollectionTest {
 
     exists = qdrantClient.hasCollection(collectionName);
     assertTrue(exists);
+  }
+
+  @Test
+  void testCreateCollectionWithSparse() {
+    String collectionName = UUID.randomUUID().toString();
+    boolean exists = qdrantClient.hasCollection(collectionName);
+    assertFalse(exists);
+
+    Collections.VectorParams vectorsParams =
+        Collections.VectorParams.newBuilder()
+            .setDistance(Collections.Distance.Manhattan)
+            .setSize(768)
+            .build();
+    Collections.VectorsConfig vectorsConfig =
+        Collections.VectorsConfig.newBuilder().setParams(vectorsParams).build();
+
+    Collections.SparseIndexConfig indexConfig =
+        Collections.SparseIndexConfig.newBuilder()
+            .setOnDisk(true)
+            .setFullScanThreshold(12000)
+            .build();
+    Collections.SparseVectorParams sparseVectorParams =
+        Collections.SparseVectorParams.newBuilder().setIndex(indexConfig).build();
+    Collections.SparseVectorConfig sparseConfig =
+        Collections.SparseVectorConfig.newBuilder().putMap("text", sparseVectorParams).build();
+    Collections.CreateCollection request =
+        Collections.CreateCollection.newBuilder()
+            .setCollectionName(collectionName)
+            .setVectorsConfig(vectorsConfig)
+            .setSparseVectorsConfig(sparseConfig)
+            .build();
+    qdrantClient.createCollection(request);
+
+    exists = qdrantClient.hasCollection(collectionName);
+    assertTrue(exists);
+
+    Collections.GetCollectionInfoResponse info = qdrantClient.getCollectionInfo(collectionName);
+    assertEquals(
+        info.getResult().getConfig().getParams().getVectorsConfig().getParams().getDistance(),
+        Collections.Distance.Manhattan);
+    assertEquals(info.getResult().getConfig().getParams().getSparseVectorsConfig(), sparseConfig);
   }
 
   @Test
