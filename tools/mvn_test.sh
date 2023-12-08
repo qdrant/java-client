@@ -29,5 +29,6 @@ until curl --output /dev/null --silent --get --fail http://$QDRANT_HOST/collecti
 done
 
 mvn test
+mvn javadoc:aggregate
 
 stop_docker
