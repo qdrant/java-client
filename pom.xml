@@ -6,7 +6,7 @@
 
     <groupId>io.qdrant</groupId>
     <artifactId>client</artifactId>
-    <!-- UPDATE THE VERSION IN README.MD TOO-->
+    <!-- UPDATE THE VERSION IN README.MD-->
     <version>1.0</version>
 
     <dependencies>
@@ -40,11 +40,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.13</version>
-        </dependency>
     </dependencies>
 
     <build>

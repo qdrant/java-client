@@ -14,23 +14,18 @@ import io.qdrant.client.grpc.SnapshotsGrpc;
 import io.qdrant.client.grpc.SnapshotsService;
 import io.qdrant.client.grpc.SnapshotsService.SnapshotDescription;
 import io.qdrant.client.utils.PointUtil;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
 /** Client for interfacing with the Qdrant service. */
 public class QdrantClient implements AutoCloseable {
@@ -1366,22 +1361,23 @@ public class QdrantClient implements AutoCloseable {
                 collectionName, resolvedSnapshotName);
       }
 
-      HttpClient httpClient = HttpClients.createDefault();
-      HttpGet httpGet = new HttpGet(uri);
+      URL url = new URL(uri);
+      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-      HttpResponse response = httpClient.execute(httpGet);
+      if (connection.getResponseCode() == 200) {
+        try (InputStream in = connection.getInputStream();
+            FileOutputStream fileOut = new FileOutputStream(outPath.toFile())) {
 
-      if (response.getStatusLine().getStatusCode() == 200) {
-        HttpEntity entity = response.getEntity();
-        if (entity != null) {
-          Files.write(outPath, EntityUtils.toByteArray(entity), StandardOpenOption.CREATE_NEW);
+          byte[] buffer = new byte[8192];
+          int bytesRead;
+          while ((bytesRead = in.read(buffer)) != -1) {
+            fileOut.write(buffer, 0, bytesRead);
+          }
+
           System.out.println("Downloaded successfully");
-        } else {
-          System.err.println("No response body");
         }
       } else {
-        System.err.println(
-            "Download failed. HTTP Status Code: " + response.getStatusLine().getStatusCode());
+        System.err.println("Download failed. HTTP Status Code: " + connection.getResponseCode());
       }
     } catch (IOException e) {
       throw new RuntimeException("Error downloading snapshot " + e.getMessage());
