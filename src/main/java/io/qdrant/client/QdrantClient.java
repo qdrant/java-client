@@ -1374,7 +1374,7 @@ public class QdrantClient implements AutoCloseable {
       if (response.getStatusLine().getStatusCode() == 200) {
         HttpEntity entity = response.getEntity();
         if (entity != null) {
-          Files.write(outPath, EntityUtils.toByteArray(entity), StandardOpenOption.WRITE);
+          Files.write(outPath, EntityUtils.toByteArray(entity), StandardOpenOption.CREATE_NEW);
           System.out.println("Downloaded successfully");
         } else {
           System.err.println("No response body");
