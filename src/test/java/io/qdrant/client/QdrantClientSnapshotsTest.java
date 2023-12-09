@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.qdrant.client.grpc.Collections.Distance;
 import io.qdrant.client.grpc.SnapshotsService;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -69,6 +71,36 @@ class QdrantClientSnapshotsTest {
           qdrantClient.deleteFullSnapshot(snapshotName);
 
           assertEquals(qdrantClient.listFullSnapshots().getSnapshotDescriptionsList().size(), 0);
+        });
+  }
+
+  @Test
+  void testDownloadSnapshot() {
+    String collectionName = UUID.randomUUID().toString();
+
+    qdrantClient.createCollection(collectionName, 768, Distance.Cosine);
+
+    assertEquals(
+        qdrantClient.listSnapshots(collectionName).getSnapshotDescriptionsList().size(), 0);
+
+    // Test with snapshot name
+    assertDoesNotThrow(
+        () -> {
+          SnapshotsService.CreateSnapshotResponse response =
+              qdrantClient.createSnapshot(collectionName);
+          String snapshotName = response.getSnapshotDescription().getName();
+
+          Path path = FileSystems.getDefault().getPath("./test.snapshot");
+          qdrantClient.downloadSnapshot(path, collectionName, snapshotName, null);
+        });
+
+    // Test without snapshot name
+    assertDoesNotThrow(
+        () -> {
+          qdrantClient.createSnapshot(collectionName);
+
+          Path path = FileSystems.getDefault().getPath("./test_2.snapshot");
+          qdrantClient.downloadSnapshot(path, collectionName, null, null);
         });
   }
 }

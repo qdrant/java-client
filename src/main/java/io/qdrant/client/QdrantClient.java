@@ -12,14 +12,25 @@ import io.qdrant.client.grpc.QdrantGrpc;
 import io.qdrant.client.grpc.QdrantOuterClass;
 import io.qdrant.client.grpc.SnapshotsGrpc;
 import io.qdrant.client.grpc.SnapshotsService;
+import io.qdrant.client.grpc.SnapshotsService.SnapshotDescription;
 import io.qdrant.client.utils.PointUtil;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 
 /** Client for interfacing with the Qdrant service. */
 public class QdrantClient implements AutoCloseable {
@@ -1311,10 +1322,74 @@ public class QdrantClient implements AutoCloseable {
     return snapshotsStub.deleteFull(request);
   }
 
+  /**
+   * Downloads a snapshot of a collection from the specified REST API URI and saves it to the given
+   * output path.
+   *
+   * @param outPath The path where the snapshot will be saved.
+   * @param collectionName The name of the collection.
+   * @param snapshotName The name of the snapshot. If null, the latest snapshot will be downloaded.
+   * @param restApiUri The URI of the REST API. If null, the default URI "http://localhost:6333"
+   *     will be used.
+   * @throws RuntimeException If an error occurs while downloading the snapshot.
+   */
+  public void downloadSnapshot(
+      Path outPath,
+      String collectionName,
+      @Nullable String snapshotName,
+      @Nullable String restApiUri) {
+    try {
+      String resolvedSnapshotName;
+
+      if (snapshotName != null) {
+        resolvedSnapshotName = snapshotName;
+      } else {
+        // Get the latest(0th) snapshot of the collection
+        List<SnapshotDescription> snapshots =
+            listSnapshots(collectionName).getSnapshotDescriptionsList();
+        if (snapshots.isEmpty()) {
+          throw new RuntimeException("No snapshots found");
+        }
+        resolvedSnapshotName =
+            listSnapshots(collectionName).getSnapshotDescriptionsList().get(0).getName();
+      }
+
+      String uri;
+      if (restApiUri != null) {
+        uri =
+            String.format(
+                "%s/collections/%s/snapshots/%s", restApiUri, collectionName, resolvedSnapshotName);
+      } else {
+        uri =
+            String.format(
+                "http://localhost:6333/collections/%s/snapshots/%s",
+                collectionName, resolvedSnapshotName);
+      }
+
+      HttpClient httpClient = HttpClients.createDefault();
+      HttpGet httpGet = new HttpGet(uri);
+
+      HttpResponse response = httpClient.execute(httpGet);
+
+      if (response.getStatusLine().getStatusCode() == 200) {
+        HttpEntity entity = response.getEntity();
+        if (entity != null) {
+          Files.write(outPath, EntityUtils.toByteArray(entity), StandardOpenOption.WRITE);
+          System.out.println("Downloaded successfully");
+        } else {
+          System.err.println("No response body");
+        }
+      } else {
+        System.err.println(
+            "Download failed. HTTP Status Code: " + response.getStatusLine().getStatusCode());
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("Error downloading snapshot " + e.getMessage());
+    }
+  }
+
   @Override
   public void close() throws InterruptedException {
     this.channel.shutdown().awaitTermination(10, TimeUnit.SECONDS);
   }
-
-  // TODO: Download snapshots REST
 }
