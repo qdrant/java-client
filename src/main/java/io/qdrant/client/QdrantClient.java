@@ -1,5 +1,6 @@
 package io.qdrant.client;
 
+import io.grpc.Deadline;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.qdrant.client.grpc.Collections;
@@ -14,16 +15,18 @@ import io.qdrant.client.grpc.SnapshotsService;
 import io.qdrant.client.utils.PointUtil;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 
 /** Client for interfacing with the Qdrant service. */
 public class QdrantClient implements AutoCloseable {
   private QdrantGrpc.QdrantBlockingStub qdrantStub;
   private CollectionsGrpc.CollectionsBlockingStub collectionsStub;
   private PointsGrpc.PointsBlockingStub pointsStub;
-  private SnapshotsGrpc.SnapshotsBlockingStub snapshotStub;
+  private SnapshotsGrpc.SnapshotsBlockingStub snapshotsStub;
   private ManagedChannel channel;
 
   /**
@@ -39,7 +42,24 @@ public class QdrantClient implements AutoCloseable {
       throws MalformedURLException, IllegalArgumentException {
     TokenInterceptor interceptor = new TokenInterceptor(apiKey);
     ManagedChannel channel = createManagedChannel(url, interceptor);
-    initializeStubs(channel);
+    initializeStubs(channel, null);
+  }
+
+  /**
+   * Constructs a new QdrantClient with the specified URL and API key<br>
+   * Uses TLS if the URL is https, otherwise uses plaintext.
+   *
+   * @param url The URL of the Qdrant service.
+   * @param apiKey The API key for authentication.
+   * @param timeout The timeout for the gRPC requests.
+   * @throws MalformedURLException If the URL is malformed.
+   * @throws IllegalArgumentException If the protocol is invalid.
+   */
+  public QdrantClient(String url, String apiKey, Duration timeout)
+      throws MalformedURLException, IllegalArgumentException {
+    TokenInterceptor interceptor = new TokenInterceptor(apiKey);
+    ManagedChannel channel = createManagedChannel(url, interceptor);
+    initializeStubs(channel, timeout);
   }
 
   /**
@@ -52,7 +72,22 @@ public class QdrantClient implements AutoCloseable {
    */
   public QdrantClient(String url) throws MalformedURLException, IllegalArgumentException {
     ManagedChannel channel = createManagedChannel(url, null);
-    initializeStubs(channel);
+    initializeStubs(channel, null);
+  }
+
+  /**
+   * Constructs a new QdrantClient with the specified URL<br>
+   * Uses TLS if the URL is https, otherwise uses plaintext.
+   *
+   * @param url the URL of the Qdrant service
+   * @param timeout The timeout for the gRPC requests.
+   * @throws MalformedURLException If the URL is malformed
+   * @throws IllegalArgumentException If the protocol is invalid.
+   */
+  public QdrantClient(String url, Duration timeout)
+      throws MalformedURLException, IllegalArgumentException {
+    ManagedChannel channel = createManagedChannel(url, null);
+    initializeStubs(channel, timeout);
   }
 
   /**
@@ -64,7 +99,7 @@ public class QdrantClient implements AutoCloseable {
    * @throws MalformedURLException If the provided URL is malformed.
    * @throws IllegalArgumentException If the provided protocol is invalid.
    */
-  private ManagedChannel createManagedChannel(String url, TokenInterceptor interceptor)
+  private ManagedChannel createManagedChannel(String url, @Nullable TokenInterceptor interceptor)
       throws MalformedURLException, IllegalArgumentException {
     URL parsedUrl = new URL(url);
 
@@ -98,11 +133,23 @@ public class QdrantClient implements AutoCloseable {
    *
    * @param channel The managed channel used for communication.
    */
-  private void initializeStubs(ManagedChannel channel) {
-    this.qdrantStub = QdrantGrpc.newBlockingStub(channel);
-    this.collectionsStub = CollectionsGrpc.newBlockingStub(channel);
-    this.pointsStub = PointsGrpc.newBlockingStub(channel);
-    this.snapshotStub = SnapshotsGrpc.newBlockingStub(channel);
+  private void initializeStubs(ManagedChannel channel, @Nullable Duration timeout) {
+    this.qdrantStub =
+        QdrantGrpc.newBlockingStub(channel)
+            .withDeadline(
+                timeout == null ? null : Deadline.after(timeout.toMillis(), TimeUnit.MILLISECONDS));
+    this.collectionsStub =
+        CollectionsGrpc.newBlockingStub(channel)
+            .withDeadline(
+                timeout == null ? null : Deadline.after(timeout.toMillis(), TimeUnit.MILLISECONDS));
+    this.pointsStub =
+        PointsGrpc.newBlockingStub(channel)
+            .withDeadline(
+                timeout == null ? null : Deadline.after(timeout.toMillis(), TimeUnit.MILLISECONDS));
+    this.snapshotsStub =
+        SnapshotsGrpc.newBlockingStub(channel)
+            .withDeadline(
+                timeout == null ? null : Deadline.after(timeout.toMillis(), TimeUnit.MILLISECONDS));
     this.channel = channel;
   }
 
@@ -384,7 +431,7 @@ public class QdrantClient implements AutoCloseable {
   private Points.UpdateBatchResponse batchUpdate(
       String collectionName,
       List<Points.PointsUpdateOperation> operations,
-      Points.WriteOrderingType ordering,
+      @Nullable Points.WriteOrderingType ordering,
       Boolean wait) {
     Points.UpdateBatchPoints.Builder request =
         Points.UpdateBatchPoints.newBuilder()
@@ -409,7 +456,7 @@ public class QdrantClient implements AutoCloseable {
   public Points.UpdateBatchResponse batchUpdate(
       String collectionName,
       List<Points.PointsUpdateOperation> operations,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return batchUpdate(collectionName, operations, ordering, false);
   }
 
@@ -424,7 +471,7 @@ public class QdrantClient implements AutoCloseable {
   public Points.UpdateBatchResponse batchUpdateBlocking(
       String collectionName,
       List<Points.PointsUpdateOperation> operations,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return batchUpdate(collectionName, operations, ordering, true);
   }
 
@@ -432,7 +479,7 @@ public class QdrantClient implements AutoCloseable {
   private Points.PointsOperationResponse upsertPoints(
       String collectionName,
       List<Points.PointStruct> points,
-      Points.WriteOrderingType ordering,
+      @Nullable Points.WriteOrderingType ordering,
       Boolean wait) {
     Points.UpsertPoints.Builder request =
         Points.UpsertPoints.newBuilder()
@@ -456,7 +503,9 @@ public class QdrantClient implements AutoCloseable {
    * @return The response of the upsert operation.
    */
   public Points.PointsOperationResponse upsertPoints(
-      String collectionName, List<Points.PointStruct> points, Points.WriteOrderingType ordering) {
+      String collectionName,
+      List<Points.PointStruct> points,
+      @Nullable Points.WriteOrderingType ordering) {
     return upsertPoints(collectionName, points, ordering, false);
   }
 
@@ -470,7 +519,9 @@ public class QdrantClient implements AutoCloseable {
    * @return The response of the upsert operation.
    */
   public Points.PointsOperationResponse upsertPointsBlocking(
-      String collectionName, List<Points.PointStruct> points, Points.WriteOrderingType ordering) {
+      String collectionName,
+      List<Points.PointStruct> points,
+      @Nullable Points.WriteOrderingType ordering) {
     return upsertPoints(collectionName, points, ordering, true);
   }
 
@@ -478,7 +529,7 @@ public class QdrantClient implements AutoCloseable {
   private Points.PointsOperationResponse upsertPointsBatch(
       String collectionName,
       List<Points.PointStruct> points,
-      Points.WriteOrderingType ordering,
+      @Nullable Points.WriteOrderingType ordering,
       Boolean wait,
       int chunkSize) {
     int listSize = points.size();
@@ -506,7 +557,7 @@ public class QdrantClient implements AutoCloseable {
   public Points.PointsOperationResponse upsertPointsBatch(
       String collectionName,
       List<Points.PointStruct> points,
-      Points.WriteOrderingType ordering,
+      @Nullable Points.WriteOrderingType ordering,
       int chunkSize) {
     return upsertPointsBatch(collectionName, points, ordering, false, chunkSize);
   }
@@ -522,7 +573,7 @@ public class QdrantClient implements AutoCloseable {
   public Points.PointsOperationResponse upsertPointsBatchBlocking(
       String collectionName,
       List<Points.PointStruct> points,
-      Points.WriteOrderingType ordering,
+      @Nullable Points.WriteOrderingType ordering,
       int chunkSize) {
     return upsertPointsBatch(collectionName, points, ordering, true, chunkSize);
   }
@@ -532,7 +583,7 @@ public class QdrantClient implements AutoCloseable {
       String collectionName,
       Points.PointsSelector points,
       Map<String, Value> payload,
-      Points.WriteOrderingType ordering,
+      @Nullable Points.WriteOrderingType ordering,
       Boolean wait) {
     Points.SetPayloadPoints.Builder request =
         Points.SetPayloadPoints.newBuilder()
@@ -561,7 +612,7 @@ public class QdrantClient implements AutoCloseable {
       String collectionName,
       Points.PointsSelector points,
       Map<String, Value> payload,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return setPayload(collectionName, points, payload, ordering, false);
   }
 
@@ -579,7 +630,7 @@ public class QdrantClient implements AutoCloseable {
       String collectionName,
       Points.PointsSelector points,
       Map<String, Value> payload,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return setPayload(collectionName, points, payload, ordering, true);
   }
 
@@ -588,7 +639,7 @@ public class QdrantClient implements AutoCloseable {
       String collectionName,
       Points.PointsSelector points,
       Map<String, Value> payload,
-      Points.WriteOrderingType ordering,
+      @Nullable Points.WriteOrderingType ordering,
       Boolean wait) {
     Points.SetPayloadPoints.Builder request =
         Points.SetPayloadPoints.newBuilder()
@@ -617,7 +668,7 @@ public class QdrantClient implements AutoCloseable {
       String collectionName,
       Points.PointsSelector points,
       Map<String, Value> payload,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return overwritePayload(collectionName, points, payload, ordering, false);
   }
 
@@ -635,7 +686,7 @@ public class QdrantClient implements AutoCloseable {
       String collectionName,
       Points.PointsSelector points,
       Map<String, Value> payload,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return overwritePayload(collectionName, points, payload, ordering, true);
   }
 
@@ -644,7 +695,7 @@ public class QdrantClient implements AutoCloseable {
       String collectionName,
       Points.PointsSelector points,
       List<String> keys,
-      Points.WriteOrderingType ordering,
+      @Nullable Points.WriteOrderingType ordering,
       Boolean wait) {
     Points.DeletePayloadPoints.Builder request =
         Points.DeletePayloadPoints.newBuilder()
@@ -673,7 +724,7 @@ public class QdrantClient implements AutoCloseable {
       String collectionName,
       Points.PointsSelector points,
       List<String> keys,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return deletePayload(collectionName, points, keys, ordering, false);
   }
 
@@ -691,7 +742,7 @@ public class QdrantClient implements AutoCloseable {
       String collectionName,
       Points.PointsSelector points,
       List<String> keys,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return deletePayload(collectionName, points, keys, ordering, true);
   }
 
@@ -699,7 +750,7 @@ public class QdrantClient implements AutoCloseable {
   private Points.PointsOperationResponse clearPayload(
       String collectionName,
       Points.PointsSelector points,
-      Points.WriteOrderingType ordering,
+      @Nullable Points.WriteOrderingType ordering,
       Boolean wait) {
     Points.ClearPayloadPoints.Builder request =
         Points.ClearPayloadPoints.newBuilder()
@@ -723,7 +774,9 @@ public class QdrantClient implements AutoCloseable {
    * @return The response of the clearPayload operation.
    */
   public Points.PointsOperationResponse clearPayload(
-      String collectionName, Points.PointsSelector points, Points.WriteOrderingType ordering) {
+      String collectionName,
+      Points.PointsSelector points,
+      @Nullable Points.WriteOrderingType ordering) {
     return clearPayload(collectionName, points, ordering, false);
   }
 
@@ -736,7 +789,9 @@ public class QdrantClient implements AutoCloseable {
    * @return The response of the clearPayload operation.
    */
   public Points.PointsOperationResponse clearPayloadBlocking(
-      String collectionName, Points.PointsSelector points, Points.WriteOrderingType ordering) {
+      String collectionName,
+      Points.PointsSelector points,
+      @Nullable Points.WriteOrderingType ordering) {
     return clearPayload(collectionName, points, ordering, true);
   }
 
@@ -755,7 +810,7 @@ public class QdrantClient implements AutoCloseable {
       Iterable<? extends Points.PointId> points,
       Points.WithVectorsSelector withVectors,
       Points.WithPayloadSelector withPayload,
-      Points.ReadConsistencyType readConsistency) {
+      @Nullable Points.ReadConsistencyType readConsistency) {
     Points.GetPoints.Builder request =
         Points.GetPoints.newBuilder()
             .setCollectionName(collectionName)
@@ -804,7 +859,7 @@ public class QdrantClient implements AutoCloseable {
   private Points.PointsOperationResponse deletePoints(
       String collectionName,
       Points.PointsSelector points,
-      Points.WriteOrderingType ordering,
+      @Nullable Points.WriteOrderingType ordering,
       Boolean wait) {
     Points.DeletePoints.Builder request =
         Points.DeletePoints.newBuilder()
@@ -827,7 +882,9 @@ public class QdrantClient implements AutoCloseable {
    * @return The response of the points deletion operation.
    */
   public Points.PointsOperationResponse deletePoints(
-      String collectionName, Points.PointsSelector points, Points.WriteOrderingType ordering) {
+      String collectionName,
+      Points.PointsSelector points,
+      @Nullable Points.WriteOrderingType ordering) {
     return deletePoints(collectionName, points, ordering, false);
   }
 
@@ -840,7 +897,9 @@ public class QdrantClient implements AutoCloseable {
    * @return The response of the points deletion operation.
    */
   public Points.PointsOperationResponse deletePointsBlocking(
-      String collectionName, Points.PointsSelector points, Points.WriteOrderingType ordering) {
+      String collectionName,
+      Points.PointsSelector points,
+      @Nullable Points.WriteOrderingType ordering) {
     return deletePoints(collectionName, points, ordering, true);
   }
 
@@ -849,7 +908,7 @@ public class QdrantClient implements AutoCloseable {
       String collectionName,
       Points.PointsSelector points,
       Points.VectorsSelector vectors,
-      Points.WriteOrderingType ordering,
+      @Nullable Points.WriteOrderingType ordering,
       Boolean wait) {
     Points.DeletePointVectors.Builder requests =
         Points.DeletePointVectors.newBuilder()
@@ -878,7 +937,7 @@ public class QdrantClient implements AutoCloseable {
       String collectionName,
       Points.PointsSelector points,
       Points.VectorsSelector vectors,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return deleteVectors(collectionName, points, vectors, ordering, false);
   }
 
@@ -895,7 +954,7 @@ public class QdrantClient implements AutoCloseable {
       String collectionName,
       Points.PointsSelector points,
       Points.VectorsSelector vectors,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return deleteVectors(collectionName, points, vectors, ordering, true);
   }
 
@@ -903,7 +962,7 @@ public class QdrantClient implements AutoCloseable {
   private Points.PointsOperationResponse updateVectors(
       String collectionName,
       Iterable<? extends Points.PointVectors> points,
-      Points.WriteOrderingType ordering,
+      @Nullable Points.WriteOrderingType ordering,
       Boolean wait) {
     Points.UpdatePointVectors.Builder request =
         Points.UpdatePointVectors.newBuilder()
@@ -929,7 +988,7 @@ public class QdrantClient implements AutoCloseable {
   public Points.PointsOperationResponse updateVectors(
       String collectionName,
       Iterable<? extends Points.PointVectors> points,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return updateVectors(collectionName, points, ordering, false);
   }
 
@@ -945,7 +1004,7 @@ public class QdrantClient implements AutoCloseable {
   public Points.PointsOperationResponse updateVectorsBlocking(
       String collectionName,
       Iterable<? extends Points.PointVectors> points,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return updateVectors(collectionName, points, ordering, true);
   }
 
@@ -1016,7 +1075,7 @@ public class QdrantClient implements AutoCloseable {
   private Points.UpdateBatchResponse updateBatchPoints(
       String collecionName,
       Iterable<? extends Points.PointsUpdateOperation> operations,
-      Points.WriteOrderingType ordering,
+      @Nullable Points.WriteOrderingType ordering,
       Boolean wait) {
     Points.UpdateBatchPoints.Builder request =
         Points.UpdateBatchPoints.newBuilder()
@@ -1042,7 +1101,7 @@ public class QdrantClient implements AutoCloseable {
   public Points.UpdateBatchResponse updateBatchPoints(
       String collecionName,
       Iterable<? extends Points.PointsUpdateOperation> operations,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return updateBatchPoints(collecionName, operations, ordering, false);
   }
 
@@ -1058,7 +1117,7 @@ public class QdrantClient implements AutoCloseable {
   public Points.UpdateBatchResponse updateBatchPointsBlocking(
       String collectionName,
       Iterable<? extends Points.PointsUpdateOperation> operations,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return updateBatchPoints(collectionName, operations, ordering, true);
   }
 
@@ -1068,7 +1127,7 @@ public class QdrantClient implements AutoCloseable {
       String fieldName,
       Points.FieldType fieldType,
       Collections.PayloadIndexParams fieldIndexParams,
-      Points.WriteOrderingType ordering,
+      @Nullable Points.WriteOrderingType ordering,
       Boolean wait) {
     Points.CreateFieldIndexCollection.Builder request =
         Points.CreateFieldIndexCollection.newBuilder()
@@ -1100,7 +1159,7 @@ public class QdrantClient implements AutoCloseable {
       String fieldName,
       Points.FieldType fieldType,
       Collections.PayloadIndexParams fieldIndexParams,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return createFieldIndex(
         collectionName, fieldName, fieldType, fieldIndexParams, ordering, false);
   }
@@ -1121,13 +1180,16 @@ public class QdrantClient implements AutoCloseable {
       String fieldName,
       Points.FieldType fieldType,
       Collections.PayloadIndexParams fieldIndexParams,
-      Points.WriteOrderingType ordering) {
+      @Nullable Points.WriteOrderingType ordering) {
     return createFieldIndex(collectionName, fieldName, fieldType, fieldIndexParams, ordering, true);
   }
 
   /** Internal delete field index method */
   private Points.PointsOperationResponse deleteFieldIndex(
-      String collectionName, String fieldName, Points.WriteOrderingType ordering, Boolean wait) {
+      String collectionName,
+      String fieldName,
+      @Nullable Points.WriteOrderingType ordering,
+      Boolean wait) {
     Points.DeleteFieldIndexCollection.Builder request =
         Points.DeleteFieldIndexCollection.newBuilder()
             .setCollectionName(collectionName)
@@ -1150,7 +1212,7 @@ public class QdrantClient implements AutoCloseable {
    * @return The response of the delete operation.
    */
   public Points.PointsOperationResponse deleteFieldIndex(
-      String collectionName, String fieldName, Points.WriteOrderingType ordering) {
+      String collectionName, String fieldName, @Nullable Points.WriteOrderingType ordering) {
     return deleteFieldIndex(collectionName, fieldName, ordering, false);
   }
 
@@ -1164,7 +1226,7 @@ public class QdrantClient implements AutoCloseable {
    * @return The response of the delete operation.
    */
   public Points.PointsOperationResponse deleteFieldIndexBlocking(
-      String collectionName, String fieldName, Points.WriteOrderingType ordering) {
+      String collectionName, String fieldName, @Nullable Points.WriteOrderingType ordering) {
     return deleteFieldIndex(collectionName, fieldName, ordering, true);
   }
 
@@ -1179,7 +1241,7 @@ public class QdrantClient implements AutoCloseable {
         SnapshotsService.CreateSnapshotRequest.newBuilder()
             .setCollectionName(collectionName)
             .build();
-    return snapshotStub.create(request);
+    return snapshotsStub.create(request);
   }
 
   /**
@@ -1193,7 +1255,7 @@ public class QdrantClient implements AutoCloseable {
         SnapshotsService.ListSnapshotsRequest.newBuilder()
             .setCollectionName(collectionName)
             .build();
-    return snapshotStub.list(request);
+    return snapshotsStub.list(request);
   }
 
   /**
@@ -1210,7 +1272,7 @@ public class QdrantClient implements AutoCloseable {
             .setCollectionName(collectionName)
             .setSnapshotName(snapshotName)
             .build();
-    return snapshotStub.delete(request);
+    return snapshotsStub.delete(request);
   }
 
   /**
@@ -1221,7 +1283,7 @@ public class QdrantClient implements AutoCloseable {
   public SnapshotsService.CreateSnapshotResponse createFullSnapshot() {
     SnapshotsService.CreateFullSnapshotRequest request =
         SnapshotsService.CreateFullSnapshotRequest.newBuilder().build();
-    return snapshotStub.createFull(request);
+    return snapshotsStub.createFull(request);
   }
 
   /**
@@ -1232,7 +1294,7 @@ public class QdrantClient implements AutoCloseable {
   public SnapshotsService.ListSnapshotsResponse listFullSnapshots() {
     SnapshotsService.ListFullSnapshotsRequest request =
         SnapshotsService.ListFullSnapshotsRequest.newBuilder().build();
-    return snapshotStub.listFull(request);
+    return snapshotsStub.listFull(request);
   }
 
   /**
@@ -1246,7 +1308,7 @@ public class QdrantClient implements AutoCloseable {
         SnapshotsService.DeleteFullSnapshotRequest.newBuilder()
             .setSnapshotName(snapshotName)
             .build();
-    return snapshotStub.deleteFull(request);
+    return snapshotsStub.deleteFull(request);
   }
 
   @Override
