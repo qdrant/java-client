@@ -31,133 +31,153 @@ Java client library with handy utility methods and overloads for interfacing wit
 To install the library, add the following lines to your build config file.
 
 #### Maven
+
 ```xml
 <dependency>
   <groupId>io.qdrant</groupId>
   <artifactId>client</artifactId>
-  <version>1.0</version>
+  <version>1.7-SNAPSHOT</version>
 </dependency>
 ```
 
 #### Scala SBT
+
 ```sbt
-libraryDependencies += "io.qdrant" % "client" % "1.0"
+libraryDependencies += "io.qdrant" % "client" % "1.7-SNAPSHOT"
 ```
 
 #### Gradle
+
 ```gradle
-implementation 'io.qdrant:client:1.0'
+implementation 'io.qdrant:client:1.7-SNAPSHOT'
 ```
 
 ## 📖 Documentation
+
 - [`QdrantClient` Reference](https://qdrant.github.io/java-client/io/qdrant/client/QdrantClient.html#constructor-detail)
-- [Utility Methods Reference](https://qdrant.github.io/java-client/io/qdrant/client/utils/package-summary.html)
 
-## 🔌 Connecting to Qdrant
+## 🔌 Getting started
 
-> [!NOTE]  
-> The library uses Qdrant's GRPC interface. The default port being `6334`.
-> 
-> Uses `TLS` if the URL protocol is `https`, plaintext otherwise.
+### Creating a client
 
-#### Connecting to a local Qdrant instance
-```java
-import io.qdrant.client.QdrantClient;
-
-QdrantClient client = new QdrantClient("http://localhost:6334");
-```
-
-#### Connecting to Qdrant cloud
-```java
-import io.qdrant.client.QdrantClient;
-
-QdrantClient client = new QdrantClient("https://xyz-eg.eu-central.aws.cloud.qdrant.io:6334", "<your-api-key>");
-```
-
-## 🧪 Example Usage
-<details>
-<summary>Click to expand example</summary>
-
-
-#### You can connect to Qdrant by instantiating a [QdrantClient](https://qdrant.github.io/java-client/io/qdrant/client/QdrantClient.html) instance.
-```java
-import io.qdrant.client.QdrantClient;
-
-QdrantClient client = new QdrantClient("http://localhost:6334");
-
-System.out.println(client.listCollections());
-```
-*Output*:
-```
-collections {
-name: "Documents"
-}
-collections {
-name: "some_collection"
-}
-time: 7.04541E-4
-```
-
-#### We can now perform operations on the DB. Like creating a collection, adding a point.
-The library offers handy utility methods for constructing GRPC structures.
+A client can be instantiated with
 
 ```java
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import io.qdrant.client.utils.*;
-
-String collectionName = "Documents";
-
-client.recreateCollection(collectionName, 6, Distance.Cosine);
-
-Map<String, Object> map = new HashMap<>();
-map.put("name", "John Doe");
-map.put("age", 42);
-map.put("married", true);
-
-PointStruct point =
-  PointUtil.point(
-    0,
-    VectorUtil.toVector(0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f),
-    PayloadUtil.toPayload(map));
-List<PointStruct> points = Arrays.asList(point);
-client.upsertPoints(collectionName, points, null);
+QdrantClient client = 
+  new QdrantClient(QdrantGrpcClient.newBuilder("localhost").build());
 ```
+which creates a client that will connect to Qdrant on https://localhost:6334.
 
-#### Performing a search on the vectors with filtering
+Internally, the high level client uses a low level gRPC client to interact with
+Qdrant. Additional constructor overloads provide more control over how the gRPC
+client is configured. The following example configures a client to use TLS,
+validating the certificate using the root CA to verify the server's identity
+instead of the system's default, and also configures API key authentication:
+
 ```java
-import io.qdrant.client.grpc.Points.Filter;
-import io.qdrant.client.grpc.Points.SearchPoints;
-import io.qdrant.client.grpc.Points.SearchResponse;
+ManagedChannel channel = Grpc.newChannelBuilder(
+  "localhost:6334",
+  TlsChannelCredentials.newBuilder()
+    .trustManager(new File("ssl/ca.crt"))
+    .build())
+.build();
 
-import io.qdrant.client.utils.*;
-
-Filter filter = FilterUtil.must(FilterUtil.fieldCondition("age", FilterUtil.match(42)));
-      
-SearchPoints request = SearchPoints.newBuilder()
-        .setCollectionName(collectionName)
-        .addAllVector(Arrays.asList(0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f))
-        .setFilter(filter)
-        .setWithPayload(SelectorUtil.withPayload())
-        .setLimit(10)
-        .build();
-SearchResponse result = client.searchPoints(request);
-
-ScoredPoint result = results.getResult(0);
-            
-System.out.println("Similarity: " + result.getScore());
-System.out.println("Payload: " + PayloadUtil.toMap(result.getPayload()));
-```
-*Output*:
-```
-Similarity: 0.9999999
-Payload: {name=John Doe, married=true, age=42}
+QdrantClient client = new QdrantClient(
+  QdrantGrpcClient.newBuilder(channel)
+    .withApiKey("<apikey>")
+    .build());
 ```
 
-</details>
+The client implements [`AutoCloseable`](https://docs.oracle.com/javase/8/docs/api/java/lang/AutoCloseable.html),
+though a client will typically be created once and used for the lifetime of the
+application. When a client is constructed by passing a `ManagedChannel`, the
+client does not shut down the channel on close by default. The client can be
+configured to shut down the channel on close with
+
+```java
+ManagedChannel channel = Grpc.newChannelBuilder(
+  "localhost:6334", 
+  TlsChannelCredentials.create())
+.build();
+
+QdrantClient client = new QdrantClient(
+  QdrantGrpcClient.newBuilder(channel, true)
+    .withApiKey("<apikey>")
+    .build());
+```
+
+All client methods return `ListenableFuture<T>`.
+
+### Working with collections
+
+Once a client has been created, create a new collection
+
+```java
+client.createCollectionAsync("my_collection",
+  VectorParams.newBuilder()
+    .setDistance(Distance.Cosine)
+    .setSize(4)
+    .build())
+  .get();
+```
+
+Insert vectors into a collection
+
+```java
+// import static convenience methods
+import static io.qdrant.client.PointIdFactory.id;
+import static io.qdrant.client.ValueFactory.value;
+import static io.qdrant.client.VectorsFactory.vector;
+
+Random random = new Random();
+List<PointStruct> points = IntStream.range(1, 101)
+  .mapToObj(i -> PointStruct.newBuilder()
+    .setId(id(i))
+    .setVectors(vector(IntStream.range(1, 101)
+        .mapToObj(v -> random.nextFloat())
+        .collect(Collectors.toList())))
+    .putAllPayload(ImmutableMap.of(
+      "color", value("red"),
+      "rand_number", value(i % 10))
+    )
+    .build()
+  )
+  .collect(Collectors.toList());
+
+UpdateResult updateResult = client.upsertAsync("my_collection", points).get();
+```
+
+Search for similar vectors
+
+```java
+List<Float> queryVector = IntStream.range(1, 101)
+  .mapToObj(v -> random.nextFloat())
+  .collect(Collectors.toList());
+
+List<ScoredPoint> points = client.searchAsync(SearchPoints.newBuilder()
+  .setCollectionName("my_collection")
+  .addAllVector(queryVector)
+  .setLimit(5)
+  .build()
+).get();
+```
+
+Search for similar vectors with filtering condition
+
+```java
+// import static convenience methods
+import static io.qdrant.client.ConditionFactory.range;
+
+List<ScoredPoint> points = client.searchAsync(SearchPoints.newBuilder()
+  .setCollectionName("my_collection")
+  .addAllVector(queryVector)
+  .setFilter(Filter.newBuilder()
+    .addMust(range("rand_number", Range.newBuilder().setGte(3).build()))
+    .build())
+  .setLimit(5)
+  .build()
+).get();
+```
 
 ## ⚖️ LICENSE
 
