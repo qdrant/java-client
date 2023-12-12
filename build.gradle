@@ -1,0 +1,231 @@
+import net.ltgt.gradle.errorprone.CheckSeverity
+import org.ajoberstar.grgit.Grgit
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.HttpClients
+
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
+import java.time.ZoneOffset
+import java.util.regex.Pattern
+
+plugins {
+	id 'java-library'
+	id 'idea'
+	id 'signing'
+	id 'maven-publish'
+
+	id 'com.google.protobuf' version '0.9.4'
+	id "net.ltgt.errorprone" version '3.1.0'
+}
+
+group = 'io.qdrant'
+version = packageVersion
+description = 'Official Java client for Qdrant vector database'
+
+repositories {
+	// google mirror for maven
+	maven {
+		url 'https://maven-central.storage-download.googleapis.com/maven2/'
+	}
+	mavenCentral()
+	mavenLocal()
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_1_8
+	targetCompatibility = JavaVersion.VERSION_1_8
+
+	withJavadocJar()
+	withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+	// exclude generated code from error prone checks
+	options.errorprone.excludedPaths.set(".*/build/generated/.*")
+	options.errorprone {
+		//noinspection GroovyAssignabilityCheck
+		check("NullAway", CheckSeverity.ERROR)
+		option("NullAway:AnnotatedPackages", "com.uber")
+	}
+}
+
+javadoc {
+	// exclude code generated from protos
+	exclude 'io/qdrant/client/grpc/**'
+	exclude 'grpc/**'
+}
+
+sourcesJar {
+	// exclude generated duplicate of com/qdrant/client/grpc/CollectionsGrpc.java
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+jar {
+	doFirst {
+		def git = Grgit.open(Map.of('currentDir', rootProject.rootDir))
+		// add qdrant version from which client is generated.
+		jar.manifest.attributes['X-Qdrant-Version'] = qdrantProtosVersion
+		// add git revision and commit time to jar manifest
+		jar.manifest.attributes['X-Git-Revision'] = git.head().id
+		jar.manifest.attributes['X-Git-Commit-Time'] = git.head().dateTime.withZoneSameLocal(ZoneOffset.UTC)
+		git.close()
+	}
+}
+
+def grpcVersion = '1.59.0'
+def protobufVersion = '3.24.0'
+def protocVersion = protobufVersion
+def testContainersVersion = '1.19.2'
+def jUnitVersion = '5.8.1'
+
+dependencies {
+	errorprone "com.uber.nullaway:nullaway:0.10.18"
+
+	implementation "io.grpc:grpc-protobuf:${grpcVersion}"
+	implementation "io.grpc:grpc-services:${grpcVersion}"
+	implementation "io.grpc:grpc-stub:${grpcVersion}"
+	implementation "com.google.guava:guava:30.1-jre"
+	implementation "org.slf4j:slf4j-api:2.0.7"
+
+	compileOnly "org.apache.tomcat:annotations-api:6.0.53"
+	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+
+	errorprone "com.google.errorprone:error_prone_core:2.23.0"
+
+	runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}"
+
+	testImplementation "io.grpc:grpc-testing:${grpcVersion}"
+	testImplementation "org.junit.jupiter:junit-jupiter-api:${jUnitVersion}"
+	testImplementation "org.mockito:mockito-core:3.4.0"
+	testImplementation "org.testcontainers:testcontainers:${testContainersVersion}"
+	testImplementation "org.testcontainers:junit-jupiter:${testContainersVersion}"
+
+	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${jUnitVersion}"
+}
+
+tasks.register('downloadProtos') {
+	// gradle detects changes to this output dir since last run to determine whether to run this task
+	outputs.dir(new File(rootProject.rootDir, "protos/${qdrantProtosVersion}"))
+
+	doLast {
+		def outputDirectory = outputs.files.singleFile.toPath().toString()
+		def protoFileRegex = Pattern.compile(".*?lib/api/src/grpc/proto/.*?.proto")
+		try (def httpClient = HttpClients.createDefault()) {
+			def url = "https://api.github.com/repos/qdrant/qdrant/tarball/refs/tags/${qdrantProtosVersion}"
+			logger.debug("downloading protos from {}", url)
+			def response = httpClient.execute(new HttpGet(url))
+			try (InputStream tarballStream = response.getEntity().getContent()) {
+				try (TarArchiveInputStream tarInput = new TarArchiveInputStream(new GzipCompressorInputStream(tarballStream))) {
+					TarArchiveEntry entry
+					while ((entry = tarInput.getNextTarEntry()) != null) {
+						if (!entry.isDirectory() && protoFileRegex.matcher(entry.getName()).matches()) {
+							def lines = new ArrayList<String>()
+							def lineNum = -1
+							def seenJavaPackage = false
+							def br = new BufferedReader(new InputStreamReader(tarInput))
+							String line
+							while ((line = br.readLine()) != null) {
+								lines.add(line)
+								if (line == "package qdrant;") {
+									lineNum = lines.size()
+								} else if (line.startsWith("option java_package")) {
+									seenJavaPackage = true
+								}
+							}
+							// patch in java package to qdrant protos
+							if (!seenJavaPackage && lineNum != -1) {
+								lines.add(lineNum, "option java_package = \"io.qdrant.client.grpc\";")
+							}
+
+							def fileName = Paths.get(entry.getName()).getFileName().toString()
+							def dest = java.nio.file.Path.of(outputDirectory, fileName)
+							logger.debug("writing {} to {}", fileName, dest)
+							Files.write(dest, lines, StandardOpenOption.CREATE)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+processResources {
+	dependsOn downloadProtos
+}
+
+extractIncludeProto {
+	dependsOn downloadProtos
+}
+
+protobuf {
+	protoc { artifact = "com.google.protobuf:protoc:${protocVersion}" }
+	plugins {
+		grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}" }
+	}
+	generateProtoTasks {
+		all()*.plugins { grpc {} }
+	}
+}
+
+// Inform IDEs like IntelliJ IDEA, Eclipse or NetBeans about the generated code.
+sourceSets {
+	main {
+		proto {
+			// include protos from outside the sourceSets
+			//noinspection GroovyAssignabilityCheck
+			srcDir "protos/${qdrantProtosVersion}"
+		}
+		java {
+			srcDirs 'build/generated/source/proto/main/grpc'
+			srcDirs 'build/generated/source/proto/main/java'
+		}
+	}
+}
+
+test {
+	useJUnitPlatform()
+
+	// Set system property to use as docker image version for integration tests
+	systemProperty 'qdrantVersion', qdrantVersion
+}
+
+def organization = 'qdrant'
+def repository = 'java-client'
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+			pom {
+				description = "${project.description}"
+				url = "https://github.com/${organization}/${repository}"
+				licenses {
+					license {
+						name = 'The Apache License, Version 2.0'
+						url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+						distribution = 'repo'
+					}
+				}
+				developers {
+					developer {
+						id = 'qdrant'
+						name = 'Qdrant and Contributors'
+						email = 'info@qdrant.com'
+					}
+				}
+				scm {
+					connection = "scm:git:git://github.com/${organization}/${repository}.git"
+					developerConnection = "scm:git:ssh://github.com/${organization}/${repository}.git"
+					url = "https://github.com/${organization}/${repository}"
+				}
+			}
+		}
+	}
+	repositories {
+		mavenLocal()
+	}
+}
