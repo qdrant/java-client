@@ -14,6 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -119,6 +122,46 @@ public class QdrantClient implements AutoCloseable {
 	 */
 	public QdrantClient(QdrantGrpcClient grpcClient) {
 		this.grpcClient = grpcClient;
+	}
+
+	/**
+	 * Creates a new instance of {@link QdrantClient} using the provided URL and API key.
+	 *
+	 * @param url    The URL of the Qdrant server. <br>
+	 *               Uses TLS if the URL protocol is https. Plain text otherwise.
+	 * @param apiKey The API key to use for authtehtication.
+	 */
+	public QdrantClient(String url, String apiKey) {
+		URL parsedUrl = null;
+		try {
+			parsedUrl = new URL(url);
+		} catch (MalformedURLException e) {
+			logger.error("Invalid URL", e);
+		}
+		Boolean useTls = parsedUrl.getProtocol().equals("https");
+		QdrantGrpcClient.Builder builder = QdrantGrpcClient.newBuilder(parsedUrl.getHost(), parsedUrl.getPort(),
+				useTls);
+		builder.withApiKey(apiKey);
+		this.grpcClient = builder.build();
+	}
+
+	/**
+	 * Creates a new instance of {@link QdrantClient} using the provided URL.
+	 *
+	 * @param url    The URL of the Qdrant server. <br>
+	 *               Uses TLS if the URL protocol is https. Plain text otherwise.
+	 */
+	public QdrantClient(String url) {
+		URL parsedUrl = null;
+		try {
+			parsedUrl = new URL(url);
+		} catch (MalformedURLException e) {
+			logger.error("Invalid URL", e);
+		}
+		Boolean useTls = parsedUrl.getProtocol().equals("https");
+		QdrantGrpcClient.Builder builder = QdrantGrpcClient.newBuilder(parsedUrl.getHost(), parsedUrl.getPort(),
+				useTls);
+		this.grpcClient = builder.build();
 	}
 
 	/**
