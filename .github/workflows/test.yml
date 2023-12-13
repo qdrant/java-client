@@ -9,6 +9,7 @@ on:
       - reopened
 
 permissions:
+  contents: write
   checks: write
 
 jobs:
