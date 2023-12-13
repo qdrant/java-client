@@ -1,0 +1,9 @@
+dependencies {
+	implementation 'org.ajoberstar.grgit:grgit-gradle:5.0.0'
+	implementation 'org.apache.httpcomponents:httpclient:4.5.14'
+	implementation 'org.apache.commons:commons-compress:1.23.0'
+}
+
+repositories {
+	mavenCentral()
+}
