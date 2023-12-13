@@ -1,0 +1,47 @@
+name: Test
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  checks: write
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 8.5
+          arguments: build
+
+      - name: Test
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 8.5
+          arguments: test
+
+      - name: Test Results
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          fail_on_failure: true
+          require_tests: true
+          report_paths: '**/build/test-results/test/TEST-*.xml'
