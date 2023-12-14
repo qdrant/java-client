@@ -28,8 +28,12 @@ import static io.qdrant.client.grpc.Collections.CollectionInfo;
 import static io.qdrant.client.grpc.Collections.CollectionOperationResponse;
 import static io.qdrant.client.grpc.Collections.CreateAlias;
 import static io.qdrant.client.grpc.Collections.CreateCollection;
+import static io.qdrant.client.grpc.Collections.CreateShardKeyRequest;
+import static io.qdrant.client.grpc.Collections.CreateShardKeyResponse;
 import static io.qdrant.client.grpc.Collections.DeleteAlias;
 import static io.qdrant.client.grpc.Collections.DeleteCollection;
+import static io.qdrant.client.grpc.Collections.DeleteShardKeyRequest;
+import static io.qdrant.client.grpc.Collections.DeleteShardKeyResponse;
 import static io.qdrant.client.grpc.Collections.GetCollectionInfoRequest;
 import static io.qdrant.client.grpc.Collections.GetCollectionInfoResponse;
 import static io.qdrant.client.grpc.Collections.ListAliasesRequest;
@@ -661,6 +665,56 @@ public class QdrantClient implements AutoCloseable {
 		ListenableFuture<ListAliasesResponse> future = getCollections(timeout).listAliases(ListAliasesRequest.getDefaultInstance());
 		addLogFailureCallback(future, "List aliases");
 		return Futures.transform(future, ListAliasesResponse::getAliasesList, MoreExecutors.directExecutor());
+	}
+
+	//endregion
+
+	//region ShardKey Management
+
+	/**
+	 * Creates a shard key for a collection.
+	 *
+	 * @param createShardKey The request object for the operation.
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link CreateShardKeyResponse}
+	 */
+	public ListenableFuture<CreateShardKeyResponse> createShardKeyAsync(CreateShardKeyRequest createShardKey, @Nullable Duration timeout) {
+		String collectionName = createShardKey.getCollectionName();
+		Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
+		logger.debug("Create shard key'{}'", collectionName);
+
+		ListenableFuture<CreateShardKeyResponse> future = getCollections(timeout).createShardKey(createShardKey);
+		addLogFailureCallback(future, "Create shard key");
+		return Futures.transform(future, response -> {
+			if (!response.getResult()) {
+				logger.error("Shard key could not be created for '{}'", collectionName);
+				throw new QdrantException("Shard key could not be created for '" + collectionName);
+			}
+			return response;
+		}, MoreExecutors.directExecutor());
+	}
+
+	/**
+	 * Deletes a shard key for a collection.
+	 *
+	 * @param createShardKey The request object for the operation.
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link DeleteShardKeyResponse}
+	 */
+	public ListenableFuture<DeleteShardKeyResponse> deleteShardKeyAsync(DeleteShardKeyRequest deleteShardKey, @Nullable Duration timeout) {
+		String collectionName = deleteShardKey.getCollectionName();
+		Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
+		logger.debug("Delete shard key'{}'", collectionName);
+
+		ListenableFuture<DeleteShardKeyResponse> future = getCollections(timeout).deleteShardKey(deleteShardKey);
+		addLogFailureCallback(future, "Delete shard key");
+		return Futures.transform(future, response -> {
+			if (!response.getResult()) {
+				logger.error("Shard key could not be deleted for '{}'", collectionName);
+				throw new QdrantException("Shard key could not be deleted for '" + collectionName);
+			}
+			return response;
+		}, MoreExecutors.directExecutor());
 	}
 
 	//endregion
