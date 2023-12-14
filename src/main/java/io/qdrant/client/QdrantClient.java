@@ -2388,6 +2388,7 @@ public class QdrantClient implements AutoCloseable {
 		addLogFailureCallback(future, "Delete full snapshot");
 		return future;
 	}
+
 	/**
 	 * Downloads a snapshot of a collection from the specified REST API URI and
 	 * saves it to the given
@@ -2397,7 +2398,7 @@ public class QdrantClient implements AutoCloseable {
 	 * @param collectionName The name of the collection.
 	 * @param snapshotName   The name of the snapshot. If null, the latest snapshot
 	 *                       will be downloaded.
-	 * @param restApiUri     The URI of the REST API. If null, the default URI
+	 * @param restApiUrl     The URI of the REST API. If null, the default URI
 	 *                       "http://localhost:6333"
 	 *                       will be used.
 	 */
@@ -2405,7 +2406,7 @@ public class QdrantClient implements AutoCloseable {
 			Path outPath,
 			String collectionName,
 			@Nullable String snapshotName,
-			@Nullable String restApiUri) throws InterruptedException, IOException, ExecutionException {
+			@Nullable URL restApiUrl) throws InterruptedException, IOException, ExecutionException {
 		String resolvedSnapshotName;
 		if (snapshotName != null) {
 			resolvedSnapshotName = snapshotName;
@@ -2418,17 +2419,15 @@ public class QdrantClient implements AutoCloseable {
 			resolvedSnapshotName = snapshots.get(0).getName();
 		}
 
-		String uri;
-		if (restApiUri != null) {
-			uri = String.format(
-					"%s/collections/%s/snapshots/%s", restApiUri, collectionName, resolvedSnapshotName);
-		} else {
-			uri = String.format(
-					"http://localhost:6333/collections/%s/snapshots/%s",
-					collectionName, resolvedSnapshotName);
-		}
+		String snapshotPath = String.format(
+				"/collections/%s/snapshots/%s", collectionName, resolvedSnapshotName);
+		URL url;
 
-		URL url = new URL(uri);
+		if (restApiUrl != null) {
+			url = new URL(restApiUrl, snapshotPath);
+		} else {
+			url = new URL("http", "localhost", 6333, snapshotPath);
+		}
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
 		if (connection.getResponseCode() == 200) {

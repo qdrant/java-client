@@ -16,6 +16,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import io.qdrant.client.container.QdrantContainer;
 
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.List;
@@ -141,7 +142,7 @@ class SnapshotsTest {
 
 	@Test
 	public void testDownloadSnapshot() throws ExecutionException, InterruptedException, IOException {
-		String restApiUri = "http://" + QDRANT_CONTAINER.getHttpHostAddress();
+		URL restApiUrl = new URL("http://" + QDRANT_CONTAINER.getHttpHostAddress());
 		createCollection(testName);
 
 		assertEquals(client.listSnapshotAsync(testName).get().size(), 0);
@@ -152,12 +153,12 @@ class SnapshotsTest {
 
 		Path path = FileSystems.getDefault().getPath("./test.snapshot");
 
-		client.downloadSnapshot(path, testName, snapshotName, restApiUri);
+		client.downloadSnapshot(path, testName, snapshotName, restApiUrl);
 		assertTrue(path.toFile().exists());
 
 		// Test without snapshot name
 		path = FileSystems.getDefault().getPath("./test_2.snapshot");
-		client.downloadSnapshot(path, testName, null, restApiUri);
+		client.downloadSnapshot(path, testName, null, restApiUrl);
 		assertTrue(path.toFile().exists());
 	}
 
