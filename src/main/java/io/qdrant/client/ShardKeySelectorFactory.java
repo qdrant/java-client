@@ -7,7 +7,13 @@ import static io.qdrant.client.ShardKeyFactory.shardKey;
 
 import java.util.Arrays;
 
+/**
+ * Convenience methods for constructing {@link ShardKeySelector}
+ */
 public class ShardKeySelectorFactory {
+    private ShardKeySelectorFactory() {
+    }
+
     /**
      * Creates a {@link ShardKeySelector} with the given shard keys.
      *
