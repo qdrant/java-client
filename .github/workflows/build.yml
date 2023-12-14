@@ -3,11 +3,11 @@ name: Build
 on:
   push:
     branches: [ "master" ]
-  pull_request_target:
+  pull_request:
     branches: [ "master" ]
 
 permissions:
-  contents: read
+  contents: write
   checks: write
 
 jobs:
