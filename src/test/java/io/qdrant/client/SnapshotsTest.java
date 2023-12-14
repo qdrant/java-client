@@ -1,6 +1,7 @@
 package io.qdrant.client;
 
 import io.qdrant.client.grpc.Collections;
+import io.qdrant.client.grpc.SnapshotsService;
 import io.grpc.Grpc;
 import io.grpc.InsecureChannelCredentials;
 import io.grpc.ManagedChannel;
@@ -14,6 +15,9 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import io.qdrant.client.container.QdrantContainer;
 
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -21,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import static io.qdrant.client.grpc.SnapshotsService.SnapshotDescription;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 class SnapshotsTest {
@@ -132,6 +137,28 @@ class SnapshotsTest {
 
 		List<SnapshotDescription> snapshotDescriptions = client.listFullSnapshotAsync().get();
 		assertEquals(2, snapshotDescriptions.size());
+	}
+
+	@Test
+	public void testDownloadSnapshot() throws ExecutionException, InterruptedException, IOException {
+		String restApiUri = "http://" + QDRANT_CONTAINER.getHttpHostAddress();
+		createCollection(testName);
+
+		assertEquals(client.listSnapshotAsync(testName).get().size(), 0);
+
+		// Test with snapshot name
+		SnapshotsService.SnapshotDescription response = client.createSnapshotAsync(testName).get();
+		String snapshotName = response.getName();
+
+		Path path = FileSystems.getDefault().getPath("./test.snapshot");
+
+		client.downloadSnapshot(path, testName, snapshotName, restApiUri);
+		assertTrue(path.toFile().exists());
+
+		// Test without snapshot name
+		path = FileSystems.getDefault().getPath("./test_2.snapshot");
+		client.downloadSnapshot(path, testName, null, restApiUri);
+		assertTrue(path.toFile().exists());
 	}
 
 	private void createCollection(String collectionName) throws ExecutionException, InterruptedException {

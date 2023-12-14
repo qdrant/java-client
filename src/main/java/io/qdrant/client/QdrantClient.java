@@ -14,9 +14,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -2379,6 +2387,65 @@ public class QdrantClient implements AutoCloseable {
 			.build());
 		addLogFailureCallback(future, "Delete full snapshot");
 		return future;
+	}
+	/**
+	 * Downloads a snapshot of a collection from the specified REST API URI and
+	 * saves it to the given
+	 * output path.
+	 *
+	 * @param outPath        The path where the snapshot will be saved.
+	 * @param collectionName The name of the collection.
+	 * @param snapshotName   The name of the snapshot. If null, the latest snapshot
+	 *                       will be downloaded.
+	 * @param restApiUri     The URI of the REST API. If null, the default URI
+	 *                       "http://localhost:6333"
+	 *                       will be used.
+	 */
+	public void downloadSnapshot(
+			Path outPath,
+			String collectionName,
+			@Nullable String snapshotName,
+			@Nullable String restApiUri) throws InterruptedException, IOException, ExecutionException {
+		String resolvedSnapshotName;
+		if (snapshotName != null) {
+			resolvedSnapshotName = snapshotName;
+		} else {
+			// Get the latest(0th) snapshot of the collection
+			List<SnapshotDescription> snapshots = listSnapshotAsync(collectionName).get();
+			if (snapshots.isEmpty()) {
+				throw new RuntimeException("No snapshots found");
+			}
+			resolvedSnapshotName = snapshots.get(0).getName();
+		}
+
+		String uri;
+		if (restApiUri != null) {
+			uri = String.format(
+					"%s/collections/%s/snapshots/%s", restApiUri, collectionName, resolvedSnapshotName);
+		} else {
+			uri = String.format(
+					"http://localhost:6333/collections/%s/snapshots/%s",
+					collectionName, resolvedSnapshotName);
+		}
+
+		URL url = new URL(uri);
+		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+		if (connection.getResponseCode() == 200) {
+			try (InputStream in = connection.getInputStream();
+					FileOutputStream fileOut = new FileOutputStream(outPath.toFile())) {
+
+				byte[] buffer = new byte[8192];
+				int bytesRead;
+				while ((bytesRead = in.read(buffer)) != -1) {
+					fileOut.write(buffer, 0, bytesRead);
+				}
+
+				logger.info("Downloaded snapshot to {}", outPath);
+			}
+		} else {
+			throw new RuntimeException("Download failed. HTTP Status Code: " + connection.getResponseCode());
+		}
 	}
 
 	//endregion
