@@ -671,6 +671,16 @@ public class QdrantClient implements AutoCloseable {
 
 	//region ShardKey Management
 
+		/**
+	 * Creates a shard key for a collection.
+	 *
+	 * @param createShardKey The request object for the operation.
+	 * @return a new instance of {@link CreateShardKeyResponse}
+	 */
+	public ListenableFuture<CreateShardKeyResponse> createShardKeyAsync(CreateShardKeyRequest createShardKey) {
+		return createShardKeyAsync(createShardKey, null);
+	}
+
 	/**
 	 * Creates a shard key for a collection.
 	 *
@@ -697,7 +707,17 @@ public class QdrantClient implements AutoCloseable {
 	/**
 	 * Deletes a shard key for a collection.
 	 *
-	 * @param createShardKey The request object for the operation.
+	 * @param deleteShardKey The request object for the operation.
+	 * @return a new instance of {@link DeleteShardKeyResponse}
+	 */
+	public ListenableFuture<DeleteShardKeyResponse> deleteShardKeyAsync(DeleteShardKeyRequest deleteShardKey) {
+		return deleteShardKeyAsync(deleteShardKey, null);
+	}
+
+	/**
+	 * Deletes a shard key for a collection.
+	 *
+	 * @param deleteShardKey The request object for the operation.
 	 * @param timeout The timeout for the call.
 	 * @return a new instance of {@link DeleteShardKeyResponse}
 	 */
