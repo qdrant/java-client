@@ -37,7 +37,7 @@ public final class VectorsFactory {
 	 * @param values A list of values
 	 * @return a new instance of {@link Vectors}
 	 */
-	public static Vectors vector(List<Float> values) {
+	public static Vectors vectors(List<Float> values) {
 		return Vectors.newBuilder()
 			.setVector(Vector.newBuilder()
 				.addAllData(values)
@@ -50,7 +50,7 @@ public final class VectorsFactory {
 	 * @param values A list of values
 	 * @return a new instance of {@link Vectors}
 	 */
-	public static Vectors vector(float... values) {
+	public static Vectors vectors(float... values) {
 		return Vectors.newBuilder()
 			.setVector(Vector.newBuilder()
 				.addAllData(Floats.asList(values))
