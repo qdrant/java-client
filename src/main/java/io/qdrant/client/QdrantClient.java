@@ -2264,34 +2264,54 @@ public class QdrantClient implements AutoCloseable {
 	}
 
 	/**
-	 * Use the context and a target to find the most similar points to the target in a batch.
-	 * Constraints by the context.
+	 * Use the context and a target to find the most similar points to the target in
+	 * a batch.
+	 * Constrained by the context.
 	 *
-	 * @param request The discover batch points request.
+	 * @param collectionName  The name of the collection
+	 * @param request         The list for discover point searches
+	 * @param readConsistency Options for specifying read consistency guarantees
 	 * @return a new instance of {@link ListenableFuture}
 	 */
-	public ListenableFuture<List<BatchResult>> discoverBatchAsync(DiscoverBatchPoints request) {
-		return discoverBatchAsync(request, null);
+	public ListenableFuture<List<BatchResult>> discoverBatchAsync(
+			String collectionName,
+			List<DiscoverPoints> discoverSearches,
+			@Nullable ReadConsistency readConsistency) {
+		return discoverBatchAsync(collectionName, discoverSearches, readConsistency, null);
 	}
 
 	/**
-	 * Use the context and a target to find the most similar points to the target in a batch.
-	 * Constraints by the context.
+	 * Use the context and a target to find the most similar points to the target in
+	 * a batch.
+	 * Constrained by the context.
 	 *
-	 * @param request The discover batch points request.
-	 * @param timeout The timeout for the call.
+	 * @param collectionName  The name of the collection
+	 * @param request         The list for discover point searches
+	 * @param readConsistency Options for specifying read consistency guarantees
+	 * @param timeout         The timeout for the call.
 	 * @return a new instance of {@link ListenableFuture}
 	 */
-	public ListenableFuture<List<BatchResult>> discoverBatchAsync(DiscoverBatchPoints request, @Nullable Duration timeout) {
-		String collectionName = request.getCollectionName();
+	public ListenableFuture<List<BatchResult>> discoverBatchAsync(
+			String collectionName,
+			List<DiscoverPoints> discoverSearches,
+			@Nullable ReadConsistency readConsistency,
+			@Nullable Duration timeout) {
 		Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
+
+		DiscoverBatchPoints.Builder requestBuilder = DiscoverBatchPoints.newBuilder()
+				.setCollectionName(collectionName)
+				.addAllDiscoverPoints(discoverSearches);
+
+		if (readConsistency != null) {
+			requestBuilder.setReadConsistency(readConsistency);
+		}
 		logger.debug("Discover batch on '{}'", collectionName);
-		ListenableFuture<DiscoverBatchResponse> future = getPoints(timeout).discoverBatch(request);
+		ListenableFuture<DiscoverBatchResponse> future = getPoints(timeout).discoverBatch(requestBuilder.build());
 		addLogFailureCallback(future, "Discover batch");
 		return Futures.transform(
-			future,
-			response -> response.getResultList(),
-			MoreExecutors.directExecutor());
+				future,
+				response -> response.getResultList(),
+				MoreExecutors.directExecutor());
 	}
 
 	/**
