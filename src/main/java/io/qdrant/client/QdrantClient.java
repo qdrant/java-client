@@ -2269,7 +2269,7 @@ public class QdrantClient implements AutoCloseable {
 	 * Constrained by the context.
 	 *
 	 * @param collectionName  The name of the collection
-	 * @param request         The list for discover point searches
+	 * @param discoverSearches         The list for discover point searches
 	 * @param readConsistency Options for specifying read consistency guarantees
 	 * @return a new instance of {@link ListenableFuture}
 	 */
@@ -2286,7 +2286,7 @@ public class QdrantClient implements AutoCloseable {
 	 * Constrained by the context.
 	 *
 	 * @param collectionName  The name of the collection
-	 * @param request         The list for discover point searches
+	 * @param discoverSearches         The list for discover point searches
 	 * @param readConsistency Options for specifying read consistency guarantees
 	 * @param timeout         The timeout for the call.
 	 * @return a new instance of {@link ListenableFuture}
