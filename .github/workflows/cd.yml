@@ -70,7 +70,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build
+      - name: Publish package
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: 8.5
