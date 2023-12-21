@@ -13,6 +13,7 @@ import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableSet;
 import io.qdrant.client.container.QdrantContainer;
+import io.qdrant.client.grpc.Points.DiscoverPoints;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -45,8 +46,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static io.qdrant.client.ConditionFactory.hasId;
 import static io.qdrant.client.ConditionFactory.matchKeyword;
 import static io.qdrant.client.PointIdFactory.id;
+import static io.qdrant.client.TargetVectorFactory.targetVector;
 import static io.qdrant.client.ValueFactory.value;
-import static io.qdrant.client.VectorsFactory.vector;
+import static io.qdrant.client.VectorFactory.vector;
 
 @Testcontainers
 class PointsTest {
@@ -307,7 +309,7 @@ class PointsTest {
 			ImmutableList.of(
 				PointStruct.newBuilder()
 					.setId(id(10))
-					.setVectors(VectorsFactory.vector(30f, 31f))
+					.setVectors(VectorsFactory.vectors(30f, 31f))
 					.putAllPayload(ImmutableMap.of("foo", value("hello")))
 					.build()
 			)
@@ -404,7 +406,7 @@ class PointsTest {
 			ImmutableList.of(
 				PointStruct.newBuilder()
 					.setId(id(10))
-					.setVectors(VectorsFactory.vector(30f, 31f))
+					.setVectors(VectorsFactory.vectors(30f, 31f))
 					.putAllPayload(ImmutableMap.of("foo", value("hello")))
 					.build()
 			)
@@ -421,6 +423,48 @@ class PointsTest {
 
 		assertEquals(1, groups.size());
 		assertEquals(2, groups.get(0).getHitsCount());
+	}
+
+	@Test
+	public void discover() throws ExecutionException, InterruptedException {
+		createAndSeedCollection(testName);
+
+		List<ScoredPoint> points = client.discoverAsync(DiscoverPoints.newBuilder()
+				.setCollectionName(testName)
+				.setTarget(targetVector(vector(ImmutableList.of(10.4f, 11.4f))))
+				.setLimit(1)
+				.build()).get();
+
+		assertEquals(1, points.size());
+		assertEquals(id(9), points.get(0).getId());
+	}
+
+	@Test
+	public void discoverBatch() throws ExecutionException, InterruptedException {
+		createAndSeedCollection(testName);
+
+		List<BatchResult> batchResults = client.discoverBatchAsync(
+				testName,
+				ImmutableList.of(
+						DiscoverPoints.newBuilder()
+								.setCollectionName(testName)
+								.setTarget(targetVector(vector(ImmutableList.of(10.4f, 11.4f))))
+								.setLimit(1)
+								.build(),
+						DiscoverPoints.newBuilder()
+								.setCollectionName(testName)
+								.setTarget(targetVector(vector(ImmutableList.of(3.5f, 4.5f))))
+								.setLimit(1)
+								.build()),
+				null).get();
+
+		assertEquals(2, batchResults.size());
+		BatchResult result = batchResults.get(0);
+		assertEquals(1, result.getResultCount());
+		assertEquals(id(9), result.getResult(0).getId());
+		result = batchResults.get(1);
+		assertEquals(1, result.getResultCount());
+		assertEquals(id(8), result.getResult(0).getId());
 	}
 
 	@Test
@@ -512,7 +556,7 @@ class PointsTest {
 		UpdateResult result = client.upsertAsync(collectionName, ImmutableList.of(
 			PointStruct.newBuilder()
 				.setId(id(8))
-				.setVectors(VectorsFactory.vector(ImmutableList.of(3.5f, 4.5f)))
+				.setVectors(VectorsFactory.vectors(ImmutableList.of(3.5f, 4.5f)))
 				.putAllPayload(ImmutableMap.of(
 					"foo", value("hello"),
 					"bar", value(1)
@@ -520,7 +564,7 @@ class PointsTest {
 				.build(),
 			PointStruct.newBuilder()
 				.setId(id(9))
-				.setVectors(VectorsFactory.vector(ImmutableList.of(10.5f, 11.5f)))
+				.setVectors(VectorsFactory.vectors(ImmutableList.of(10.5f, 11.5f)))
 				.putAllPayload(ImmutableMap.of(
 					"foo", value("goodbye"),
 					"bar", value(2)
