@@ -676,7 +676,7 @@ public class QdrantClient implements AutoCloseable {
 
 	//region ShardKey Management
 
-		/**
+	/**
 	 * Creates a shard key for a collection.
 	 *
 	 * @param createShardKey The request object for the operation.
@@ -696,7 +696,7 @@ public class QdrantClient implements AutoCloseable {
 	public ListenableFuture<CreateShardKeyResponse> createShardKeyAsync(CreateShardKeyRequest createShardKey, @Nullable Duration timeout) {
 		String collectionName = createShardKey.getCollectionName();
 		Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
-		logger.debug("Create shard key'{}'", collectionName);
+		logger.debug("Create shard key '{}' for '{}'", shardKey, collectionName);
 
 		ListenableFuture<CreateShardKeyResponse> future = getCollections(timeout).createShardKey(createShardKey);
 		addLogFailureCallback(future, "Create shard key");
@@ -729,13 +729,13 @@ public class QdrantClient implements AutoCloseable {
 	public ListenableFuture<DeleteShardKeyResponse> deleteShardKeyAsync(DeleteShardKeyRequest deleteShardKey, @Nullable Duration timeout) {
 		String collectionName = deleteShardKey.getCollectionName();
 		Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
-		logger.debug("Delete shard key'{}'", collectionName);
+		logger.debug("Delete shard key '{}' for '{}'", shardKey, collectionName);
 
 		ListenableFuture<DeleteShardKeyResponse> future = getCollections(timeout).deleteShardKey(deleteShardKey);
 		addLogFailureCallback(future, "Delete shard key");
 		return Futures.transform(future, response -> {
 			if (!response.getResult()) {
-				logger.error("Shard key could not be deleted for '{}'", collectionName);
+				logger.error("Shard key '{}' could not be deleted for '{}'", shardKey, collectionName);
 				throw new QdrantException("Shard key could not be deleted for '" + collectionName);
 			}
 			return response;
