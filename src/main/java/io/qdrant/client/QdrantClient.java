@@ -10,6 +10,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import io.qdrant.client.grpc.CollectionsGrpc;
 import io.qdrant.client.grpc.PointsGrpc;
 import io.qdrant.client.grpc.SnapshotsGrpc;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,8 +29,16 @@ import static io.qdrant.client.grpc.Collections.CollectionInfo;
 import static io.qdrant.client.grpc.Collections.CollectionOperationResponse;
 import static io.qdrant.client.grpc.Collections.CreateAlias;
 import static io.qdrant.client.grpc.Collections.CreateCollection;
+import static io.qdrant.client.grpc.Collections.CreateShardKeyRequest;
+import static io.qdrant.client.grpc.Collections.CreateShardKeyResponse;
 import static io.qdrant.client.grpc.Collections.DeleteAlias;
 import static io.qdrant.client.grpc.Collections.DeleteCollection;
+import static io.qdrant.client.grpc.Collections.DeleteShardKeyRequest;
+import static io.qdrant.client.grpc.Collections.DeleteShardKeyResponse;
+import static io.qdrant.client.grpc.Points.DiscoverBatchPoints;
+import static io.qdrant.client.grpc.Points.DiscoverBatchResponse;
+import static io.qdrant.client.grpc.Points.DiscoverPoints;
+import static io.qdrant.client.grpc.Points.DiscoverResponse;
 import static io.qdrant.client.grpc.Collections.GetCollectionInfoRequest;
 import static io.qdrant.client.grpc.Collections.GetCollectionInfoResponse;
 import static io.qdrant.client.grpc.Collections.ListAliasesRequest;
@@ -40,6 +49,7 @@ import static io.qdrant.client.grpc.Collections.ListCollectionsResponse;
 import static io.qdrant.client.grpc.Collections.PayloadIndexParams;
 import static io.qdrant.client.grpc.Collections.PayloadSchemaType;
 import static io.qdrant.client.grpc.Collections.RenameAlias;
+import static io.qdrant.client.grpc.Collections.ShardKey;
 import static io.qdrant.client.grpc.Collections.UpdateCollection;
 import static io.qdrant.client.grpc.Collections.VectorParams;
 import static io.qdrant.client.grpc.Collections.VectorParamsMap;
@@ -661,6 +671,78 @@ public class QdrantClient implements AutoCloseable {
 		ListenableFuture<ListAliasesResponse> future = getCollections(timeout).listAliases(ListAliasesRequest.getDefaultInstance());
 		addLogFailureCallback(future, "List aliases");
 		return Futures.transform(future, ListAliasesResponse::getAliasesList, MoreExecutors.directExecutor());
+	}
+
+	//endregion
+
+	//region ShardKey Management
+
+	/**
+	 * Creates a shard key for a collection.
+	 *
+	 * @param createShardKey The request object for the operation.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<CreateShardKeyResponse> createShardKeyAsync(CreateShardKeyRequest createShardKey) {
+		return createShardKeyAsync(createShardKey, null);
+	}
+
+	/**
+	 * Creates a shard key for a collection.
+	 *
+	 * @param createShardKey The request object for the operation.
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<CreateShardKeyResponse> createShardKeyAsync(CreateShardKeyRequest createShardKey, @Nullable Duration timeout) {
+		String collectionName = createShardKey.getCollectionName();
+		Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
+		ShardKey shardKey = createShardKey.getRequest().getShardKey();
+		logger.debug("Create shard key '{}' for '{}'", shardKey, collectionName);
+
+		ListenableFuture<CreateShardKeyResponse> future = getCollections(timeout).createShardKey(createShardKey);
+		addLogFailureCallback(future, "Create shard key");
+		return Futures.transform(future, response -> {
+			if (!response.getResult()) {
+				logger.error("Shard key could not be created for '{}'", collectionName);
+				throw new QdrantException("Shard key " + shardKey + " could not be created for " + collectionName);
+			}
+			return response;
+		}, MoreExecutors.directExecutor());
+	}
+
+	/**
+	 * Deletes a shard key for a collection.
+	 *
+	 * @param deleteShardKey The request object for the operation.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<DeleteShardKeyResponse> deleteShardKeyAsync(DeleteShardKeyRequest deleteShardKey) {
+		return deleteShardKeyAsync(deleteShardKey, null);
+	}
+
+	/**
+	 * Deletes a shard key for a collection.
+	 *
+	 * @param deleteShardKey The request object for the operation.
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<DeleteShardKeyResponse> deleteShardKeyAsync(DeleteShardKeyRequest deleteShardKey, @Nullable Duration timeout) {
+		String collectionName = deleteShardKey.getCollectionName();
+		Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
+		ShardKey shardKey = deleteShardKey.getRequest().getShardKey();
+		logger.debug("Delete shard key '{}' for '{}'", shardKey, collectionName);
+
+		ListenableFuture<DeleteShardKeyResponse> future = getCollections(timeout).deleteShardKey(deleteShardKey);
+		addLogFailureCallback(future, "Delete shard key");
+		return Futures.transform(future, response -> {
+			if (!response.getResult()) {
+				logger.error("Shard key '{}' could not be deleted for '{}'", shardKey, collectionName);
+				throw new QdrantException("Shard key " + shardKey + " could not be created for " + collectionName);
+			}
+			return response;
+		}, MoreExecutors.directExecutor());
 	}
 
 	//endregion
@@ -2151,6 +2233,88 @@ public class QdrantClient implements AutoCloseable {
 			future,
 			response -> response.getResult().getGroupsList(),
 			MoreExecutors.directExecutor());
+	}
+
+	/**
+	 * Use the context and a target to find the most similar points to the target.
+	 * Constraints by the context.
+	 *
+	 * @param request The discover points request
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<List<ScoredPoint>> discoverAsync(DiscoverPoints request) {
+		return discoverAsync(request, null);
+	}
+
+	/**
+	 * Use the context and a target to find the most similar points to the target.
+	 * Constraints by the context.
+	 *
+	 * @param request The discover points request
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<List<ScoredPoint>> discoverAsync(DiscoverPoints request, @Nullable Duration timeout) {
+		String collectionName = request.getCollectionName();
+		Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
+		logger.debug("Discover on '{}'", collectionName);
+		ListenableFuture<DiscoverResponse> future = getPoints(timeout).discover(request);
+		addLogFailureCallback(future, "Discover");
+		return Futures.transform(
+			future,
+			response -> response.getResultList(),
+			MoreExecutors.directExecutor());
+	}
+
+	/**
+	 * Use the context and a target to find the most similar points to the target in
+	 * a batch.
+	 * Constrained by the context.
+	 *
+	 * @param collectionName  The name of the collection
+	 * @param discoverSearches         The list for discover point searches
+	 * @param readConsistency Options for specifying read consistency guarantees
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<List<BatchResult>> discoverBatchAsync(
+			String collectionName,
+			List<DiscoverPoints> discoverSearches,
+			@Nullable ReadConsistency readConsistency) {
+		return discoverBatchAsync(collectionName, discoverSearches, readConsistency, null);
+	}
+
+	/**
+	 * Use the context and a target to find the most similar points to the target in
+	 * a batch.
+	 * Constrained by the context.
+	 *
+	 * @param collectionName  The name of the collection
+	 * @param discoverSearches         The list for discover point searches
+	 * @param readConsistency Options for specifying read consistency guarantees
+	 * @param timeout         The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<List<BatchResult>> discoverBatchAsync(
+			String collectionName,
+			List<DiscoverPoints> discoverSearches,
+			@Nullable ReadConsistency readConsistency,
+			@Nullable Duration timeout) {
+		Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
+
+		DiscoverBatchPoints.Builder requestBuilder = DiscoverBatchPoints.newBuilder()
+				.setCollectionName(collectionName)
+				.addAllDiscoverPoints(discoverSearches);
+
+		if (readConsistency != null) {
+			requestBuilder.setReadConsistency(readConsistency);
+		}
+		logger.debug("Discover batch on '{}'", collectionName);
+		ListenableFuture<DiscoverBatchResponse> future = getPoints(timeout).discoverBatch(requestBuilder.build());
+		addLogFailureCallback(future, "Discover batch");
+		return Futures.transform(
+				future,
+				response -> response.getResultList(),
+				MoreExecutors.directExecutor());
 	}
 
 	/**

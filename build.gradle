@@ -240,6 +240,7 @@ nexusPublishing {
         }
     }
 }
+
 signing {
 	def signingKeyId = findProperty("signingKeyId")
     def signingKey = findProperty("signingKey")

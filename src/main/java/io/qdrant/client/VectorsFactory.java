@@ -1,13 +1,12 @@
 package io.qdrant.client;
 
 import com.google.common.collect.Maps;
-import com.google.common.primitives.Floats;
 
 import java.util.List;
 import java.util.Map;
 
+import static io.qdrant.client.VectorFactory.vector;
 import static io.qdrant.client.grpc.Points.NamedVectors;
-import static io.qdrant.client.grpc.Points.Vector;
 import static io.qdrant.client.grpc.Points.Vectors;
 
 /**
@@ -25,9 +24,7 @@ public final class VectorsFactory {
 	public static Vectors namedVectors(Map<String, List<Float>> values) {
 		return Vectors.newBuilder()
 			.setVectors(NamedVectors.newBuilder()
-				.putAllVectors(Maps.transformValues(values, v -> Vector.newBuilder()
-					.addAllData(v)
-					.build()))
+				.putAllVectors(Maps.transformValues(values, v -> vector(v)))
 			)
 			.build();
 	}
@@ -37,11 +34,9 @@ public final class VectorsFactory {
 	 * @param values A list of values
 	 * @return a new instance of {@link Vectors}
 	 */
-	public static Vectors vector(List<Float> values) {
+	public static Vectors vectors(List<Float> values) {
 		return Vectors.newBuilder()
-			.setVector(Vector.newBuilder()
-				.addAllData(values)
-				.build())
+			.setVector(vector(values))
 			.build();
 	}
 
@@ -50,11 +45,9 @@ public final class VectorsFactory {
 	 * @param values A list of values
 	 * @return a new instance of {@link Vectors}
 	 */
-	public static Vectors vector(float... values) {
+	public static Vectors vectors(float... values) {
 		return Vectors.newBuilder()
-			.setVector(Vector.newBuilder()
-				.addAllData(Floats.asList(values))
-				.build())
+			.setVector(vector(values))
 			.build();
 	}
 }
