@@ -49,6 +49,7 @@ import static io.qdrant.client.grpc.Collections.ListCollectionsResponse;
 import static io.qdrant.client.grpc.Collections.PayloadIndexParams;
 import static io.qdrant.client.grpc.Collections.PayloadSchemaType;
 import static io.qdrant.client.grpc.Collections.RenameAlias;
+import static io.qdrant.client.grpc.Collections.ShardKey;
 import static io.qdrant.client.grpc.Collections.UpdateCollection;
 import static io.qdrant.client.grpc.Collections.VectorParams;
 import static io.qdrant.client.grpc.Collections.VectorParamsMap;
@@ -696,6 +697,7 @@ public class QdrantClient implements AutoCloseable {
 	public ListenableFuture<CreateShardKeyResponse> createShardKeyAsync(CreateShardKeyRequest createShardKey, @Nullable Duration timeout) {
 		String collectionName = createShardKey.getCollectionName();
 		Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
+		ShardKey shardKey = createShardKey.getRequest().getShardKey();
 		logger.debug("Create shard key '{}' for '{}'", shardKey, collectionName);
 
 		ListenableFuture<CreateShardKeyResponse> future = getCollections(timeout).createShardKey(createShardKey);
@@ -703,7 +705,7 @@ public class QdrantClient implements AutoCloseable {
 		return Futures.transform(future, response -> {
 			if (!response.getResult()) {
 				logger.error("Shard key could not be created for '{}'", collectionName);
-				throw new QdrantException("Shard key could not be created for '" + collectionName);
+				throw new QdrantException("Shard key " + shardKey + " could not be created for " + collectionName);
 			}
 			return response;
 		}, MoreExecutors.directExecutor());
@@ -729,6 +731,7 @@ public class QdrantClient implements AutoCloseable {
 	public ListenableFuture<DeleteShardKeyResponse> deleteShardKeyAsync(DeleteShardKeyRequest deleteShardKey, @Nullable Duration timeout) {
 		String collectionName = deleteShardKey.getCollectionName();
 		Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
+		ShardKey shardKey = deleteShardKey.getRequest().getShardKey();
 		logger.debug("Delete shard key '{}' for '{}'", shardKey, collectionName);
 
 		ListenableFuture<DeleteShardKeyResponse> future = getCollections(timeout).deleteShardKey(deleteShardKey);
@@ -736,7 +739,7 @@ public class QdrantClient implements AutoCloseable {
 		return Futures.transform(future, response -> {
 			if (!response.getResult()) {
 				logger.error("Shard key '{}' could not be deleted for '{}'", shardKey, collectionName);
-				throw new QdrantException("Shard key could not be deleted for '" + collectionName);
+				throw new QdrantException("Shard key " + shardKey + " could not be created for " + collectionName);
 			}
 			return response;
 		}, MoreExecutors.directExecutor());
