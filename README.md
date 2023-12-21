@@ -23,8 +23,6 @@ Java client library with handy utility methods and overloads for interfacing wit
 
 ## 📥 Installation
 
-> Not yet published.
-
 > [!IMPORTANT]  
 > Requires Java 8 or above.
 
@@ -36,20 +34,20 @@ To install the library, add the following lines to your build config file.
 <dependency>
   <groupId>io.qdrant</groupId>
   <artifactId>client</artifactId>
-  <version>1.7-SNAPSHOT</version>
+  <version>1.7.0</version>
 </dependency>
 ```
 
 #### Scala SBT
 
 ```sbt
-libraryDependencies += "io.qdrant" % "client" % "1.7-SNAPSHOT"
+libraryDependencies += "io.qdrant" % "client" % "1.7.0"
 ```
 
 #### Gradle
 
 ```gradle
-implementation 'io.qdrant:client:1.7-SNAPSHOT'
+implementation 'io.qdrant:client:1.7.0'
 ```
 
 ## 📖 Documentation
