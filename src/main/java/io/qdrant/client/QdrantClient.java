@@ -1554,7 +1554,7 @@ public class QdrantClient implements AutoCloseable {
 	}
 
 	/**
-	 * Overwrites the payload for the filterd points.
+	 * Overwrites the payload for the filtered points.
 	 *
 	 * @param collectionName The name of the collection.
 	 * @param payload New payload values
