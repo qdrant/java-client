@@ -39,6 +39,9 @@ import static io.qdrant.client.grpc.Points.DiscoverBatchPoints;
 import static io.qdrant.client.grpc.Points.DiscoverBatchResponse;
 import static io.qdrant.client.grpc.Points.DiscoverPoints;
 import static io.qdrant.client.grpc.Points.DiscoverResponse;
+import static io.qdrant.client.grpc.Points.PointsUpdateOperation;
+import static io.qdrant.client.grpc.Points.UpdateBatchPoints;
+import static io.qdrant.client.grpc.Points.UpdateBatchResponse;
 import static io.qdrant.client.grpc.Collections.GetCollectionInfoRequest;
 import static io.qdrant.client.grpc.Collections.GetCollectionInfoResponse;
 import static io.qdrant.client.grpc.Collections.ListAliasesRequest;
@@ -2202,6 +2205,65 @@ public class QdrantClient implements AutoCloseable {
 			future,
 			RecommendBatchResponse::getResultList,
 			MoreExecutors.directExecutor());
+	}
+
+	/**
+	 * Performs a batch update of points.
+	 * 
+	 * @param collectionName The name of the collection.
+	 * @param operations The list of point update operations.
+	 * 
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateBatchResponse> batchUpdateAsync(String collectionName, List<PointsUpdateOperation> operations) {
+		return batchUpdateAsync(collectionName, operations, null, null, null);
+	}
+
+	/**
+	 * Performs a batch update of points.
+	 * 
+	 * @param collectionName The name of the collection.
+	 * @param operations The list of point update operations.
+	 * @param wait Whether to wait until the changes have been applied. Defaults to <code>true</code>.
+	 * @param ordering Write ordering guarantees.
+	 * @param timeout The timeout for the call.
+	 * 
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateBatchResponse> batchUpdateAsync(
+		String collectionName,
+		List<PointsUpdateOperation> operations, 
+		@Nullable Boolean wait, 
+		@Nullable WriteOrdering ordering,
+		@Nullable Duration timeout) {
+
+		UpdateBatchPoints.Builder requestBuilder = UpdateBatchPoints.newBuilder()
+				.setCollectionName(collectionName)
+				.addAllOperations(operations)
+				.setWait(wait == null || wait);
+
+		if (ordering != null) {
+			requestBuilder.setOrdering(ordering);
+		}
+		return batchUpdateAsync(requestBuilder.build(), timeout);
+	}
+
+
+	/**
+	 * Performs a batch update of points.
+	 * 
+	 * @param request The update batch request.
+	 * @param timeout The timeout for the call.
+	 * 
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateBatchResponse> batchUpdateAsync(UpdateBatchPoints request, @Nullable Duration timeout) {
+		String collectionName = request.getCollectionName();
+		Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
+		logger.debug("Batch update points on '{}'", collectionName);
+		ListenableFuture<UpdateBatchResponse> future = getPoints(timeout).updateBatch(request);
+		addLogFailureCallback(future, "Batch update points");
+		return future;
 	}
 
 	/**

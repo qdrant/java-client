@@ -34,20 +34,20 @@ To install the library, add the following lines to your build config file.
 <dependency>
   <groupId>io.qdrant</groupId>
   <artifactId>client</artifactId>
-  <version>1.7.0</version>
+  <version>1.7.1</version>
 </dependency>
 ```
 
 #### Scala SBT
 
 ```sbt
-libraryDependencies += "io.qdrant" % "client" % "1.7.0"
+libraryDependencies += "io.qdrant" % "client" % "1.7.1"
 ```
 
 #### Gradle
 
 ```gradle
-implementation 'io.qdrant:client:1.7.0'
+implementation 'io.qdrant:client:1.7.1'
 ```
 
 ## 📖 Documentation
@@ -125,13 +125,13 @@ Insert vectors into a collection
 // import static convenience methods
 import static io.qdrant.client.PointIdFactory.id;
 import static io.qdrant.client.ValueFactory.value;
-import static io.qdrant.client.VectorsFactory.vector;
+import static io.qdrant.client.VectorsFactory.vectors;
 
 Random random = new Random();
 List<PointStruct> points = IntStream.range(1, 101)
   .mapToObj(i -> PointStruct.newBuilder()
     .setId(id(i))
-    .setVectors(vector(IntStream.range(1, 101)
+    .setVectors(vectors(IntStream.range(1, 101)
         .mapToObj(v -> random.nextFloat())
         .collect(Collectors.toList())))
     .putAllPayload(ImmutableMap.of(

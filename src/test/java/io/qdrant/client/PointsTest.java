@@ -14,6 +14,13 @@ import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableSet;
 import io.qdrant.client.container.QdrantContainer;
 import io.qdrant.client.grpc.Points.DiscoverPoints;
+import io.qdrant.client.grpc.Points.PointVectors;
+import io.qdrant.client.grpc.Points.PointsIdsList;
+import io.qdrant.client.grpc.Points.PointsSelector;
+import io.qdrant.client.grpc.Points.PointsUpdateOperation;
+import io.qdrant.client.grpc.Points.UpdateBatchResponse;
+import io.qdrant.client.grpc.Points.PointsUpdateOperation.ClearPayload;
+import io.qdrant.client.grpc.Points.PointsUpdateOperation.UpdateVectors;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -49,6 +56,7 @@ import static io.qdrant.client.PointIdFactory.id;
 import static io.qdrant.client.TargetVectorFactory.targetVector;
 import static io.qdrant.client.ValueFactory.value;
 import static io.qdrant.client.VectorFactory.vector;
+import static io.qdrant.client.VectorsFactory.vectors;
 
 @Testcontainers
 class PointsTest {
@@ -538,6 +546,28 @@ class PointsTest {
 			null).get();
 
 		assertEquals(0, points.size());
+	}
+
+	@Test
+	public void batchPointUpdate() throws ExecutionException, InterruptedException {
+		createAndSeedCollection(testName);
+
+		List<PointsUpdateOperation> operations = List.of(
+				PointsUpdateOperation.newBuilder()
+						.setClearPayload(ClearPayload.newBuilder().setPoints(
+								PointsSelector.newBuilder().setPoints(PointsIdsList.newBuilder().addIds(id(9))))
+								.build())
+						.build(),
+				PointsUpdateOperation.newBuilder()
+						.setUpdateVectors(UpdateVectors.newBuilder()
+								.addPoints(PointVectors.newBuilder()
+										.setId(id(9))
+										.setVectors(vectors(0.6f, 0.7f))))
+						.build());
+
+		UpdateBatchResponse response = client.batchUpdateAsync(testName, operations).get();
+
+		response.getResultList().forEach(result -> assertEquals(UpdateStatus.Completed, result.getStatus()));
 	}
 
 	private void createAndSeedCollection(String collectionName) throws ExecutionException, InterruptedException {
