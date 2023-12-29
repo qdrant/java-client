@@ -1554,7 +1554,7 @@ public class QdrantClient implements AutoCloseable {
 	}
 
 	/**
-	 * Overwrites the payload for the given ids.
+	 * Overwrites the payload for the filterd points.
 	 *
 	 * @param collectionName The name of the collection.
 	 * @param payload New payload values
@@ -1699,7 +1699,7 @@ public class QdrantClient implements AutoCloseable {
 	}
 
 	/**
-	 * Delete specified key payload for the given ids.
+	 * Delete specified key payload for the filtered points.
 	 *
 	 * @param collectionName The name of the collection.
 	 * @param keys List of keys to delete.
@@ -1835,7 +1835,7 @@ public class QdrantClient implements AutoCloseable {
 	}
 
 	/**
-	 * Removes all payload for the given ids.
+	 * Removes all payload for the filtered points.
 	 *
 	 * @param collectionName The name of the collection.
 	 * @param filter A filter selecting the points for which to remove the payload.
