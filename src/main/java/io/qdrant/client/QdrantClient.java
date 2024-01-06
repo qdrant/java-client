@@ -2257,13 +2257,16 @@ public class QdrantClient implements AutoCloseable {
 	 * 
 	 * @return a new instance of {@link ListenableFuture}
 	 */
-	public ListenableFuture<UpdateBatchResponse> batchUpdateAsync(UpdateBatchPoints request, @Nullable Duration timeout) {
+	public ListenableFuture<List<UpdateResult>> batchUpdateAsync(UpdateBatchPoints request, @Nullable Duration timeout) {
 		String collectionName = request.getCollectionName();
 		Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
 		logger.debug("Batch update points on '{}'", collectionName);
 		ListenableFuture<UpdateBatchResponse> future = getPoints(timeout).updateBatch(request);
 		addLogFailureCallback(future, "Batch update points");
-		return future;
+		return Futures.transform(
+			future,
+			UpdateBatchResponse::getResultList,
+			MoreExecutors.directExecutor());
 	}
 
 	/**

@@ -25,7 +25,7 @@ public final class VectorsFactory {
 	public static Vectors namedVectors(Map<String, Vector> values) {
 		return Vectors.newBuilder()
 			.setVectors(NamedVectors.newBuilder()
-				.putAllVectors(Maps.transformValues(values, v -> v))
+				.putAllVectors(values)
 			)
 			.build();
 	}
