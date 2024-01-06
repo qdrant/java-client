@@ -38,7 +38,7 @@ To install the library, add the following lines to your build config file.
 </dependency>
 ```
 
-#### Scala SBT
+#### SBT
 
 ```sbt
 libraryDependencies += "io.qdrant" % "client" % "1.7.1"
