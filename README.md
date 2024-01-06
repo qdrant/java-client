@@ -52,7 +52,8 @@ implementation 'io.qdrant:client:1.7.1'
 
 ## 📖 Documentation
 
-- [`QdrantClient` Reference](https://qdrant.github.io/java-client/io/qdrant/client/QdrantClient.html#constructor-detail)
+- [JavaDoc Reference](https://qdrant.github.io/java-client/io/qdrant/client/QdrantClient.html#constructor-detail)
+- Usage examples are available throughout the [Qdrant documentation](https://qdrant.tech/documentation/quick-start/)
 
 ## 🔌 Getting started
 
@@ -127,20 +128,25 @@ import static io.qdrant.client.PointIdFactory.id;
 import static io.qdrant.client.ValueFactory.value;
 import static io.qdrant.client.VectorsFactory.vectors;
 
-Random random = new Random();
-List<PointStruct> points = IntStream.range(1, 101)
-  .mapToObj(i -> PointStruct.newBuilder()
-    .setId(id(i))
-    .setVectors(vectors(IntStream.range(1, 101)
-        .mapToObj(v -> random.nextFloat())
-        .collect(Collectors.toList())))
-    .putAllPayload(ImmutableMap.of(
-      "color", value("red"),
-      "rand_number", value(i % 10))
-    )
-    .build()
-  )
-  .collect(Collectors.toList());
+List<PointStruct> points =
+    List.of(
+        PointStruct.newBuilder()
+            .setId(id(1))
+            .setVectors(vectors(0.32f, 0.52f, 0.21f, 0.52f))
+            .putAllPayload(
+                Map.of(
+                    "color", value("red"),
+                    "rand_number", value(32)))
+            .build(),
+        PointStruct.newBuilder()
+            .setId(id(2))
+            .setVectors(vectors(0.42f, 0.52f, 0.67f, 0.632f))
+            .putAllPayload(
+                Map.of(
+                    "color", value("black"),
+                    "rand_number", value(53),
+                    "extra_field", value(true)))
+            .build());
 
 UpdateResult updateResult = client.upsertAsync("my_collection", points).get();
 ```
@@ -148,16 +154,15 @@ UpdateResult updateResult = client.upsertAsync("my_collection", points).get();
 Search for similar vectors
 
 ```java
-List<Float> queryVector = IntStream.range(1, 101)
-  .mapToObj(v -> random.nextFloat())
-  .collect(Collectors.toList());
-
-List<ScoredPoint> points = client.searchAsync(SearchPoints.newBuilder()
-  .setCollectionName("my_collection")
-  .addAllVector(queryVector)
-  .setLimit(5)
-  .build()
-).get();
+List<ScoredPoint> anush =
+    client
+        .searchAsync(
+            SearchPoints.newBuilder()
+                .setCollectionName("my_collection")
+                .addAllVector(List.of(0.6235f, 0.123f, 0.532f, 0.123f))
+                .setLimit(5)
+                .build())
+        .get();
 ```
 
 Search for similar vectors with filtering condition
@@ -168,7 +173,7 @@ import static io.qdrant.client.ConditionFactory.range;
 
 List<ScoredPoint> points = client.searchAsync(SearchPoints.newBuilder()
   .setCollectionName("my_collection")
-  .addAllVector(queryVector)
+  .addAllVector(List.of(0.6235f, 0.123f, 0.532f, 0.123f))
   .setFilter(Filter.newBuilder()
     .addMust(range("rand_number", Range.newBuilder().setGte(3).build()))
     .build())
