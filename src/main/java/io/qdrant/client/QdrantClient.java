@@ -2215,7 +2215,7 @@ public class QdrantClient implements AutoCloseable {
 	 * 
 	 * @return a new instance of {@link ListenableFuture}
 	 */
-	public ListenableFuture<UpdateBatchResponse> batchUpdateAsync(String collectionName, List<PointsUpdateOperation> operations) {
+	public ListenableFuture<List<UpdateResult>> batchUpdateAsync(String collectionName, List<PointsUpdateOperation> operations) {
 		return batchUpdateAsync(collectionName, operations, null, null, null);
 	}
 
@@ -2230,7 +2230,7 @@ public class QdrantClient implements AutoCloseable {
 	 * 
 	 * @return a new instance of {@link ListenableFuture}
 	 */
-	public ListenableFuture<UpdateBatchResponse> batchUpdateAsync(
+	public ListenableFuture<List<UpdateResult>> batchUpdateAsync(
 		String collectionName,
 		List<PointsUpdateOperation> operations, 
 		@Nullable Boolean wait, 

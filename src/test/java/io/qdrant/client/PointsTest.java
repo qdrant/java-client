@@ -565,9 +565,9 @@ class PointsTest {
 										.setVectors(vectors(0.6f, 0.7f))))
 						.build());
 
-		UpdateBatchResponse response = client.batchUpdateAsync(testName, operations).get();
+		List<UpdateResult> response = client.batchUpdateAsync(testName, operations).get();
 
-		response.getResultList().forEach(result -> assertEquals(UpdateStatus.Completed, result.getStatus()));
+		response.forEach(result -> assertEquals(UpdateStatus.Completed, result.getStatus()));
 	}
 
 	private void createAndSeedCollection(String collectionName) throws ExecutionException, InterruptedException {
