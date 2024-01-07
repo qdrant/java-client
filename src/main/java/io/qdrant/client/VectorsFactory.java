@@ -7,6 +7,7 @@ import java.util.Map;
 
 import static io.qdrant.client.VectorFactory.vector;
 import static io.qdrant.client.grpc.Points.NamedVectors;
+import io.qdrant.client.grpc.Points.Vector;
 import static io.qdrant.client.grpc.Points.Vectors;
 
 /**
@@ -18,13 +19,13 @@ public final class VectorsFactory {
 
 	/**
 	 * Creates named vectors
-	 * @param values A map of vector names to values
+	 * @param values A map of vector names to {@link Vector}
 	 * @return a new instance of {@link Vectors}
 	 */
-	public static Vectors namedVectors(Map<String, List<Float>> values) {
+	public static Vectors namedVectors(Map<String, Vector> values) {
 		return Vectors.newBuilder()
 			.setVectors(NamedVectors.newBuilder()
-				.putAllVectors(Maps.transformValues(values, v -> vector(v)))
+				.putAllVectors(values)
 			)
 			.build();
 	}
