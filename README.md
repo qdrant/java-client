@@ -52,7 +52,7 @@ implementation 'io.qdrant:client:1.7.1'
 
 ## 📖 Documentation
 
-- [JavaDoc Reference](https://qdrant.github.io/java-client/io/qdrant/client/QdrantClient.html#constructor-detail)
+- [JavaDoc Reference](https://qdrant.github.io/java-client/)
 - Usage examples are available throughout the [Qdrant documentation](https://qdrant.tech/documentation/quick-start/)
 
 ## 🔌 Getting started
