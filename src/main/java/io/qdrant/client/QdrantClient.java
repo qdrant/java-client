@@ -1058,7 +1058,23 @@ public class QdrantClient implements AutoCloseable {
 			requestBuilder.setReadConsistency(readConsistency);
 		}
 
-		ListenableFuture<GetResponse> future = getPoints(timeout).get(requestBuilder.build());
+		return retrieveAsync(requestBuilder.build(), timeout);
+	}
+
+	/**
+	 * Retrieves points.
+	 *
+	 * @param request The get points request
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<List<RetrievedPoint>> retrieveAsync(
+			GetPoints request, @Nullable Duration timeout) {
+		Preconditions.checkArgument(
+				!request.getCollectionName().isEmpty(), "Collection name must not be empty");
+
+		logger.debug("Retrieve points from '{}'", request.getCollectionName());
+		ListenableFuture<GetResponse> future = getPoints(timeout).get(request);
 		addLogFailureCallback(future, "Retrieve");
 		return Futures.transform(future, GetResponse::getResultList, MoreExecutors.directExecutor());
 	}
@@ -1122,7 +1138,22 @@ public class QdrantClient implements AutoCloseable {
 			requestBuilder.setOrdering(WriteOrdering.newBuilder().setType(ordering).build());
 		}
 
-		ListenableFuture<PointsOperationResponse> future = getPoints(timeout).updateVectors(requestBuilder.build());
+		return updateVectorsAsync(requestBuilder.build(), timeout);
+	}
+
+	/**
+	 * Update named vectors for point.
+	 *
+	 * @param request The update point vectors request
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateResult> updateVectorsAsync(
+			UpdatePointVectors request,
+			@Nullable Duration timeout) {
+		Preconditions.checkArgument(!request.getCollectionName().isEmpty(), "Collection name must not be empty");
+		logger.debug("Update vectors in '{}'", request.getCollectionName());
+		ListenableFuture<PointsOperationResponse> future = getPoints(timeout).updateVectors(request);
 		addLogFailureCallback(future, "Update vectors");
 		return Futures.transform(future, PointsOperationResponse::getResult, MoreExecutors.directExecutor());
 	}
@@ -1291,7 +1322,18 @@ public class QdrantClient implements AutoCloseable {
 		);
 	}
 
-	private ListenableFuture<UpdateResult> deleteVectorsAsync(
+	/**
+	 * Delete named vectors for points.
+	 *
+	 * @param collectionName The name of the collection.
+	 * @param vectors The list of vector names to delete.
+	 * @param pointsSelector A selector for the points to be deleted.
+	 * @param wait Whether to wait until the changes have been applied. Defaults to <code>true</code>.
+	 * @param ordering Write ordering guarantees.
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateResult> deleteVectorsAsync(
 		String collectionName,
 		List<String> vectors,
 		PointsSelector pointsSelector,
@@ -1312,7 +1354,24 @@ public class QdrantClient implements AutoCloseable {
 			requestBuilder.setOrdering(WriteOrdering.newBuilder().setType(ordering).build());
 		}
 
-		ListenableFuture<PointsOperationResponse> future = getPoints(timeout).deleteVectors(requestBuilder.build());
+		return deleteVectorsAsync(requestBuilder.build(), timeout);
+	}
+
+	/**
+	 * Delete named vectors for points.
+	 *
+	 * @param request The delete point vectors request
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateResult> deleteVectorsAsync(
+			DeletePointVectors request,
+			@Nullable Duration timeout) {
+		Preconditions.checkArgument(
+				!request.getCollectionName().isEmpty(),
+				"Collection name must not be empty");
+		logger.debug("Delete vectors in '{}'", request.getCollectionName());
+		ListenableFuture<PointsOperationResponse> future = getPoints(timeout).deleteVectors(request);
 		addLogFailureCallback(future, "Delete vectors");
 		return Futures.transform(future, PointsOperationResponse::getResult, MoreExecutors.directExecutor());
 	}
@@ -1437,7 +1496,18 @@ public class QdrantClient implements AutoCloseable {
 		);
 	}
 
-	private ListenableFuture<UpdateResult> setPayloadAsync(
+	/**
+	 * Sets the payload for the points.
+	 * 
+	 * @param collectionName The name of the collection.
+	 * @param payload New payload values
+	 * @param pointsSelector selector for the points whose payloads are to be set.
+	 * @param wait Whether to wait until the changes have been applied. Defaults to <code>true</code>.
+	 * @param ordering Write ordering guarantees.
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateResult> setPayloadAsync(
 		String collectionName,
 		Map<String, Value> payload,
 		@Nullable PointsSelector pointsSelector,
@@ -1458,8 +1528,24 @@ public class QdrantClient implements AutoCloseable {
 			requestBuilder.setOrdering(WriteOrdering.newBuilder().setType(ordering).build());
 		}
 
-		logger.debug("Set payload in '{}'", collectionName);
-		ListenableFuture<PointsOperationResponse> future = getPoints(timeout).setPayload(requestBuilder.build());
+		return setPayloadAsync(requestBuilder.build(), timeout);
+	}
+
+	/**
+	 * Sets the payload for the points.
+	 *
+	 * @param request The set payload request.
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateResult> setPayloadAsync(
+			SetPayloadPoints request,
+			@Nullable Duration timeout) {
+		Preconditions.checkArgument(
+				!request.getCollectionName().isEmpty(),
+				"Collection name must not be empty");
+		logger.debug("Set payload in '{}'", request.getCollectionName());
+		ListenableFuture<PointsOperationResponse> future = getPoints(timeout).setPayload(request);
 		addLogFailureCallback(future, "Set payload");
 		return Futures.transform(future, PointsOperationResponse::getResult, MoreExecutors.directExecutor());
 	}
@@ -1582,7 +1668,18 @@ public class QdrantClient implements AutoCloseable {
 		);
 	}
 
-	private ListenableFuture<UpdateResult> overwritePayloadAsync(
+	/**
+	 * Overwrites the payload for the points.
+	 *
+	 * @param collectionName The name of the collection.
+	 * @param payload New payload values
+	 * @param pointsSelector A selector for the points whose payloads are to be overwritten.
+	 * @param wait Whether to wait until the changes have been applied. Defaults to <code>true</code>.
+	 * @param ordering Write ordering guarantees.
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateResult> overwritePayloadAsync(
 		String collectionName,
 		Map<String, Value> payload,
 		@Nullable PointsSelector pointsSelector,
@@ -1603,8 +1700,24 @@ public class QdrantClient implements AutoCloseable {
 			requestBuilder.setOrdering(WriteOrdering.newBuilder().setType(ordering).build());
 		}
 
-		logger.debug("Overwrite payload in '{}'", collectionName);
-		ListenableFuture<PointsOperationResponse> future = getPoints(timeout).overwritePayload(requestBuilder.build());
+		return overwritePayloadAsync(requestBuilder.build(), timeout);
+	}
+
+	/**
+	 * Overwrites the payload for the points.
+	 *
+	 * @param request The overwrite payload request
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateResult> overwritePayloadAsync(
+			SetPayloadPoints request,
+			@Nullable Duration timeout) {
+		Preconditions.checkArgument(
+				!request.getCollectionName().isEmpty(),
+				"Collection name must not be empty");
+		logger.debug("Set payload in '{}'", request.getCollectionName());
+		ListenableFuture<PointsOperationResponse> future = getPoints(timeout).overwritePayload(request);
 		addLogFailureCallback(future, "Overwrite payload");
 		return Futures.transform(future, PointsOperationResponse::getResult, MoreExecutors.directExecutor());
 	}
@@ -1727,7 +1840,18 @@ public class QdrantClient implements AutoCloseable {
 		);
 	}
 
-	private ListenableFuture<UpdateResult> deletePayloadAsync(
+	/**
+	 * Delete specified key payload for the points.
+	 *
+	 * @param collectionName The name of the collection.
+	 * @param keys List of keys to delete.
+	 * @param pointsSelector selector for the points whose payloads are to be deleted.
+	 * @param wait Whether to wait until the changes have been applied. Defaults to <code>true</code>.
+	 * @param ordering Write ordering guarantees.
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateResult> deletePayloadAsync(
 		String collectionName,
 		List<String> keys,
 		@Nullable PointsSelector pointsSelector,
@@ -1748,8 +1872,24 @@ public class QdrantClient implements AutoCloseable {
 			requestBuilder.setOrdering(WriteOrdering.newBuilder().setType(ordering).build());
 		}
 
-		logger.debug("Delete payload in '{}'", collectionName);
-		ListenableFuture<PointsOperationResponse> future = getPoints(timeout).deletePayload(requestBuilder.build());
+		return deletePayloadAsync(requestBuilder.build(), timeout);
+	}
+
+	/**
+	 * Delete specified key payload for the points.
+	 *
+	 * @param request The delete payload request
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateResult> deletePayloadAsync(
+			DeletePayloadPoints request,
+			@Nullable Duration timeout) {
+		Preconditions.checkArgument(
+				!request.getCollectionName().isEmpty(),
+				"Collection name must not be empty");
+		logger.debug("Delete payload in '{}'", request.getCollectionName());
+		ListenableFuture<PointsOperationResponse> future = getPoints(timeout).deletePayload(request);
 		addLogFailureCallback(future, "Delete payload");
 		return Futures.transform(future, PointsOperationResponse::getResult, MoreExecutors.directExecutor());
 	}
@@ -1860,7 +2000,17 @@ public class QdrantClient implements AutoCloseable {
 		);
 	}
 
-	private ListenableFuture<UpdateResult> clearPayloadAsync(
+	/**
+	 * Removes all payload for the points.
+	 *
+	 * @param collectionName The name of the collection.
+	 * @param pointsSelector A selector for the points whose payloads are to be removed.
+	 * @param wait Whether to wait until the changes have been applied. Defaults to <code>true</code>.
+	 * @param ordering Write ordering guarantees.
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateResult> clearPayloadAsync(
 		String collectionName,
 		@Nullable PointsSelector pointsSelector,
 		@Nullable Boolean wait,
@@ -1879,8 +2029,24 @@ public class QdrantClient implements AutoCloseable {
 			requestBuilder.setOrdering(WriteOrdering.newBuilder().setType(ordering).build());
 		}
 
-		logger.debug("Clear payload in '{}'", collectionName);
-		ListenableFuture<PointsOperationResponse> future = getPoints(timeout).clearPayload(requestBuilder.build());
+		return clearPayloadAsync(requestBuilder.build(), timeout);
+	}
+
+	/**
+	 * Removes all payload for the points.
+	 *
+	 * @param request The clear payload request
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateResult> clearPayloadAsync(
+			ClearPayloadPoints request,
+			@Nullable Duration timeout) {
+		Preconditions.checkArgument(
+				!request.getCollectionName().isEmpty(),
+				"Collection name must not be empty");
+		logger.debug("Clear payload in '{}'", request.getCollectionName());
+		ListenableFuture<PointsOperationResponse> future = getPoints(timeout).clearPayload(request);
 		addLogFailureCallback(future, "Clear payload");
 		return Futures.transform(future, PointsOperationResponse::getResult, MoreExecutors.directExecutor());
 	}
