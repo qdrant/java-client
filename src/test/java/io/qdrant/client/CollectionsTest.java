@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import io.qdrant.client.container.QdrantContainer;
+import org.testcontainers.qdrant.QdrantContainer;
 
 import java.util.Comparator;
 import java.util.List;
@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Testcontainers
 class CollectionsTest {
 	@Container
-	private static final QdrantContainer QDRANT_CONTAINER = new QdrantContainer();
+	private static final QdrantContainer QDRANT_CONTAINER = new QdrantContainer(DockerImage.QDRANT_IMAGE);
 	private QdrantClient client;
 	private ManagedChannel channel;
 	private String testName;
