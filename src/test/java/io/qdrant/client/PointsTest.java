@@ -12,7 +12,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableSet;
-import io.qdrant.client.container.QdrantContainer;
+import org.testcontainers.qdrant.QdrantContainer;
 import io.qdrant.client.grpc.Points.DiscoverPoints;
 import io.qdrant.client.grpc.Points.PointVectors;
 import io.qdrant.client.grpc.Points.PointsIdsList;
@@ -61,7 +61,7 @@ import static io.qdrant.client.VectorsFactory.vectors;
 @Testcontainers
 class PointsTest {
 	@Container
-	private static final QdrantContainer QDRANT_CONTAINER = new QdrantContainer();
+	private static final QdrantContainer QDRANT_CONTAINER = new QdrantContainer(DockerImage.QDRANT_IMAGE);
 	private QdrantClient client;
 	private ManagedChannel channel;
 	private String testName;

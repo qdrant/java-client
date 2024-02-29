@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import io.qdrant.client.container.QdrantContainer;
+import org.testcontainers.qdrant.QdrantContainer;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @Testcontainers
 class HealthTest {
 	@Container
-	private static final QdrantContainer QDRANT_CONTAINER = new QdrantContainer();
+	private static final QdrantContainer QDRANT_CONTAINER = new QdrantContainer(DockerImage.QDRANT_IMAGE);
 	private QdrantClient client;
 	private ManagedChannel channel;
 
