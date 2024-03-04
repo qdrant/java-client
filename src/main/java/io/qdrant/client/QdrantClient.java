@@ -10,6 +10,8 @@ import com.google.common.util.concurrent.MoreExecutors;
 import io.qdrant.client.grpc.CollectionsGrpc;
 import io.qdrant.client.grpc.PointsGrpc;
 import io.qdrant.client.grpc.SnapshotsGrpc;
+import io.qdrant.client.grpc.Collections.CollectionExistsRequest;
+import io.qdrant.client.grpc.Collections.CollectionExistsResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -473,6 +475,33 @@ public class QdrantClient implements AutoCloseable {
 			}
 			return response;
 		}, MoreExecutors.directExecutor());
+	}
+
+	/**
+	 * Check if a collection exists
+	 *
+	 * @param collectionName The name of the collection.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<Boolean> collectionExistsAsync(String collectionName) {
+		return collectionExistsAsync(collectionName, null);
+	}
+
+	/**
+	 * Check if a collection exists
+	 *
+	 * @param collectionName The name of the collection.
+	 * @param timeout        The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<Boolean> collectionExistsAsync(String collectionName, @Nullable Duration timeout) {
+		Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
+		logger.debug("Collection exists '{}'", collectionName);
+
+		ListenableFuture<CollectionExistsResponse> future = getCollections(timeout)
+				.collectionExists(CollectionExistsRequest.newBuilder().setCollectionName(collectionName).build());
+		addLogFailureCallback(future, "Collection exists");
+		return Futures.transform(future, response -> response.getResult().getExists(), MoreExecutors.directExecutor());
 	}
 
 	//endregion
@@ -1515,6 +1544,38 @@ public class QdrantClient implements AutoCloseable {
 		@Nullable WriteOrderingType ordering,
 		@Nullable Duration timeout
 	) {
+		return setPayloadAsync(
+			collectionName,
+			payload,
+			pointsSelector,
+			wait,
+			null,
+			ordering,
+			timeout
+		);
+	}
+
+	/**
+	 * Sets the payload for the points.
+	 * 
+	 * @param collectionName The name of the collection.
+	 * @param payload New payload values
+	 * @param pointsSelector Selector for the points whose payloads are to be set.
+	 * @param wait Whether to wait until the changes have been applied. Defaults to <code>true</code>.
+	 * @param key The key for which to set the payload if nested
+	 * @param ordering Write ordering guarantees.
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateResult> setPayloadAsync(
+		String collectionName,
+		Map<String, Value> payload,
+		@Nullable PointsSelector pointsSelector,
+		@Nullable Boolean wait,
+		@Nullable String key,
+		@Nullable WriteOrderingType ordering,
+		@Nullable Duration timeout
+	) {
 		SetPayloadPoints.Builder requestBuilder = SetPayloadPoints.newBuilder()
 			.setCollectionName(collectionName)
 			.setWait(wait == null || wait)
@@ -1526,6 +1587,10 @@ public class QdrantClient implements AutoCloseable {
 
 		if (ordering != null) {
 			requestBuilder.setOrdering(WriteOrdering.newBuilder().setType(ordering).build());
+		}
+
+		if (key != null) {
+			requestBuilder.setKey(key);
 		}
 
 		return setPayloadAsync(requestBuilder.build(), timeout);
@@ -1687,6 +1752,38 @@ public class QdrantClient implements AutoCloseable {
 		@Nullable WriteOrderingType ordering,
 		@Nullable Duration timeout
 	) {
+		return overwritePayloadAsync(
+			collectionName,
+			payload,
+			pointsSelector,
+			wait,
+			null,
+			ordering,
+			timeout
+		);
+	}
+
+	/**
+	 * Overwrites the payload for the points.
+	 *
+	 * @param collectionName The name of the collection.
+	 * @param payload New payload values
+	 * @param pointsSelector Selector for the points whose payloads are to be overwritten.
+	 * @param wait Whether to wait until the changes have been applied. Defaults to <code>true</code>.
+	 * @param key The key for which to overwrite the payload if nested
+	 * @param ordering Write ordering guarantees.
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateResult> overwritePayloadAsync(
+		String collectionName,
+		Map<String, Value> payload,
+		@Nullable PointsSelector pointsSelector,
+		@Nullable Boolean wait,
+		@Nullable String key,
+		@Nullable WriteOrderingType ordering,
+		@Nullable Duration timeout
+	) {
 		SetPayloadPoints.Builder requestBuilder = SetPayloadPoints.newBuilder()
 			.setCollectionName(collectionName)
 			.setWait(wait == null || wait)
@@ -1699,6 +1796,9 @@ public class QdrantClient implements AutoCloseable {
 		if (ordering != null) {
 			requestBuilder.setOrdering(WriteOrdering.newBuilder().setType(ordering).build());
 		}
+
+		if (key != null)
+			requestBuilder.setKey(key);
 
 		return overwritePayloadAsync(requestBuilder.build(), timeout);
 	}

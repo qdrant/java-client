@@ -3,6 +3,7 @@ package io.qdrant.client;
 import java.util.List;
 
 import static io.qdrant.client.grpc.Points.Condition;
+import static io.qdrant.client.grpc.Points.DatetimeRange;
 import static io.qdrant.client.grpc.Points.FieldCondition;
 import static io.qdrant.client.grpc.Points.Filter;
 import static io.qdrant.client.grpc.Points.GeoBoundingBox;
@@ -369,5 +370,22 @@ public final class ConditionFactory {
 		return Condition.newBuilder()
 			.setFilter(filter)
 			.build();
+	}
+
+	/**
+	 * Matches records where the given field has a datetime value within the
+	 * specified range
+	 * 
+	 * @param field       	The name of the field.
+	 * @param datetimeRange The datetime range to match.
+	 * @return a new instance of {@link Condition}
+	 */
+	public static Condition datetimeRange(String field, DatetimeRange datetimeRange) {
+		return Condition.newBuilder()
+				.setField(FieldCondition.newBuilder()
+						.setKey(field)
+						.setDatetimeRange(datetimeRange)
+						.build())
+				.build();
 	}
 }

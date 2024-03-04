@@ -28,6 +28,7 @@ import static io.qdrant.client.grpc.Collections.Distance;
 import static io.qdrant.client.grpc.Collections.VectorParams;
 import static io.qdrant.client.grpc.Collections.VectorsConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -177,6 +178,18 @@ class CollectionsTest {
 		assertEquals(StatusRuntimeException.class, cause.getClass());
 		StatusRuntimeException underlyingException = (StatusRuntimeException) cause;
 		assertEquals(Status.Code.NOT_FOUND, underlyingException.getStatus().getCode());
+	}
+
+	@Test
+	public void collectionExists() throws ExecutionException, InterruptedException {
+		assertFalse(client.collectionExistsAsync(testName).get());
+
+		CreateCollection createCollection = getCreateCollection(testName);
+		client.createCollectionAsync(createCollection).get();
+		assertTrue(client.collectionExistsAsync(testName).get());
+
+		client.deleteCollectionAsync(testName).get();
+		assertFalse(client.collectionExistsAsync(testName).get());
 	}
 
 	@Test
