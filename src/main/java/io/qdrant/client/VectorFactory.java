@@ -1,11 +1,11 @@
 package io.qdrant.client;
 
-import com.google.common.primitives.Floats;
-
 import java.util.List;
 
-import static io.qdrant.client.grpc.Points.SparseIndices;
-import static io.qdrant.client.grpc.Points.Vector;
+import com.google.common.primitives.Floats;
+
+import io.qdrant.client.grpc.Points.SparseIndices;
+import io.qdrant.client.grpc.Points.Vector;
 
 /**
  * Convenience methods for constructing {@link Vector}

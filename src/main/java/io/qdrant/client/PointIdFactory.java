@@ -2,7 +2,7 @@ package io.qdrant.client;
 
 import java.util.UUID;
 
-import static io.qdrant.client.grpc.Points.PointId;
+import io.qdrant.client.grpc.Points.PointId;
 
 /**
  * Convenience methods for constructing {@link PointId}

@@ -2,9 +2,9 @@ package io.qdrant.client;
 
 import java.util.List;
 
-import static io.qdrant.client.grpc.Points.PayloadExcludeSelector;
-import static io.qdrant.client.grpc.Points.PayloadIncludeSelector;
-import static io.qdrant.client.grpc.Points.WithPayloadSelector;
+import io.qdrant.client.grpc.Points.PayloadExcludeSelector;
+import io.qdrant.client.grpc.Points.PayloadIncludeSelector;
+import io.qdrant.client.grpc.Points.WithPayloadSelector;
 
 /**
  * Convenience methods for constructing {@link WithPayloadSelector}

@@ -1,8 +1,9 @@
 package io.qdrant.client;
 
-import io.qdrant.client.grpc.QdrantOuterClass;
-import io.grpc.Grpc;
-import io.grpc.InsecureChannelCredentials;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.concurrent.ExecutionException;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,9 +11,9 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.qdrant.QdrantContainer;
 
-import java.util.concurrent.ExecutionException;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import io.grpc.Grpc;
+import io.grpc.InsecureChannelCredentials;
+import io.qdrant.client.grpc.QdrantOuterClass;
 
 @Testcontainers
 class QdrantGrpcClientTest {

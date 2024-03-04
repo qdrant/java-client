@@ -1,11 +1,15 @@
 package io.qdrant.client;
 
-import io.qdrant.client.grpc.Collections;
-import io.grpc.Grpc;
-import io.grpc.InsecureChannelCredentials;
-import io.grpc.ManagedChannel;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,22 +18,19 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.qdrant.QdrantContainer;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static io.qdrant.client.grpc.Collections.AliasDescription;
-import static io.qdrant.client.grpc.Collections.CollectionInfo;
-import static io.qdrant.client.grpc.Collections.CollectionStatus;
-import static io.qdrant.client.grpc.Collections.CreateCollection;
-import static io.qdrant.client.grpc.Collections.Distance;
-import static io.qdrant.client.grpc.Collections.VectorParams;
-import static io.qdrant.client.grpc.Collections.VectorsConfig;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import io.grpc.Grpc;
+import io.grpc.InsecureChannelCredentials;
+import io.grpc.ManagedChannel;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+import io.qdrant.client.grpc.Collections;
+import io.qdrant.client.grpc.Collections.AliasDescription;
+import io.qdrant.client.grpc.Collections.CollectionInfo;
+import io.qdrant.client.grpc.Collections.CollectionStatus;
+import io.qdrant.client.grpc.Collections.CreateCollection;
+import io.qdrant.client.grpc.Collections.Distance;
+import io.qdrant.client.grpc.Collections.VectorParams;
+import io.qdrant.client.grpc.Collections.VectorsConfig;
 
 @Testcontainers
 class CollectionsTest {
