@@ -116,7 +116,7 @@ tasks.register('downloadProtos') {
 		def outputDirectory = outputs.files.singleFile.toPath().toString()
 		def protoFileRegex = Pattern.compile(".*?lib/api/src/grpc/proto/.*?.proto")
 		try (def httpClient = HttpClients.createDefault()) {
-			def url = "https://api.github.com/repos/qdrant/qdrant/tarball/refs/tags/${qdrantProtosVersion}"
+			def url = "https://api.github.com/repos/qdrant/qdrant/tarball/${qdrantProtosVersion}"
 			logger.debug("downloading protos from {}", url)
 			def response = httpClient.execute(new HttpGet(url))
 			try (InputStream tarballStream = response.getEntity().getContent()) {
