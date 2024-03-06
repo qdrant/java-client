@@ -2,24 +2,24 @@ package io.qdrant.client;
 
 import java.util.List;
 
-import static io.qdrant.client.grpc.Points.Condition;
-import static io.qdrant.client.grpc.Points.FieldCondition;
-import static io.qdrant.client.grpc.Points.Filter;
-import static io.qdrant.client.grpc.Points.GeoBoundingBox;
-import static io.qdrant.client.grpc.Points.GeoLineString;
-import static io.qdrant.client.grpc.Points.GeoPoint;
-import static io.qdrant.client.grpc.Points.GeoPolygon;
-import static io.qdrant.client.grpc.Points.GeoRadius;
-import static io.qdrant.client.grpc.Points.HasIdCondition;
-import static io.qdrant.client.grpc.Points.IsEmptyCondition;
-import static io.qdrant.client.grpc.Points.IsNullCondition;
-import static io.qdrant.client.grpc.Points.Match;
-import static io.qdrant.client.grpc.Points.NestedCondition;
-import static io.qdrant.client.grpc.Points.PointId;
-import static io.qdrant.client.grpc.Points.Range;
-import static io.qdrant.client.grpc.Points.RepeatedIntegers;
-import static io.qdrant.client.grpc.Points.RepeatedStrings;
-import static io.qdrant.client.grpc.Points.ValuesCount;
+import io.qdrant.client.grpc.Points.Condition;
+import io.qdrant.client.grpc.Points.FieldCondition;
+import io.qdrant.client.grpc.Points.Filter;
+import io.qdrant.client.grpc.Points.GeoBoundingBox;
+import io.qdrant.client.grpc.Points.GeoLineString;
+import io.qdrant.client.grpc.Points.GeoPoint;
+import io.qdrant.client.grpc.Points.GeoPolygon;
+import io.qdrant.client.grpc.Points.GeoRadius;
+import io.qdrant.client.grpc.Points.HasIdCondition;
+import io.qdrant.client.grpc.Points.IsEmptyCondition;
+import io.qdrant.client.grpc.Points.IsNullCondition;
+import io.qdrant.client.grpc.Points.Match;
+import io.qdrant.client.grpc.Points.NestedCondition;
+import io.qdrant.client.grpc.Points.PointId;
+import io.qdrant.client.grpc.Points.Range;
+import io.qdrant.client.grpc.Points.RepeatedIntegers;
+import io.qdrant.client.grpc.Points.RepeatedStrings;
+import io.qdrant.client.grpc.Points.ValuesCount;
 
 /**
  * Convenience methods for constructing {@link Condition}

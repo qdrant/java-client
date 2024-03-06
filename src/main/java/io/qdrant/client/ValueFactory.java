@@ -2,9 +2,9 @@ package io.qdrant.client;
 
 import java.util.List;
 
-import static io.qdrant.client.grpc.JsonWithInt.ListValue;
-import static io.qdrant.client.grpc.JsonWithInt.NullValue;
-import static io.qdrant.client.grpc.JsonWithInt.Value;
+import io.qdrant.client.grpc.JsonWithInt.ListValue;
+import io.qdrant.client.grpc.JsonWithInt.NullValue;
+import io.qdrant.client.grpc.JsonWithInt.Value;
 
 /**
  * Convenience methods for constructing {@link Value}

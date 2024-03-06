@@ -1,10 +1,9 @@
 package io.qdrant.client;
 
-import io.qdrant.client.grpc.Points;
-
 import java.util.List;
 
-import static io.qdrant.client.grpc.Points.WithVectorsSelector;
+import io.qdrant.client.grpc.Points;
+import io.qdrant.client.grpc.Points.WithVectorsSelector;
 
 /**
  * Convenience methods for constructing {@link WithVectorsSelector}

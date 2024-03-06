@@ -1,11 +1,11 @@
 package io.qdrant.client;
 
-import io.qdrant.client.grpc.Collections.ShardKey;
-import io.qdrant.client.grpc.Points.ShardKeySelector;
-
 import static io.qdrant.client.ShardKeyFactory.shardKey;
 
 import java.util.Arrays;
+
+import io.qdrant.client.grpc.Collections.ShardKey;
+import io.qdrant.client.grpc.Points.ShardKeySelector;
 
 /**
  * Convenience methods for constructing {@link ShardKeySelector}
