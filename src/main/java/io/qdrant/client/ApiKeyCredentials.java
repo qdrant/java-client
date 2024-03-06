@@ -1,10 +1,10 @@
 package io.qdrant.client;
 
+import java.util.concurrent.Executor;
+
 import io.grpc.CallCredentials;
 import io.grpc.Metadata;
 import io.grpc.Status;
-
-import java.util.concurrent.Executor;
 
 /**
  * API key authentication credentials

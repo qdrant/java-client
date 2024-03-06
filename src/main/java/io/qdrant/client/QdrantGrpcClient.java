@@ -1,24 +1,25 @@
 package io.qdrant.client;
 
-import io.qdrant.client.grpc.CollectionsGrpc;
-import io.qdrant.client.grpc.PointsGrpc;
-import io.qdrant.client.grpc.QdrantGrpc;
-import io.qdrant.client.grpc.QdrantGrpc.QdrantFutureStub;
-import io.qdrant.client.grpc.SnapshotsGrpc;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nullable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.grpc.CallCredentials;
 import io.grpc.Deadline;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
-import java.time.Duration;
-import java.util.concurrent.TimeUnit;
-
-import static io.qdrant.client.grpc.CollectionsGrpc.CollectionsFutureStub;
-import static io.qdrant.client.grpc.PointsGrpc.PointsFutureStub;
-import static io.qdrant.client.grpc.SnapshotsGrpc.SnapshotsFutureStub;
+import io.qdrant.client.grpc.CollectionsGrpc;
+import io.qdrant.client.grpc.CollectionsGrpc.CollectionsFutureStub;
+import io.qdrant.client.grpc.PointsGrpc;
+import io.qdrant.client.grpc.PointsGrpc.PointsFutureStub;
+import io.qdrant.client.grpc.QdrantGrpc;
+import io.qdrant.client.grpc.QdrantGrpc.QdrantFutureStub;
+import io.qdrant.client.grpc.SnapshotsGrpc;
+import io.qdrant.client.grpc.SnapshotsGrpc.SnapshotsFutureStub;
 
 /**
  * Low-level gRPC client for qdrant vector database.
