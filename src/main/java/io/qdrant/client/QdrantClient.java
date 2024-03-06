@@ -23,6 +23,8 @@ import io.qdrant.client.grpc.Collections.AliasDescription;
 import io.qdrant.client.grpc.Collections.AliasOperations;
 import io.qdrant.client.grpc.Collections.ChangeAliases;
 import io.qdrant.client.grpc.Collections.CollectionDescription;
+import io.qdrant.client.grpc.Collections.CollectionExistsRequest;
+import io.qdrant.client.grpc.Collections.CollectionExistsResponse;
 import io.qdrant.client.grpc.Collections.CollectionInfo;
 import io.qdrant.client.grpc.Collections.CollectionOperationResponse;
 import io.qdrant.client.grpc.Collections.CreateAlias;

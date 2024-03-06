@@ -3,6 +3,7 @@ package io.qdrant.client;
 import java.util.List;
 
 import io.qdrant.client.grpc.Points.Condition;
+import io.qdrant.client.grpc.Points.DatetimeRange;
 import io.qdrant.client.grpc.Points.FieldCondition;
 import io.qdrant.client.grpc.Points.Filter;
 import io.qdrant.client.grpc.Points.GeoBoundingBox;

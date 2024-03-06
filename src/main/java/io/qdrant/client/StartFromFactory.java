@@ -60,6 +60,6 @@ public final class StartFromFactory {
 	 * @return a new instance of {@link StartFrom}
 	 */
 	public static StartFrom startFrom(Instant value) {
-		return StartFrom.newBuilder().setTimestamp(Timestamp.newBuilder().setNanos(value.getNano())).build();
+		return StartFrom.newBuilder().setTimestamp(Timestamp.newBuilder().setSeconds(value.getEpochSecond())).build();
 	}
 }
