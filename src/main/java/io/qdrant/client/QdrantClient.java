@@ -2594,7 +2594,7 @@ public class QdrantClient implements AutoCloseable {
 		addLogFailureCallback(future, "Discover");
 		return Futures.transform(
 			future,
-			response -> response.getResultList(),
+			DiscoverResponse::getResultList,
 			MoreExecutors.directExecutor());
 	}
 
@@ -2644,9 +2644,9 @@ public class QdrantClient implements AutoCloseable {
 		ListenableFuture<DiscoverBatchResponse> future = getPoints(timeout).discoverBatch(requestBuilder.build());
 		addLogFailureCallback(future, "Discover batch");
 		return Futures.transform(
-				future,
-				response -> response.getResultList(),
-				MoreExecutors.directExecutor());
+			future,
+			DiscoverBatchResponse::getResultList,
+			MoreExecutors.directExecutor());
 	}
 
 	/**
