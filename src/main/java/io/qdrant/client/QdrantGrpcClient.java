@@ -96,6 +96,14 @@ public class QdrantGrpcClient implements AutoCloseable {
 	}
 
 	/**
+	 * Gets the channel
+	 * @return the channel
+	 */
+	public ManagedChannel channel() {
+		return channel;
+	}
+
+	/**
 	 * Gets the client for qdrant services
 	 * @return a new instance of {@link QdrantFutureStub}
 	 */
