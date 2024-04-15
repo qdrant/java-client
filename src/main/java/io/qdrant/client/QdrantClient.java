@@ -138,6 +138,19 @@ public class QdrantClient implements AutoCloseable {
 	}
 
 	/**
+	 * Gets the low-level gRPC client. This is exposed to
+	 * <ul>
+	 *     <li>Allow access to the underlying gRPC channel</li>
+	 *     <li>Allow access to the gRPC client to make requests using the low-level gRPC client in cases
+	 *     where functionality may not yet be exposed by the higher level client.</li>
+	 * </ul>
+	 * @return The low-level gRPC client
+	 */
+	public QdrantGrpcClient grpcClient() {
+		return grpcClient;
+	}
+
+	/**
 	 * Gets detailed information about the qdrant cluster.
 	 *
 	 * @return a new instance of {@link ListenableFuture}
