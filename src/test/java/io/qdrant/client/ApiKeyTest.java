@@ -61,7 +61,7 @@ public class ApiKeyTest {
 			Throwable cause = executionException.getCause();
 			assertEquals(StatusRuntimeException.class, cause.getClass());
 			StatusRuntimeException statusRuntimeException = (StatusRuntimeException) cause;
-			assertEquals(Status.Code.PERMISSION_DENIED, statusRuntimeException.getStatus().getCode());
+			assertEquals(Status.Code.UNAUTHENTICATED, statusRuntimeException.getStatus().getCode());
 		}
 	}
 }
