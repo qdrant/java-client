@@ -61,8 +61,7 @@ public class ApiKeyTest {
 			Throwable cause = executionException.getCause();
 			assertEquals(StatusRuntimeException.class, cause.getClass());
 			StatusRuntimeException statusRuntimeException = (StatusRuntimeException) cause;
-			// FIXME: This assertion fails because the server returns UNAUTHENTICATED instead of PERMISSION_DENIED
-			// assertEquals(Status.Code.PERMISSION_DENIED, statusRuntimeException.getStatus().getCode());
+			assertEquals(Status.Code.UNAUTHENTICATED, statusRuntimeException.getStatus().getCode());
 		}
 	}
 }
