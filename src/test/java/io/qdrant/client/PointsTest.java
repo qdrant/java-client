@@ -99,7 +99,7 @@ class PointsTest {
 		assertEquals(1, points.size());
 		RetrievedPoint point = points.get(0);
 		assertEquals(id(9), point.getId());
-		assertEquals(ImmutableSet.of("foo", "bar"), point.getPayloadMap().keySet());
+		assertEquals(ImmutableSet.of("foo", "bar", "date"), point.getPayloadMap().keySet());
 		assertEquals(value("goodbye"), point.getPayloadMap().get("foo"));
 		assertEquals(value(2), point.getPayloadMap().get("bar"));
 		assertEquals(Vectors.getDefaultInstance(), point.getVectors());
@@ -141,7 +141,7 @@ class PointsTest {
 		assertEquals(1, points.size());
 		RetrievedPoint point = points.get(0);
 		assertEquals(id(9), point.getId());
-		assertEquals(ImmutableSet.of("foo", "bar"), point.getPayloadMap().keySet());
+		assertEquals(ImmutableSet.of("foo", "bar", "date"), point.getPayloadMap().keySet());
 		assertEquals(value("some bar"), point.getPayloadMap().get("bar"));
 		assertEquals(value("goodbye"), point.getPayloadMap().get("foo"));
 	}
@@ -188,7 +188,7 @@ class PointsTest {
 		assertEquals(1, points.size());
 		RetrievedPoint point = points.get(0);
 		assertEquals(id(9), point.getId());
-		assertEquals(ImmutableSet.of("bar"), point.getPayloadMap().keySet());
+		assertEquals(ImmutableSet.of("bar", "date"), point.getPayloadMap().keySet());
 		assertEquals(value("some bar"), point.getPayloadMap().get("bar"));
 	}
 
@@ -240,6 +240,26 @@ class PointsTest {
 	}
 
 	@Test
+	public void createDatetimeFieldIndex() throws ExecutionException, InterruptedException {
+		createAndSeedCollection(testName);
+
+		UpdateResult result = client.createPayloadIndexAsync(
+			testName,
+			"date",
+			PayloadSchemaType.Datetime,
+			null,
+			null,
+			null,
+			null).get();
+
+		assertEquals(UpdateStatus.Completed, result.getStatus());
+
+		CollectionInfo collectionInfo = client.getCollectionInfoAsync(testName).get();
+		assertEquals(ImmutableSet.of("date"), collectionInfo.getPayloadSchemaMap().keySet());
+		assertEquals(PayloadSchemaType.Datetime, collectionInfo.getPayloadSchemaMap().get("date").getDataType());
+	}
+
+	@Test
 	public void deleteFieldIndex() throws ExecutionException, InterruptedException {
 		createAndSeedCollection(testName);
 
@@ -277,7 +297,7 @@ class PointsTest {
 		assertEquals(1, points.size());
 		ScoredPoint point = points.get(0);
 		assertEquals(id(9), point.getId());
-		assertEquals(ImmutableSet.of("foo", "bar"), point.getPayloadMap().keySet());
+		assertEquals(ImmutableSet.of("foo", "bar", "date"), point.getPayloadMap().keySet());
 		assertEquals(value("goodbye"), point.getPayloadMap().get("foo"));
 		assertEquals(value(2), point.getPayloadMap().get("bar"));
 		assertFalse(point.getVectors().hasVector());
@@ -589,7 +609,8 @@ class PointsTest {
 				.setVectors(VectorsFactory.vectors(ImmutableList.of(3.5f, 4.5f)))
 				.putAllPayload(ImmutableMap.of(
 					"foo", value("hello"),
-					"bar", value(1)
+					"bar", value(1),
+					"date", value("2021-01-01T00:00:00Z")
 				))
 				.build(),
 			PointStruct.newBuilder()
@@ -597,7 +618,8 @@ class PointsTest {
 				.setVectors(VectorsFactory.vectors(ImmutableList.of(10.5f, 11.5f)))
 				.putAllPayload(ImmutableMap.of(
 					"foo", value("goodbye"),
-					"bar", value(2)
+					"bar", value(2),
+					"date", value("2024-01-02T00:00:00Z")
 				))
 				.build()
 		)).get();

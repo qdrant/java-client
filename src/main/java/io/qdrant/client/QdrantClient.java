@@ -2212,6 +2212,9 @@ public class QdrantClient implements AutoCloseable {
 			case Bool:
 				requestBuilder.setFieldType(FieldType.FieldTypeBool);
 				break;
+			case Datetime:
+				requestBuilder.setFieldType(FieldType.FieldTypeDatetime);
+				break;
 			default:
 				throw new IllegalArgumentException("Invalid schemaType: '" + schemaType + "'");
 		}
@@ -2224,8 +2227,22 @@ public class QdrantClient implements AutoCloseable {
 			requestBuilder.setOrdering(WriteOrdering.newBuilder().setType(ordering).build());
 		}
 
-		logger.debug("Create payload field index for '{}' in '{}'", field, collectionName);
-		ListenableFuture<PointsOperationResponse> future = getPoints(timeout).createFieldIndex(requestBuilder.build());
+		return createPayloadIndexAsync(requestBuilder.build(), timeout);
+	}
+
+	/**
+	 * Creates a payload field index in a collection.
+	 *
+	 * @param request The create field index request.
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<UpdateResult> createPayloadIndexAsync(
+		CreateFieldIndexCollection request,
+		@Nullable Duration timeout
+	) {
+		logger.debug("Create payload field index for '{}' in '{}'", request.getFieldName(), request.getCollectionName());
+		ListenableFuture<PointsOperationResponse> future = getPoints(timeout).createFieldIndex(request);
 		addLogFailureCallback(future, "Create payload field index");
 		return Futures.transform(future, PointsOperationResponse::getResult, MoreExecutors.directExecutor());
 	}
