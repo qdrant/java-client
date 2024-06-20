@@ -363,22 +363,6 @@ class PointsTest {
 	public void scroll() throws ExecutionException, InterruptedException {
 		createAndSeedCollection(testName);
 
-		Collections.PayloadIndexParams params = Collections.PayloadIndexParams.newBuilder()
-			.setIntegerIndexParams(
-				Collections.IntegerIndexParams.newBuilder().setLookup(false).setRange(true).build())
-			.build();
-
-		UpdateResult resultIndex = client.createPayloadIndexAsync(
-			testName,
-			"bar",
-			PayloadSchemaType.Integer,
-			params,
-			true,
-			null,
-			null).get();
-
-		assertEquals(UpdateStatus.Completed, resultIndex.getStatus());
-
 		ScrollResponse scrollResponse = client.scrollAsync(ScrollPoints.newBuilder()
 			.setCollectionName(testName)
 			.setLimit(1)
@@ -397,8 +381,32 @@ class PointsTest {
 
 		assertEquals(1, scrollResponse.getResultCount());
 		assertFalse(scrollResponse.hasNextPageOffset());
+	}
 
-		scrollResponse = client.scrollAsync(ScrollPoints.newBuilder()
+	@Test
+	public void scrollWithOrdering() throws ExecutionException, InterruptedException {
+		createAndSeedCollection(testName);
+
+		Collections.PayloadIndexParams params = Collections.PayloadIndexParams.newBuilder()
+			.setIntegerIndexParams(
+				Collections.IntegerIndexParams.newBuilder().setLookup(false).setRange(true).build())
+			.build();
+
+		UpdateResult resultIndex = client.createPayloadIndexAsync(
+			testName,
+			"bar",
+			PayloadSchemaType.Integer,
+			params,
+			true,
+			null,
+			null).get();
+
+		assertEquals(UpdateStatus.Completed, resultIndex.getStatus());
+
+		CollectionInfo collectionInfo = client.getCollectionInfoAsync(testName).get();
+		assertEquals(ImmutableSet.of("bar"), collectionInfo.getPayloadSchemaMap().keySet());
+
+		ScrollResponse scrollResponse = client.scrollAsync(ScrollPoints.newBuilder()
 			.setCollectionName(testName)
 			.setLimit(1)
 			.setOrderBy(Points.OrderBy.newBuilder()
@@ -407,8 +415,10 @@ class PointsTest {
 			.build()
 		).get();
 
+		
 		assertEquals(1, scrollResponse.getResultCount());
 		assertFalse(scrollResponse.hasNextPageOffset());
+		assertEquals(scrollResponse.getResult(0).getId(), id(9));
 	}
 
 	@Test
