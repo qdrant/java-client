@@ -617,15 +617,16 @@ class PointsTest {
 
 		client.createCollectionAsync(request).get();
 
-		// ToDo: create params for integer index, so that only Range is enabled
-		//
-		// Collections.PayloadIndexParams params = Collections.PayloadIndexParamsOrBuilder()
+		Collections.PayloadIndexParams params = Collections.PayloadIndexParams.newBuilder()
+			.setIntegerIndexParams(
+				Collections.IntegerIndexParams.newBuilder().setLookup(false).setRange(true).build())
+			.build();
 
 		UpdateResult resultIndex = client.createPayloadIndexAsync(
 			testName,
 			"bar",
 			PayloadSchemaType.Integer,
-			null,
+			params,
 			true,
 			null,
 			null).get();
