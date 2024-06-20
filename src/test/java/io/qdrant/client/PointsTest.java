@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import io.qdrant.client.grpc.Collections;
+import io.qdrant.client.grpc.Points;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -379,6 +381,18 @@ class PointsTest {
 
 		assertEquals(1, scrollResponse.getResultCount());
 		assertFalse(scrollResponse.hasNextPageOffset());
+
+		scrollResponse = client.scrollAsync(ScrollPoints.newBuilder()
+			.setCollectionName(testName)
+			.setLimit(1)
+			.setOrderBy(Points.OrderBy.newBuilder()
+				.setDirection(Points.Direction.Desc)
+				.setKey("bar").build())
+			.build()
+		).get();
+
+		assertEquals(1, scrollResponse.getResultCount());
+		assertFalse(scrollResponse.hasNextPageOffset());
 	}
 
 	@Test
@@ -458,10 +472,10 @@ class PointsTest {
 		createAndSeedCollection(testName);
 
 		List<ScoredPoint> points = client.discoverAsync(DiscoverPoints.newBuilder()
-				.setCollectionName(testName)
-				.setTarget(targetVector(vector(ImmutableList.of(10.4f, 11.4f))))
-				.setLimit(1)
-				.build()).get();
+			.setCollectionName(testName)
+			.setTarget(targetVector(vector(ImmutableList.of(10.4f, 11.4f))))
+			.setLimit(1)
+			.build()).get();
 
 		assertEquals(1, points.size());
 		assertEquals(id(9), points.get(0).getId());
@@ -472,19 +486,19 @@ class PointsTest {
 		createAndSeedCollection(testName);
 
 		List<BatchResult> batchResults = client.discoverBatchAsync(
-				testName,
-				ImmutableList.of(
-						DiscoverPoints.newBuilder()
-								.setCollectionName(testName)
-								.setTarget(targetVector(vector(ImmutableList.of(10.4f, 11.4f))))
-								.setLimit(1)
-								.build(),
-						DiscoverPoints.newBuilder()
-								.setCollectionName(testName)
-								.setTarget(targetVector(vector(ImmutableList.of(3.5f, 4.5f))))
-								.setLimit(1)
-								.build()),
-				null).get();
+			testName,
+			ImmutableList.of(
+				DiscoverPoints.newBuilder()
+					.setCollectionName(testName)
+					.setTarget(targetVector(vector(ImmutableList.of(10.4f, 11.4f))))
+					.setLimit(1)
+					.build(),
+				DiscoverPoints.newBuilder()
+					.setCollectionName(testName)
+					.setTarget(targetVector(vector(ImmutableList.of(3.5f, 4.5f))))
+					.setLimit(1)
+					.build()),
+			null).get();
 
 		assertEquals(2, batchResults.size());
 		BatchResult result = batchResults.get(0);
@@ -573,17 +587,17 @@ class PointsTest {
 		createAndSeedCollection(testName);
 
 		List<PointsUpdateOperation> operations = List.of(
-				PointsUpdateOperation.newBuilder()
-						.setClearPayload(ClearPayload.newBuilder().setPoints(
-								PointsSelector.newBuilder().setPoints(PointsIdsList.newBuilder().addIds(id(9))))
-								.build())
-						.build(),
-				PointsUpdateOperation.newBuilder()
-						.setUpdateVectors(UpdateVectors.newBuilder()
-								.addPoints(PointVectors.newBuilder()
-										.setId(id(9))
-										.setVectors(vectors(0.6f, 0.7f))))
-						.build());
+			PointsUpdateOperation.newBuilder()
+				.setClearPayload(ClearPayload.newBuilder().setPoints(
+						PointsSelector.newBuilder().setPoints(PointsIdsList.newBuilder().addIds(id(9))))
+					.build())
+				.build(),
+			PointsUpdateOperation.newBuilder()
+				.setUpdateVectors(UpdateVectors.newBuilder()
+					.addPoints(PointVectors.newBuilder()
+						.setId(id(9))
+						.setVectors(vectors(0.6f, 0.7f))))
+				.build());
 
 		List<UpdateResult> response = client.batchUpdateAsync(testName, operations).get();
 
@@ -602,6 +616,21 @@ class PointsTest {
 			.build();
 
 		client.createCollectionAsync(request).get();
+
+		// ToDo: create params for integer index, so that only Range is enabled
+		//
+		// Collections.PayloadIndexParams params = Collections.PayloadIndexParamsOrBuilder()
+
+		UpdateResult resultIndex = client.createPayloadIndexAsync(
+			testName,
+			"bar",
+			PayloadSchemaType.Integer,
+			null,
+			true,
+			null,
+			null).get();
+
+		assertEquals(UpdateStatus.Completed, resultIndex.getStatus());
 
 		UpdateResult result = client.upsertAsync(collectionName, ImmutableList.of(
 			PointStruct.newBuilder()
