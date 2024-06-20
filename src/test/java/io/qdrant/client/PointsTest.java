@@ -363,6 +363,22 @@ class PointsTest {
 	public void scroll() throws ExecutionException, InterruptedException {
 		createAndSeedCollection(testName);
 
+		Collections.PayloadIndexParams params = Collections.PayloadIndexParams.newBuilder()
+			.setIntegerIndexParams(
+				Collections.IntegerIndexParams.newBuilder().setLookup(false).setRange(true).build())
+			.build();
+
+		UpdateResult resultIndex = client.createPayloadIndexAsync(
+			testName,
+			"bar",
+			PayloadSchemaType.Integer,
+			params,
+			true,
+			null,
+			null).get();
+
+		assertEquals(UpdateStatus.Completed, resultIndex.getStatus());
+
 		ScrollResponse scrollResponse = client.scrollAsync(ScrollPoints.newBuilder()
 			.setCollectionName(testName)
 			.setLimit(1)
@@ -616,22 +632,6 @@ class PointsTest {
 			.build();
 
 		client.createCollectionAsync(request).get();
-
-		Collections.PayloadIndexParams params = Collections.PayloadIndexParams.newBuilder()
-			.setIntegerIndexParams(
-				Collections.IntegerIndexParams.newBuilder().setLookup(false).setRange(true).build())
-			.build();
-
-		UpdateResult resultIndex = client.createPayloadIndexAsync(
-			testName,
-			"bar",
-			PayloadSchemaType.Integer,
-			params,
-			true,
-			null,
-			null).get();
-
-		assertEquals(UpdateStatus.Completed, resultIndex.getStatus());
 
 		UpdateResult result = client.upsertAsync(collectionName, ImmutableList.of(
 			PointStruct.newBuilder()
