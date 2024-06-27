@@ -1,6 +1,4 @@
-/**
- * package
- */
+/** package */
 @ParametersAreNonnullByDefault
 package io.qdrant.client;
 

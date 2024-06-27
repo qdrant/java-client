@@ -3,10 +3,16 @@ package io.qdrant.client;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.grpc.Grpc;
+import io.grpc.InsecureChannelCredentials;
+import io.grpc.ManagedChannel;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+import io.qdrant.client.grpc.Collections;
+import io.qdrant.client.grpc.SnapshotsService.SnapshotDescription;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,137 +21,140 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.qdrant.QdrantContainer;
 
-import io.grpc.Grpc;
-import io.grpc.InsecureChannelCredentials;
-import io.grpc.ManagedChannel;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
-import io.qdrant.client.grpc.Collections;
-import io.qdrant.client.grpc.SnapshotsService.SnapshotDescription;
-
 @Testcontainers
 class SnapshotsTest {
-	@Container
-	private static final QdrantContainer QDRANT_CONTAINER = new QdrantContainer(DockerImage.QDRANT_IMAGE);
-	private QdrantClient client;
-	private ManagedChannel channel;
-	private String testName;
+  @Container
+  private static final QdrantContainer QDRANT_CONTAINER =
+      new QdrantContainer(DockerImage.QDRANT_IMAGE);
 
-	@BeforeEach
-	public void setup(TestInfo testInfo) {
-		testName = testInfo.getDisplayName().replace("()", "");
-		channel = Grpc.newChannelBuilder(
-				QDRANT_CONTAINER.getGrpcHostAddress(),
-				InsecureChannelCredentials.create())
-			.build();
-		QdrantGrpcClient grpcClient = QdrantGrpcClient.newBuilder(channel).build();
-		client = new QdrantClient(grpcClient);
-	}
+  private QdrantClient client;
+  private ManagedChannel channel;
+  private String testName;
 
-	@AfterEach
-	public void teardown() throws Exception {
-		List<String> collectionNames = client.listCollectionsAsync().get();
-		for (String collectionName : collectionNames) {
-			List<SnapshotDescription> snapshots = client.listSnapshotAsync(collectionName).get();
-			for (SnapshotDescription snapshot : snapshots) {
-				client.deleteSnapshotAsync(collectionName, snapshot.getName()).get();
-			}
-			client.deleteCollectionAsync(collectionName).get();
-		}
+  @BeforeEach
+  public void setup(TestInfo testInfo) {
+    testName = testInfo.getDisplayName().replace("()", "");
+    channel =
+        Grpc.newChannelBuilder(
+                QDRANT_CONTAINER.getGrpcHostAddress(), InsecureChannelCredentials.create())
+            .build();
+    QdrantGrpcClient grpcClient = QdrantGrpcClient.newBuilder(channel).build();
+    client = new QdrantClient(grpcClient);
+  }
 
-		List<SnapshotDescription> snapshots = client.listFullSnapshotAsync().get();
-		for (SnapshotDescription snapshot : snapshots) {
-			client.deleteFullSnapshotAsync(snapshot.getName()).get();
-		}
+  @AfterEach
+  public void teardown() throws Exception {
+    List<String> collectionNames = client.listCollectionsAsync().get();
+    for (String collectionName : collectionNames) {
+      List<SnapshotDescription> snapshots = client.listSnapshotAsync(collectionName).get();
+      for (SnapshotDescription snapshot : snapshots) {
+        client.deleteSnapshotAsync(collectionName, snapshot.getName()).get();
+      }
+      client.deleteCollectionAsync(collectionName).get();
+    }
 
-		client.close();
-		channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
-	}
+    List<SnapshotDescription> snapshots = client.listFullSnapshotAsync().get();
+    for (SnapshotDescription snapshot : snapshots) {
+      client.deleteFullSnapshotAsync(snapshot.getName()).get();
+    }
 
-	@Test
-	public void createSnapshot() throws ExecutionException, InterruptedException {
-		createCollection(testName);
-		client.createSnapshotAsync(testName).get();
-	}
+    client.close();
+    channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
+  }
 
-	@Test
-	public void deleteSnapshot() throws ExecutionException, InterruptedException {
-		createCollection(testName);
-		SnapshotDescription snapshotDescription = client.createSnapshotAsync(testName).get();
-		client.deleteSnapshotAsync(testName, snapshotDescription.getName()).get();
-	}
+  @Test
+  public void createSnapshot() throws ExecutionException, InterruptedException {
+    createCollection(testName);
+    client.createSnapshotAsync(testName).get();
+  }
 
-	@Test
-	public void deleteSnapshot_with_missing_snapshot() {
-		ExecutionException exception =
-			assertThrows(ExecutionException.class, () -> client.deleteSnapshotAsync(testName, "snapshot_1").get());
-		Throwable cause = exception.getCause();
-		assertEquals(StatusRuntimeException.class, cause.getClass());
-		StatusRuntimeException underlyingException = (StatusRuntimeException) cause;
-		assertEquals(Status.Code.NOT_FOUND, underlyingException.getStatus().getCode());
-	}
+  @Test
+  public void deleteSnapshot() throws ExecutionException, InterruptedException {
+    createCollection(testName);
+    SnapshotDescription snapshotDescription = client.createSnapshotAsync(testName).get();
+    client.deleteSnapshotAsync(testName, snapshotDescription.getName()).get();
+  }
 
-	@Test
-	public void listSnapshots() throws ExecutionException, InterruptedException {
-		createCollection(testName);
-		client.createSnapshotAsync(testName).get();
-		// snapshots are timestamped named to second precision. Wait more than 1 second to ensure we get 2 snapshots
-		Thread.sleep(2000);
-		client.createSnapshotAsync(testName).get();
+  @Test
+  public void deleteSnapshot_with_missing_snapshot() {
+    ExecutionException exception =
+        assertThrows(
+            ExecutionException.class,
+            () -> client.deleteSnapshotAsync(testName, "snapshot_1").get());
+    Throwable cause = exception.getCause();
+    assertEquals(StatusRuntimeException.class, cause.getClass());
+    StatusRuntimeException underlyingException = (StatusRuntimeException) cause;
+    assertEquals(Status.Code.NOT_FOUND, underlyingException.getStatus().getCode());
+  }
 
-		List<SnapshotDescription> snapshotDescriptions = client.listSnapshotAsync(testName).get();
-		assertEquals(2, snapshotDescriptions.size());
-	}
+  @Test
+  public void listSnapshots() throws ExecutionException, InterruptedException {
+    createCollection(testName);
+    client.createSnapshotAsync(testName).get();
+    // snapshots are timestamped named to second precision. Wait more than 1 second to ensure we get
+    // 2 snapshots
+    Thread.sleep(2000);
+    client.createSnapshotAsync(testName).get();
 
-	@Test
-	public void createFullSnapshot() throws ExecutionException, InterruptedException {
-		createCollection(testName);
-		createCollection(testName + "2");
-		client.createFullSnapshotAsync().get();
-	}
+    List<SnapshotDescription> snapshotDescriptions = client.listSnapshotAsync(testName).get();
+    assertEquals(2, snapshotDescriptions.size());
+  }
 
-	@Test
-	public void deleteFullSnapshot() throws ExecutionException, InterruptedException {
-		createCollection(testName);
-		createCollection(testName + "2");
-		SnapshotDescription snapshotDescription = client.createFullSnapshotAsync().get();
-		client.deleteFullSnapshotAsync(snapshotDescription.getName()).get();
-	}
+  @Test
+  public void createFullSnapshot() throws ExecutionException, InterruptedException {
+    createCollection(testName);
+    createCollection(testName + "2");
+    client.createFullSnapshotAsync().get();
+  }
 
-	@Test
-	public void deleteFullSnapshot_with_missing_snapshot() {
-		ExecutionException exception =
-			assertThrows(ExecutionException.class, () -> client.deleteFullSnapshotAsync("snapshot_1").get());
-		Throwable cause = exception.getCause();
-		assertEquals(StatusRuntimeException.class, cause.getClass());
-		StatusRuntimeException underlyingException = (StatusRuntimeException) cause;
-		assertEquals(Status.Code.NOT_FOUND, underlyingException.getStatus().getCode());
-	}
+  @Test
+  public void deleteFullSnapshot() throws ExecutionException, InterruptedException {
+    createCollection(testName);
+    createCollection(testName + "2");
+    SnapshotDescription snapshotDescription = client.createFullSnapshotAsync().get();
+    client.deleteFullSnapshotAsync(snapshotDescription.getName()).get();
+  }
 
-	@Test
-	public void listFullSnapshots() throws ExecutionException, InterruptedException {
-		createCollection(testName);
-		createCollection(testName + 2);
-		client.createFullSnapshotAsync().get();
-		// snapshots are timestamped named to second precision. Wait more than 1 second to ensure we get 2 snapshots
-		Thread.sleep(2000);
-		client.createFullSnapshotAsync().get();
+  @Test
+  public void deleteFullSnapshot_with_missing_snapshot() {
+    ExecutionException exception =
+        assertThrows(
+            ExecutionException.class, () -> client.deleteFullSnapshotAsync("snapshot_1").get());
+    Throwable cause = exception.getCause();
+    assertEquals(StatusRuntimeException.class, cause.getClass());
+    StatusRuntimeException underlyingException = (StatusRuntimeException) cause;
+    assertEquals(Status.Code.NOT_FOUND, underlyingException.getStatus().getCode());
+  }
 
-		List<SnapshotDescription> snapshotDescriptions = client.listFullSnapshotAsync().get();
-		assertEquals(2, snapshotDescriptions.size());
-	}
+  @Test
+  public void listFullSnapshots() throws ExecutionException, InterruptedException {
+    createCollection(testName);
+    createCollection(testName + 2);
+    client.createFullSnapshotAsync().get();
+    // snapshots are timestamped named to second precision. Wait more than 1 second to ensure we get
+    // 2 snapshots
+    Thread.sleep(2000);
+    client.createFullSnapshotAsync().get();
 
-	private void createCollection(String collectionName) throws ExecutionException, InterruptedException {
-		Collections.CreateCollection request = Collections.CreateCollection.newBuilder()
-			.setCollectionName(collectionName)
-			.setVectorsConfig(Collections.VectorsConfig.newBuilder()
-				.setParams(Collections.VectorParams.newBuilder()
-					.setDistance(Collections.Distance.Cosine)
-					.setSize(4)
-					.build())
-				.build())
-			.build();
+    List<SnapshotDescription> snapshotDescriptions = client.listFullSnapshotAsync().get();
+    assertEquals(2, snapshotDescriptions.size());
+  }
 
-		client.createCollectionAsync(request).get();
-	}
+  private void createCollection(String collectionName)
+      throws ExecutionException, InterruptedException {
+    Collections.CreateCollection request =
+        Collections.CreateCollection.newBuilder()
+            .setCollectionName(collectionName)
+            .setVectorsConfig(
+                Collections.VectorsConfig.newBuilder()
+                    .setParams(
+                        Collections.VectorParams.newBuilder()
+                            .setDistance(Collections.Distance.Cosine)
+                            .setSize(4)
+                            .build())
+                    .build())
+            .build();
+
+    client.createCollectionAsync(request).get();
+  }
 }
