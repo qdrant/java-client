@@ -2789,6 +2789,22 @@ public class QdrantClient implements AutoCloseable {
 	 *
 	 * @param collectionName The name of the collection
 	 * @param queries The queries to be performed in the batch.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<List<BatchResult>> queryBatchAsync(
+		String collectionName,
+		List<QueryPoints> queries
+	) {
+		return queryBatchAsync(collectionName, queries, null, null);
+	}
+
+	/**
+	 * Universally query points in batch.
+	 * Covers all capabilities of search, recommend, discover, filters.
+	 * Also enables hybrid and multi-stage queries.
+	 *
+	 * @param collectionName The name of the collection
+	 * @param queries The queries to be performed in the batch.
 	 * @param readConsistency Options for specifying read consistency guarantees.
 	 * @return a new instance of {@link ListenableFuture}
 	 */
