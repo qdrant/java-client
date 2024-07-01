@@ -77,6 +77,10 @@ import io.qdrant.client.grpc.Points.PointsIdsList;
 import io.qdrant.client.grpc.Points.PointsOperationResponse;
 import io.qdrant.client.grpc.Points.PointsSelector;
 import io.qdrant.client.grpc.Points.PointsUpdateOperation;
+import io.qdrant.client.grpc.Points.QueryBatchPoints;
+import io.qdrant.client.grpc.Points.QueryBatchResponse;
+import io.qdrant.client.grpc.Points.QueryPoints;
+import io.qdrant.client.grpc.Points.QueryResponse;
 import io.qdrant.client.grpc.Points.ReadConsistency;
 import io.qdrant.client.grpc.Points.RecommendBatchPoints;
 import io.qdrant.client.grpc.Points.RecommendBatchResponse;
@@ -2744,6 +2748,103 @@ public class QdrantClient implements AutoCloseable {
 		ListenableFuture<CountResponse> future = getPoints(timeout).count(requestBuilder.build());
 		addLogFailureCallback(future, "Count");
 		return Futures.transform(future, response -> response.getResult().getCount(), MoreExecutors.directExecutor());
+	}
+
+	/**
+	 * Universally query points.
+	 * Covers all capabilities of search, recommend, discover, filters.
+	 * Also enables hybrid and multi-stage queries.
+	 *
+	 * @param request the query request
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<List<ScoredPoint>> queryAsync(QueryPoints request) {
+		return queryAsync(request, null);
+	}
+
+	/**
+	 * Universally query points.
+	 * Covers all capabilities of search, recommend, discover, filters.
+	 * Also enables hybrid and multi-stage queries.
+	 *
+	 * @param request the query request
+	 * @param timeout the timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<List<ScoredPoint>> queryAsync(QueryPoints request, @Nullable Duration timeout) {
+		Preconditions.checkArgument(
+			!request.getCollectionName().isEmpty(),
+			"Collection name must not be empty");
+
+		logger.debug("Query on '{}'", request.getCollectionName());
+		ListenableFuture<QueryResponse> future = getPoints(timeout).query(request);
+		addLogFailureCallback(future, "Query");
+		return Futures.transform(future, QueryResponse::getResultList, MoreExecutors.directExecutor());
+	}
+
+	/**
+	 * Universally query points in batch.
+	 * Covers all capabilities of search, recommend, discover, filters.
+	 * Also enables hybrid and multi-stage queries.
+	 *
+	 * @param collectionName The name of the collection
+	 * @param queries The queries to be performed in the batch.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<List<BatchResult>> queryBatchAsync(
+		String collectionName,
+		List<QueryPoints> queries
+	) {
+		return queryBatchAsync(collectionName, queries, null, null);
+	}
+
+	/**
+	 * Universally query points in batch.
+	 * Covers all capabilities of search, recommend, discover, filters.
+	 * Also enables hybrid and multi-stage queries.
+	 *
+	 * @param collectionName The name of the collection
+	 * @param queries The queries to be performed in the batch.
+	 * @param readConsistency Options for specifying read consistency guarantees.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<List<BatchResult>> queryBatchAsync(
+		String collectionName,
+		List<QueryPoints> queries,
+		@Nullable ReadConsistency readConsistency
+	) {
+		return queryBatchAsync(collectionName, queries, readConsistency, null);
+	}
+
+	/**
+	 * Universally query points in batch.
+	 * Covers all capabilities of search, recommend, discover, filters.
+	 * Also enables hybrid and multi-stage queries.
+	 *
+	 * @param collectionName The name of the collection
+	 * @param queries The queries to be performed in the batch.
+	 * @param readConsistency Options for specifying read consistency guarantees.
+	 * @param timeout The timeout for the call.
+	 * @return a new instance of {@link ListenableFuture}
+	 */
+	public ListenableFuture<List<BatchResult>> queryBatchAsync(
+		String collectionName,
+		List<QueryPoints> queries,
+		@Nullable ReadConsistency readConsistency,
+		@Nullable Duration timeout
+	) {
+		QueryBatchPoints.Builder requestBuilder = QueryBatchPoints.newBuilder()
+			.setCollectionName(collectionName)
+			.addAllQueryPoints(queries);
+
+		if (readConsistency != null) {
+			requestBuilder.setReadConsistency(readConsistency);
+		}
+
+		logger.debug("Query batch on '{}'", collectionName);
+		ListenableFuture<QueryBatchResponse> future = getPoints(timeout).queryBatch(requestBuilder.build());
+		addLogFailureCallback(future, "Query batch");
+		return Futures.transform(future, QueryBatchResponse::getResultList, MoreExecutors.directExecutor());
 	}
 
 	//region Snapshot Management

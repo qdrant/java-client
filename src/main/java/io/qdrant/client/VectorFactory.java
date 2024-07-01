@@ -1,6 +1,8 @@
 package io.qdrant.client;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.google.common.primitives.Floats;
 
@@ -47,6 +49,44 @@ public final class VectorFactory {
         return Vector.newBuilder()
                 .addAllData(vector)
                 .setIndices(SparseIndices.newBuilder().addAllData(indices).build())
+                .build();
+    }
+
+    /**
+     * Creates a multi vector from a nested list of floats
+     *
+     * @param vectors  The nested list of floats representing the multi vector.
+     * @return A new instance of {@link Vector}
+     */
+    public static Vector multiVector(List<List<Float>> vectors) {
+        int vectorSize = vectors.size();
+        List<Float> flatVector = vectors.stream().flatMap(List::stream).collect(Collectors.toList());
+
+        return Vector.newBuilder()
+                .addAllData(flatVector)
+                .setVectorsCount(vectorSize)
+                .build();
+    }
+
+    /**
+     * Creates a multi vector from a nested array of floats
+     *
+     * @param vectors  The nested array of floats representing the multi vector.
+     * @return A new instance of {@link Vector}
+     */
+    public static Vector multiVector(float[][] vectors) {
+        int vectorSize = vectors.length;
+
+        List<Float> flatVector = new ArrayList<>();
+        for (float[] vector : vectors) {
+            for (float value : vector) {
+                flatVector.add(value);
+            }
+        }
+
+        return Vector.newBuilder()
+                .addAllData(flatVector)
+                .setVectorsCount(vectorSize)
                 .build();
     }
 }

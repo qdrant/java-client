@@ -50,4 +50,15 @@ public final class VectorsFactory {
 			.setVector(vector(values))
 			.build();
 	}
+
+	/**
+	 * Creates a vector
+	 * @param vector An instance of {@link Vector}
+	 * @return a new instance of {@link Vectors}
+	 */
+	public static Vectors vectors(Vector vector) {
+		return Vectors.newBuilder()
+			.setVector(vector)
+			.build();
+	}
 }

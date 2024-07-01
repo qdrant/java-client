@@ -3,6 +3,9 @@ package io.qdrant.client;
 import static io.qdrant.client.ConditionFactory.hasId;
 import static io.qdrant.client.ConditionFactory.matchKeyword;
 import static io.qdrant.client.PointIdFactory.id;
+import static io.qdrant.client.QueryFactory.fusion;
+import static io.qdrant.client.QueryFactory.nearest;
+import static io.qdrant.client.QueryFactory.orderBy;
 import static io.qdrant.client.TargetVectorFactory.targetVector;
 import static io.qdrant.client.ValueFactory.value;
 import static io.qdrant.client.VectorFactory.vector;
@@ -40,6 +43,7 @@ import io.qdrant.client.grpc.Collections.VectorsConfig;
 import io.qdrant.client.grpc.Points.BatchResult;
 import io.qdrant.client.grpc.Points.DiscoverPoints;
 import io.qdrant.client.grpc.Points.Filter;
+import io.qdrant.client.grpc.Points.Fusion;
 import io.qdrant.client.grpc.Points.PointGroup;
 import io.qdrant.client.grpc.Points.PointStruct;
 import io.qdrant.client.grpc.Points.PointVectors;
@@ -48,6 +52,8 @@ import io.qdrant.client.grpc.Points.PointsSelector;
 import io.qdrant.client.grpc.Points.PointsUpdateOperation;
 import io.qdrant.client.grpc.Points.PointsUpdateOperation.ClearPayload;
 import io.qdrant.client.grpc.Points.PointsUpdateOperation.UpdateVectors;
+import io.qdrant.client.grpc.Points.PrefetchQuery;
+import io.qdrant.client.grpc.Points.QueryPoints;
 import io.qdrant.client.grpc.Points.RecommendPointGroups;
 import io.qdrant.client.grpc.Points.RecommendPoints;
 import io.qdrant.client.grpc.Points.RetrievedPoint;
@@ -628,6 +634,147 @@ class PointsTest {
 		List<UpdateResult> response = client.batchUpdateAsync(testName, operations).get();
 
 		response.forEach(result -> assertEquals(UpdateStatus.Completed, result.getStatus()));
+	}
+
+	@Test
+	public void query() throws ExecutionException, InterruptedException {
+		createAndSeedCollection(testName);
+
+		List<ScoredPoint> points = client.queryAsync(
+				QueryPoints.newBuilder().setCollectionName(testName)
+						.build())
+				.get();
+
+		assertEquals(2, points.size());
+		assertEquals(points.get(0).getId(), id(8));
+		assertEquals(points.get(1).getId(), id(9));
+
+		points = client.queryAsync(
+				QueryPoints.newBuilder().setCollectionName(testName)
+						.setLimit(1)
+						.build())
+				.get();
+
+		assertEquals(1, points.size());
+		assertEquals(id(8), points.get(0).getId());
+	}
+
+	@Test
+	public void queryWithFilter() throws ExecutionException, InterruptedException {
+		createAndSeedCollection(testName);
+
+		List<ScoredPoint> points = client.queryAsync(
+				QueryPoints.newBuilder()
+						.setCollectionName(testName)
+						.setFilter(Filter.newBuilder().addMust(matchKeyword("foo", "hello")).build())
+						.build())
+				.get();
+
+		assertEquals(1, points.size());
+		assertEquals(id(8), points.get(0).getId());
+	}
+
+	@Test
+	public void queryNearestWithID() throws ExecutionException, InterruptedException {
+		createAndSeedCollection(testName);
+  
+		List<ScoredPoint> points = client.queryAsync(
+				QueryPoints.newBuilder()
+						.setCollectionName(testName)
+						.setQuery(nearest(8))
+						.build())
+				.get();
+
+		assertEquals(1, points.size());
+		assertEquals(id(9), points.get(0).getId());
+	}
+
+	@Test
+	public void queryNearestWithVector() throws ExecutionException, InterruptedException {
+		createAndSeedCollection(testName);
+
+		List<ScoredPoint> points = client.queryAsync(
+				QueryPoints.newBuilder()
+						.setCollectionName(testName)
+						.setQuery(nearest(10.5f, 11.5f))
+						.build())
+				.get();
+
+		assertEquals(2, points.size());
+		assertEquals(id(9), points.get(0).getId());
+	}
+
+	@Test
+	public void queryOrderBy() throws ExecutionException, InterruptedException {
+		createAndSeedCollection(testName);
+
+		Collections.PayloadIndexParams params = Collections.PayloadIndexParams.newBuilder()
+				.setIntegerIndexParams(
+						Collections.IntegerIndexParams.newBuilder().setLookup(false).setRange(true).build())
+				.build();
+
+		UpdateResult resultIndex = client.createPayloadIndexAsync(
+				testName,
+				"bar",
+				PayloadSchemaType.Integer,
+				params,
+				true,
+				null,
+				null).get();
+
+		assertEquals(UpdateStatus.Completed, resultIndex.getStatus());
+
+		CollectionInfo collectionInfo = client.getCollectionInfoAsync(testName).get();
+		assertEquals(ImmutableSet.of("bar"), collectionInfo.getPayloadSchemaMap().keySet());
+		assertEquals(PayloadSchemaType.Integer, collectionInfo.getPayloadSchemaMap().get("bar").getDataType());
+
+		List<ScoredPoint> points = client.queryAsync(
+				QueryPoints.newBuilder()
+						.setCollectionName(testName)
+						.setLimit(1)
+						.setQuery(orderBy("bar"))
+						.build())
+				.get();
+
+		assertEquals(1, points.size());
+		assertEquals(id(8), points.get(0).getId());
+	}
+
+	@Test
+	public void queryWithPrefetchLimit() throws ExecutionException, InterruptedException {
+		createAndSeedCollection(testName);
+
+		List<ScoredPoint> points = client.queryAsync(
+				QueryPoints.newBuilder()
+						.addPrefetch(PrefetchQuery.newBuilder()
+								.setLimit(1)
+								.build())
+						.setCollectionName(testName)
+						.setQuery(nearest(10.5f, 11.5f))
+						.build())
+				.get();
+
+		assertEquals(1, points.size());
+	}
+
+	@Test
+	public void queryWithPrefetchAndFusion() throws ExecutionException, InterruptedException {
+		createAndSeedCollection(testName);
+
+		List<ScoredPoint> points = client.queryAsync(
+				QueryPoints.newBuilder()
+						.addPrefetch(PrefetchQuery.newBuilder()
+								.setQuery(nearest(10.5f, 11.5f))
+								.build())
+						.addPrefetch(PrefetchQuery.newBuilder()
+								.setQuery(nearest(3.5f, 4.5f))
+								.build())
+						.setCollectionName(testName)
+						.setQuery(fusion(Fusion.RRF))
+						.build())
+				.get();
+
+		assertEquals(2, points.size());
 	}
 
 	private void createAndSeedCollection(String collectionName) throws ExecutionException, InterruptedException {
