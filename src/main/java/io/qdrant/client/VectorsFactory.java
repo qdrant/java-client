@@ -32,13 +32,25 @@ public final class VectorsFactory {
     return Vectors.newBuilder().setVector(vector(values)).build();
   }
 
-  /**
-   * Creates a vector
-   *
-   * @param values A list of values
-   * @return a new instance of {@link Vectors}
-   */
-  public static Vectors vectors(float... values) {
-    return Vectors.newBuilder().setVector(vector(values)).build();
-  }
+	/**
+	 * Creates a vector
+	 * @param values A list of values
+	 * @return a new instance of {@link Vectors}
+	 */
+	public static Vectors vectors(float... values) {
+		return Vectors.newBuilder()
+			.setVector(vector(values))
+			.build();
+	}
+
+	/**
+	 * Creates a vector
+	 * @param vector An instance of {@link Vector}
+	 * @return a new instance of {@link Vectors}
+	 */
+	public static Vectors vectors(Vector vector) {
+		return Vectors.newBuilder()
+			.setVector(vector)
+			.build();
+	}
 }
