@@ -2,9 +2,12 @@ package io.qdrant.client;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import io.grpc.Grpc;
+import io.grpc.InsecureChannelCredentials;
+import io.grpc.ManagedChannel;
+import io.qdrant.client.grpc.QdrantOuterClass.HealthCheckReply;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,38 +15,35 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.qdrant.QdrantContainer;
 
-import io.grpc.Grpc;
-import io.grpc.InsecureChannelCredentials;
-import io.grpc.ManagedChannel;
-import io.qdrant.client.grpc.QdrantOuterClass.HealthCheckReply;
-
 @Testcontainers
 class HealthTest {
-	@Container
-	private static final QdrantContainer QDRANT_CONTAINER = new QdrantContainer(DockerImage.QDRANT_IMAGE);
-	private QdrantClient client;
-	private ManagedChannel channel;
+  @Container
+  private static final QdrantContainer QDRANT_CONTAINER =
+      new QdrantContainer(DockerImage.QDRANT_IMAGE);
 
-	@BeforeEach
-	public void setup() {
-		channel = Grpc.newChannelBuilder(
-				QDRANT_CONTAINER.getGrpcHostAddress(),
-				InsecureChannelCredentials.create())
-			.build();
-		QdrantGrpcClient grpcClient = QdrantGrpcClient.newBuilder(channel).build();
-		client = new QdrantClient(grpcClient);
-	}
+  private QdrantClient client;
+  private ManagedChannel channel;
 
-	@AfterEach
-	public void teardown() throws Exception {
-		client.close();
-		channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
-	}
+  @BeforeEach
+  public void setup() {
+    channel =
+        Grpc.newChannelBuilder(
+                QDRANT_CONTAINER.getGrpcHostAddress(), InsecureChannelCredentials.create())
+            .build();
+    QdrantGrpcClient grpcClient = QdrantGrpcClient.newBuilder(channel).build();
+    client = new QdrantClient(grpcClient);
+  }
 
-	@Test
-	public void healthCheck() throws ExecutionException, InterruptedException {
-		HealthCheckReply healthCheckReply = client.healthCheckAsync().get();
-		assertNotNull(healthCheckReply.getTitle());
-		assertNotNull(healthCheckReply.getVersion());
-	}
+  @AfterEach
+  public void teardown() throws Exception {
+    client.close();
+    channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
+  }
+
+  @Test
+  public void healthCheck() throws ExecutionException, InterruptedException {
+    HealthCheckReply healthCheckReply = client.healthCheckAsync().get();
+    assertNotNull(healthCheckReply.getTitle());
+    assertNotNull(healthCheckReply.getVersion());
+  }
 }

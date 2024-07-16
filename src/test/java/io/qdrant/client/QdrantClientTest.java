@@ -14,27 +14,29 @@ import org.testcontainers.qdrant.QdrantContainer;
 @Testcontainers
 class QdrantClientTest {
 
-	@Container
-	private static final QdrantContainer QDRANT_CONTAINER = new QdrantContainer(DockerImage.QDRANT_IMAGE);
-	private QdrantClient client;
+  @Container
+  private static final QdrantContainer QDRANT_CONTAINER =
+      new QdrantContainer(DockerImage.QDRANT_IMAGE);
 
-	@BeforeEach
-	public void setup() {
-		ManagedChannel channel = Grpc.newChannelBuilder(
-				QDRANT_CONTAINER.getGrpcHostAddress(),
-				InsecureChannelCredentials.create())
-			.build();
-		QdrantGrpcClient grpcClient = QdrantGrpcClient.newBuilder(channel, true).build();
-		client = new QdrantClient(grpcClient);
-	}
+  private QdrantClient client;
 
-	@AfterEach
-	public void teardown() {
-		client.close();
-	}
+  @BeforeEach
+  public void setup() {
+    ManagedChannel channel =
+        Grpc.newChannelBuilder(
+                QDRANT_CONTAINER.getGrpcHostAddress(), InsecureChannelCredentials.create())
+            .build();
+    QdrantGrpcClient grpcClient = QdrantGrpcClient.newBuilder(channel, true).build();
+    client = new QdrantClient(grpcClient);
+  }
 
-	@Test
-	void canAccessChannelOnGrpcClient() {
-		Assertions.assertTrue(client.grpcClient().channel().authority().startsWith("localhost"));
-	}
+  @AfterEach
+  public void teardown() {
+    client.close();
+  }
+
+  @Test
+  void canAccessChannelOnGrpcClient() {
+    Assertions.assertTrue(client.grpcClient().channel().authority().startsWith("localhost"));
+  }
 }

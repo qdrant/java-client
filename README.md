@@ -1,5 +1,5 @@
 <p align="center">
-  <img height="120" src="https://github.com/qdrant/qdrant/raw/master/docs/logo.svg" alt="Qdrant"> 
+  <img height="120" src="https://github.com/qdrant/qdrant/raw/master/docs/logo.svg" alt="Qdrant">
   &nbsp;
   <img height="150" width="100" src="./resources/java-logo-small.svg" alt="Java">
 
@@ -34,21 +34,24 @@ To install the library, add the following lines to your build config file.
 <dependency>
   <groupId>io.qdrant</groupId>
   <artifactId>client</artifactId>
-  <version>1.9.0</version>
+  <version>1.10.0</version>
 </dependency>
 ```
 
 #### SBT
 
 ```sbt
-libraryDependencies += "io.qdrant" % "client" % "1.9.0"
+libraryDependencies += "io.qdrant" % "client" % "1.10.0"
 ```
 
 #### Gradle
 
 ```gradle
-implementation 'io.qdrant:client:1.9.0'
+implementation 'io.qdrant:client:1.10.0'
 ```
+
+> [!NOTE]  
+> Please make sure to include all necessary dependencies listed [here](https://central.sonatype.com/artifact/io.qdrant/client/dependencies) in your project.
 
 ## 📖 Documentation
 
@@ -65,7 +68,8 @@ A client can be instantiated with
 QdrantClient client = 
   new QdrantClient(QdrantGrpcClient.newBuilder("localhost").build());
 ```
-which creates a client that will connect to Qdrant on https://localhost:6334.
+
+which creates a client that will connect to Qdrant on <https://localhost:6334>.
 
 Internally, the high level client uses a low level gRPC client to interact with
 Qdrant. Additional constructor overloads provide more control over how the gRPC
