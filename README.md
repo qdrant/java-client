@@ -71,7 +71,7 @@ QdrantClient client =
 
 which creates a client that will connect to Qdrant on <https://localhost:6334>.
 
-Internally, the high level client uses a low level gRPC client to interact with
+Internally, the high-level client uses a low-level gRPC client to interact with
 Qdrant. Additional constructor overloads provide more control over how the gRPC
 client is configured. The following example configures a client to use TLS,
 validating the certificate using the root CA to verify the server's identity
@@ -95,7 +95,7 @@ The client implements [`AutoCloseable`](https://docs.oracle.com/javase/8/docs/ap
 though a client will typically be created once and used for the lifetime of the
 application. When a client is constructed by passing a `ManagedChannel`, the
 client does not shut down the channel on close by default. The client can be
-configured to shut down the channel on close with
+configured to shut down the channel on closing with
 
 ```java
 ManagedChannel channel = Grpc.newChannelBuilder(
@@ -116,7 +116,7 @@ All client methods return `ListenableFuture<T>`.
 Once a client has been created, create a new collection
 
 ```java
-client.createCollectionAsync("my_collection",
+client.createCollectionAsync("{collection_name}",
   VectorParams.newBuilder()
     .setDistance(Distance.Cosine)
     .setSize(4)
@@ -152,17 +152,17 @@ List<PointStruct> points =
                     "extra_field", value(true)))
             .build());
 
-UpdateResult updateResult = client.upsertAsync("my_collection", points).get();
+UpdateResult updateResult = client.upsertAsync("{collection_name}", points).get();
 ```
 
 Search for similar vectors
 
 ```java
-List<ScoredPoint> anush =
+List<ScoredPoint> points =
     client
         .searchAsync(
             SearchPoints.newBuilder()
-                .setCollectionName("my_collection")
+                .setCollectionName("{collection_name}")
                 .addAllVector(List.of(0.6235f, 0.123f, 0.532f, 0.123f))
                 .setLimit(5)
                 .build())
@@ -176,7 +176,7 @@ Search for similar vectors with filtering condition
 import static io.qdrant.client.ConditionFactory.range;
 
 List<ScoredPoint> points = client.searchAsync(SearchPoints.newBuilder()
-  .setCollectionName("my_collection")
+  .setCollectionName("{collection_name}")
   .addAllVector(List.of(0.6235f, 0.123f, 0.532f, 0.123f))
   .setFilter(Filter.newBuilder()
     .addMust(range("rand_number", Range.newBuilder().setGte(3).build()))
