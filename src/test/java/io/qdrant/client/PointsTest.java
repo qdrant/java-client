@@ -6,6 +6,7 @@ import static io.qdrant.client.PointIdFactory.id;
 import static io.qdrant.client.QueryFactory.fusion;
 import static io.qdrant.client.QueryFactory.nearest;
 import static io.qdrant.client.QueryFactory.orderBy;
+import static io.qdrant.client.QueryFactory.sample;
 import static io.qdrant.client.TargetVectorFactory.targetVector;
 import static io.qdrant.client.ValueFactory.value;
 import static io.qdrant.client.VectorFactory.vector;
@@ -38,10 +39,12 @@ import io.qdrant.client.grpc.Points.PointsUpdateOperation;
 import io.qdrant.client.grpc.Points.PointsUpdateOperation.ClearPayload;
 import io.qdrant.client.grpc.Points.PointsUpdateOperation.UpdateVectors;
 import io.qdrant.client.grpc.Points.PrefetchQuery;
+import io.qdrant.client.grpc.Points.QueryPointGroups;
 import io.qdrant.client.grpc.Points.QueryPoints;
 import io.qdrant.client.grpc.Points.RecommendPointGroups;
 import io.qdrant.client.grpc.Points.RecommendPoints;
 import io.qdrant.client.grpc.Points.RetrievedPoint;
+import io.qdrant.client.grpc.Points.Sample;
 import io.qdrant.client.grpc.Points.ScoredPoint;
 import io.qdrant.client.grpc.Points.ScrollPoints;
 import io.qdrant.client.grpc.Points.ScrollResponse;
@@ -50,6 +53,7 @@ import io.qdrant.client.grpc.Points.SearchPoints;
 import io.qdrant.client.grpc.Points.UpdateResult;
 import io.qdrant.client.grpc.Points.UpdateStatus;
 import io.qdrant.client.grpc.Points.Vectors;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -596,7 +600,7 @@ class PointsTest {
     createAndSeedCollection(testName);
 
     List<PointsUpdateOperation> operations =
-        List.of(
+        Arrays.asList(
             PointsUpdateOperation.newBuilder()
                 .setClearPayload(
                     ClearPayload.newBuilder()
@@ -755,6 +759,58 @@ class PointsTest {
             .get();
 
     assertEquals(2, points.size());
+  }
+
+  @Test
+  public void queryWithSampling() throws ExecutionException, InterruptedException {
+    createAndSeedCollection(testName);
+
+    List<ScoredPoint> points =
+        client
+            .queryAsync(
+                QueryPoints.newBuilder()
+                    .setCollectionName(testName)
+                    .setQuery(sample(Sample.Random))
+                    .setLimit(1)
+                    .build())
+            .get();
+
+    assertEquals(1, points.size());
+  }
+
+  @Test
+  public void queryGroups() throws ExecutionException, InterruptedException {
+    createAndSeedCollection(testName);
+
+    client
+        .upsertAsync(
+            testName,
+            ImmutableList.of(
+                PointStruct.newBuilder()
+                    .setId(id(10))
+                    .setVectors(VectorsFactory.vectors(30f, 31f))
+                    .putAllPayload(ImmutableMap.of("foo", value("hello")))
+                    .build()))
+        .get();
+    // 3 points in total, 2 with "foo" = "hello" and 1 with "foo" = "goodbye"
+
+    List<PointGroup> groups =
+        client
+            .queryGroupsAsync(
+                QueryPointGroups.newBuilder()
+                    .setCollectionName(testName)
+                    .setQuery(nearest(ImmutableList.of(10.4f, 11.4f)))
+                    .setGroupBy("foo")
+                    .setGroupSize(2)
+                    .setLimit(10)
+                    .build())
+            .get();
+
+    assertEquals(2, groups.size());
+    // A group with 2 hits because of 2 points with "foo" = "hello"
+    assertEquals(1, groups.stream().filter(g -> g.getHitsCount() == 2).count());
+    // A group with 1 hit because of 1 point with "foo" = "goodbye"
+    assertEquals(1, groups.stream().filter(g -> g.getHitsCount() == 1).count());
   }
 
   private void createAndSeedCollection(String collectionName)

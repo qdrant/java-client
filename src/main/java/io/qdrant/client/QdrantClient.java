@@ -67,6 +67,8 @@ import io.qdrant.client.grpc.Points.PointsSelector;
 import io.qdrant.client.grpc.Points.PointsUpdateOperation;
 import io.qdrant.client.grpc.Points.QueryBatchPoints;
 import io.qdrant.client.grpc.Points.QueryBatchResponse;
+import io.qdrant.client.grpc.Points.QueryGroupsResponse;
+import io.qdrant.client.grpc.Points.QueryPointGroups;
 import io.qdrant.client.grpc.Points.QueryPoints;
 import io.qdrant.client.grpc.Points.QueryResponse;
 import io.qdrant.client.grpc.Points.ReadConsistency;
@@ -2769,6 +2771,37 @@ public class QdrantClient implements AutoCloseable {
     addLogFailureCallback(future, "Query batch");
     return Futures.transform(
         future, QueryBatchResponse::getResultList, MoreExecutors.directExecutor());
+  }
+
+  /**
+   * Universally query points. Covers all capabilities of search, recommend, discover, filters.
+   * Grouped by a payload field.
+   *
+   * @param request the query request
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<List<PointGroup>> queryGroupsAsync(QueryPointGroups request) {
+    return queryGroupsAsync(request, null);
+  }
+
+  /**
+   * Universally query points. Covers all capabilities of search, recommend, discover, filters.
+   * Grouped by a payload field.
+   *
+   * @param request the query request
+   * @param timeout the timeout for the call.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<List<PointGroup>> queryGroupsAsync(
+      QueryPointGroups request, @Nullable Duration timeout) {
+    Preconditions.checkArgument(
+        !request.getCollectionName().isEmpty(), "Collection name must not be empty");
+
+    logger.debug("Query groups on '{}'", request.getCollectionName());
+    ListenableFuture<QueryGroupsResponse> future = getPoints(timeout).queryGroups(request);
+    addLogFailureCallback(future, "Query groups");
+    return Futures.transform(
+        future, response -> response.getResult().getGroupsList(), MoreExecutors.directExecutor());
   }
 
   // region Snapshot Management
