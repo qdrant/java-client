@@ -81,7 +81,6 @@ jar {
 def grpcVersion = '1.65.1'
 def protocVersion = '3.25.4'
 def slf4jVersion = '2.0.14'
-def guavaVersion = '3.2.1-jre'
 def testcontainersVersion = '1.20.1'
 def jUnitVersion = '5.10.2'
 
@@ -89,9 +88,7 @@ dependencies {
 	errorprone "com.uber.nullaway:nullaway:0.10.18"
 
 	implementation "io.grpc:grpc-protobuf:${grpcVersion}"
-	implementation "io.grpc:grpc-services:${grpcVersion}"
 	implementation "io.grpc:grpc-stub:${grpcVersion}"
-	implementation "com.google.guava:guava:${guavaVersion}"
 	implementation "org.slf4j:slf4j-api:${slf4jVersion}"
 
 	compileOnly "org.apache.tomcat:annotations-api:6.0.53"
