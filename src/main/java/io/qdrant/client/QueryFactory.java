@@ -10,6 +10,7 @@ import io.qdrant.client.grpc.Points.OrderBy;
 import io.qdrant.client.grpc.Points.PointId;
 import io.qdrant.client.grpc.Points.Query;
 import io.qdrant.client.grpc.Points.RecommendInput;
+import io.qdrant.client.grpc.Points.Sample;
 import io.qdrant.client.grpc.Points.VectorInput;
 import java.util.List;
 import java.util.UUID;
@@ -170,6 +171,16 @@ public final class QueryFactory {
    */
   public static Query nearestMultiVector(List<List<Float>> vectors) {
     return Query.newBuilder().setNearest(multiVectorInput(vectors)).build();
+  }
+
+  /**
+   * Creates a {@link Query} for sampling.
+   *
+   * @param sample An instance of {@link Sample}
+   * @return A new instance of {@link Query}
+   */
+  public static Query sample(Sample sample) {
+    return Query.newBuilder().setSample(sample).build();
   }
 
   // endregion

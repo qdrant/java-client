@@ -2,8 +2,10 @@ package io.qdrant.client;
 
 import io.qdrant.client.grpc.JsonWithInt.ListValue;
 import io.qdrant.client.grpc.JsonWithInt.NullValue;
+import io.qdrant.client.grpc.JsonWithInt.Struct;
 import io.qdrant.client.grpc.JsonWithInt.Value;
 import java.util.List;
+import java.util.Map;
 
 /** Convenience methods for constructing {@link Value} */
 public final class ValueFactory {
@@ -67,6 +69,28 @@ public final class ValueFactory {
   public static Value list(List<Value> values) {
     return Value.newBuilder()
         .setListValue(ListValue.newBuilder().addAllValues(values).build())
+        .build();
+  }
+
+  /**
+   * Creates a value from a list of values. Same as {@link #list(List)}
+   *
+   * @param values The list of values
+   * @return a new instance of {@link io.qdrant.client.grpc.JsonWithInt.Value}
+   */
+  public static Value value(List<Value> values) {
+    return list(values);
+  }
+
+  /**
+   * Creates a value from a map of nested values
+   *
+   * @param values The map of values
+   * @return a new instance of {@link io.qdrant.client.grpc.JsonWithInt.Value}
+   */
+  public static Value value(Map<String, Value> values) {
+    return Value.newBuilder()
+        .setStructValue(Struct.newBuilder().putAllFields(values).build())
         .build();
   }
 }
