@@ -52,73 +52,114 @@ If you are modifying code, make sure it has no warnings when building.
 
 By contributing, you agree that your contributions will be licensed under its Apache License 2.0.
 
-# Building the solution
+# Contributing to Java client for Qdrant
 
-The solution uses several open source software tools:
+We love your input! We want to make contributing to this project as easy and transparent as possible, whether it's:
 
-## Docker
+- Reporting a bug
+- Discussing the current state of the code
+- Submitting a fix
+- Proposing new features
 
-Qdrant docker image is used to run integration tests. Be sure to
-[install docker](https://docs.docker.com/engine/install/) and have it running when running tests.
+## We Develop with GitHub
 
-## Gradle
+We use github to host code, to track issues and feature requests, as well as accept pull requests.
 
-[Gradle](https://docs.gradle.org/current/userguide/userguide.html) is used as the build automation tool for the solution.
-To get started after cloning the solution, it's best to run the gradlew wrapper script in the root
+We Use [GitHub Flow](https://docs.github.com/en/get-started/quickstart/github-flow), so all code changes
+happen through Pull Requests. Pull requests are the best way to propose changes to the codebase.
 
-for Windows
+It's usually best to open an issue first to discuss a feature or bug before opening a pull request.
+Doing so can save time and help further ascertain the crux of an issue.
 
-```
+1. See if there is an existing issue
+2. Fork the repo and create your branch from `master`.
+3. If you've added code that should be tested, add tests.
+4. Ensure the test suite passes.
+5. Issue that pull request!
+
+## Report bugs using GitHub's [issues](https://github.com/qdrant/java-client/issues)
+
+We use GitHub issues to track public bugs. Report a bug by
+[opening a new issue](https://github.com/qdrant/java-client/issues/new); it's that easy!
+
+**Great Bug Reports** tend to have:
+
+- A quick summary and background
+- Steps to reproduce
+  - Be specific!
+  - Give a sample code if you can.
+- What you expected would happen
+- What happens
+- Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
+
+## Coding Styleguide
+
+If you are modifying code, make sure it has no warnings when building.
+
+## License
+
+By contributing, you agree that your contributions will be licensed under its Apache License 2.0.
+
+## Preparing for a New Release
+
+The client uses generated stubs from upstream Qdrant proto definitions, which are downloaded from [qdrant/qdrant](https://github.com/qdrant/qdrant/tree/master/lib/api/src/grpc/proto).
+
+The generated files do not form part of the checked in source code. Instead, they are generated
+and emitted into the `build/generated/source directory`, and included in compilation.
+
+### Pre-requisites
+
+Ensure the following are installed and available in the `PATH`.
+
+- [Java 17](https://www.azul.com/downloads/?version=java-17-lts&package=jdk#zulu)
+- [Gradle](https://gradle.org/install/#with-a-package-manager).
+- [Docker](https://docs.docker.com/engine/install/) for tests.
+
+### Steps
+
+1 - Update the values in [gradle.properties](https://github.com/qdrant/java-client/blob/master/gradle.properties) as follows:
+
+- `packageVersion` - Bump it to the next minor version to be released.
+- `qdrantVersion` - Set it to `dev` to use the `dev` Docker image for testing.
+- `qdrantProtosVersion` - Set it to `dev` to use the `dev` branch for fetching the proto files.
+
+2 - Download and generate the latest client stubs by running the following command from the project root:
+
+For Windows
+
+```bash
 .\gradlew.bat build
 ```
 
-for OSX/Linux
+For OSX/Linux
 
-```
+```bash
 ./gradlew build
 ```
 
 This will
 
-- Pull down all the dependencies for the build process as well as the solution
-- Run the default build task for the solution
+- Pull down all the dependencies for the build process and the project.
+- Run the default build task.
+- Run the integration tests. Make sure to have Docker running.
 
-You can also compile the solution within IntelliJ or other IDEs if you prefer.
+3 - Implement new Qdrant methods in [`QdrantClient.java`](https://github.com/qdrant/java-client/blob/master/src/main/java/io/qdrant/client/QdrantClient.java) with associated tests in [src/test](https://github.com/qdrant/java-client/tree/master/src/test/java/io/qdrant/client).
 
-## Tests
+Since the API reference is published at <https://qdrant.github.io/java-client>, the docstrings have to be appropriate.
 
-jUnit5 tests are run as part of the default build task. These can also be run with
+4 - If there are any new complex/frequently used properties in the proto definitions, add factory classes in [`src/main`](https://github.com/qdrant/java-client/tree/master/src/main/java/io/qdrant/client) following the existing patterns.
 
-```
-./gradlew test
-```
+4 - Submit your pull request and get those approvals.
 
-## Updating the client
+### Releasing a New Version
 
-A large portion of the client is generated from the upstream qdrant proto definitions, which are
-downloaded locally as needed, based on the version defined by `qdrantProtosVersion` in gradle.properties
-in the root directory.
+Once the new Qdrant version is live:
 
-When a new qdrant version is released upstream, update the `qdrantProtosVersion` value to the new version,
-then run the build script
+1 - Update the values in [gradle.properties](https://github.com/qdrant/java-client/blob/master/gradle.properties) as follows and build as mentioned above:
 
-for Windows
+- `qdrantVersion` - Set it to the released Docker image version for testing.
+- `qdrantProtosVersion` - Set it to the released version of the Qdrant source for fetching the proto files.
 
-```
-.\gradlew.bat build
-```
+2 - Merge the pull request.
 
-for OSX/Linux
-
-```
-./gradlew build
-```
-
-A specific version of the qdrant docker image can be targeted by modifying the `qdrantVersion`
-in gradle.properties.
-
-The generated files do not form part of the checked in source code. Instead, they are generated
-and emitted into the build/generated/source directory, and included in compilation.
-
-If upstream changes to proto definitions change the API of generated code, you may need
-to fix compilation errors in code that relies on that generated code.
+3 - Publish a new release at <https://github.com/qdrant/java-client/releases>. The CI will then publish the library to [mvnrepository.com/artifact/io.qdrant/client](https://mvnrepository.com/artifact/io.qdrant/client) and the docs to <https://qdrant.github.io/java-client>.
