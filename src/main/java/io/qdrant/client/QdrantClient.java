@@ -2805,6 +2805,37 @@ public class QdrantClient implements AutoCloseable {
         future, response -> response.getResult().getGroupsList(), MoreExecutors.directExecutor());
   }
 
+  /**
+   * Perform facet counts. For each value in the field, count the number of points that have this
+   * value and match the conditions.
+   *
+   * @param request the facet counts request
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<List<Points.FacetHit>> facetAsync(Points.FacetCounts request) {
+    return facetAsync(request, null);
+  }
+
+  /**
+   * Perform facet counts. For each value in the field, count the number of points that have this
+   * value and match the conditions.
+   *
+   * @param request the facet counts request
+   * @param timeout the timeout for the call.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<List<Points.FacetHit>> facetAsync(
+      Points.FacetCounts request, @Nullable Duration timeout) {
+    Preconditions.checkArgument(
+        !request.getCollectionName().isEmpty(), "Collection name must not be empty");
+
+    logger.debug("Facet on '{}'", request.getCollectionName());
+    ListenableFuture<Points.FacetResponse> future = getPoints(timeout).facet(request);
+    addLogFailureCallback(future, "Facet");
+    return Futures.transform(
+        future, Points.FacetResponse::getHitsList, MoreExecutors.directExecutor());
+  }
+
   // region distance matrix
 
   /**

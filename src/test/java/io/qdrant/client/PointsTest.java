@@ -849,6 +849,44 @@ class PointsTest {
     assertEquals(2, pairs.getPairsCount());
   }
 
+  @Test
+  public void facets() throws ExecutionException, InterruptedException {
+    createAndSeedCollection(testName);
+
+    // create payload index for "foo" field
+    UpdateResult result =
+        client
+            .createPayloadIndexAsync(
+                testName, "foo", PayloadSchemaType.Keyword, null, null, null, null)
+            .get();
+
+    assertEquals(UpdateStatus.Completed, result.getStatus());
+
+    List<Points.FacetHit> facets =
+        client
+            .facetAsync(
+                Points.FacetCounts.newBuilder()
+                    .setCollectionName(testName)
+                    .setKey("foo")
+                    .setLimit(2)
+                    .build())
+            .get();
+
+    // Number of facets matches the limit
+    assertEquals(2, facets.size());
+    // validate hits
+    assertEquals(
+        1,
+        facets.stream()
+            .filter(f -> f.getValue().getStringValue().equals("hello") && f.getCount() == 1)
+            .count());
+    assertEquals(
+        1,
+        facets.stream()
+            .filter(f -> f.getValue().getStringValue().equals("goodbye") && f.getCount() == 1)
+            .count());
+  }
+
   private void createAndSeedCollection(String collectionName)
       throws ExecutionException, InterruptedException {
     CreateCollection request =
