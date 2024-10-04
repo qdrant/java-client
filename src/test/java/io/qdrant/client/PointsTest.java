@@ -813,6 +813,42 @@ class PointsTest {
     assertEquals(1, groups.stream().filter(g -> g.getHitsCount() == 1).count());
   }
 
+  @Test
+  public void searchMatrixOffsets() throws ExecutionException, InterruptedException {
+    createAndSeedCollection(testName);
+
+    Points.SearchMatrixOffsets offsets =
+        client
+            .searchMatrixOffsetsAsync(
+                Points.SearchMatrixPoints.newBuilder()
+                    .setCollectionName(testName)
+                    .setSample(3)
+                    .setLimit(2)
+                    .build())
+            .get();
+
+    // Number of ids matches the limit
+    assertEquals(2, offsets.getIdsCount());
+  }
+
+  @Test
+  public void searchMatrixPairs() throws ExecutionException, InterruptedException {
+    createAndSeedCollection(testName);
+
+    Points.SearchMatrixPairs pairs =
+        client
+            .searchMatrixPairsAsync(
+                Points.SearchMatrixPoints.newBuilder()
+                    .setCollectionName(testName)
+                    .setSample(3)
+                    .setLimit(2)
+                    .build())
+            .get();
+
+    // Number of ids matches the limit
+    assertEquals(2, pairs.getPairsCount());
+  }
+
   private void createAndSeedCollection(String collectionName)
       throws ExecutionException, InterruptedException {
     CreateCollection request =
