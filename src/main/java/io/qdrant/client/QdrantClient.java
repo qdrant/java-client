@@ -40,6 +40,7 @@ import io.qdrant.client.grpc.Collections.VectorParamsMap;
 import io.qdrant.client.grpc.Collections.VectorsConfig;
 import io.qdrant.client.grpc.CollectionsGrpc;
 import io.qdrant.client.grpc.JsonWithInt.Value;
+import io.qdrant.client.grpc.Points;
 import io.qdrant.client.grpc.Points.BatchResult;
 import io.qdrant.client.grpc.Points.ClearPayloadPoints;
 import io.qdrant.client.grpc.Points.CountPoints;
@@ -2803,6 +2804,103 @@ public class QdrantClient implements AutoCloseable {
     return Futures.transform(
         future, response -> response.getResult().getGroupsList(), MoreExecutors.directExecutor());
   }
+
+  /**
+   * Perform facet counts. For each value in the field, count the number of points that have this
+   * value and match the conditions.
+   *
+   * @param request the facet counts request
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<List<Points.FacetHit>> facetAsync(Points.FacetCounts request) {
+    return facetAsync(request, null);
+  }
+
+  /**
+   * Perform facet counts. For each value in the field, count the number of points that have this
+   * value and match the conditions.
+   *
+   * @param request the facet counts request
+   * @param timeout the timeout for the call.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<List<Points.FacetHit>> facetAsync(
+      Points.FacetCounts request, @Nullable Duration timeout) {
+    Preconditions.checkArgument(
+        !request.getCollectionName().isEmpty(), "Collection name must not be empty");
+
+    logger.debug("Facet on '{}'", request.getCollectionName());
+    ListenableFuture<Points.FacetResponse> future = getPoints(timeout).facet(request);
+    addLogFailureCallback(future, "Facet");
+    return Futures.transform(
+        future, Points.FacetResponse::getHitsList, MoreExecutors.directExecutor());
+  }
+
+  // region distance matrix
+
+  /**
+   * Compute distance matrix for sampled points with a pair based output format.
+   *
+   * @param request the search matrix pairs request
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<Points.SearchMatrixPairs> searchMatrixPairsAsync(
+      Points.SearchMatrixPoints request) {
+    return searchMatrixPairsAsync(request, null);
+  }
+
+  /**
+   * Compute distance matrix for sampled points with a pair based output format.
+   *
+   * @param request the search matrix pairs request
+   * @param timeout the timeout for the call.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<Points.SearchMatrixPairs> searchMatrixPairsAsync(
+      Points.SearchMatrixPoints request, @Nullable Duration timeout) {
+    Preconditions.checkArgument(
+        !request.getCollectionName().isEmpty(), "Collection name must not be empty");
+
+    logger.debug("Search matrix pairs on '{}'", request.getCollectionName());
+    ListenableFuture<Points.SearchMatrixPairsResponse> future =
+        getPoints(timeout).searchMatrixPairs(request);
+    addLogFailureCallback(future, "Search matrix pairs");
+    return Futures.transform(
+        future, Points.SearchMatrixPairsResponse::getResult, MoreExecutors.directExecutor());
+  }
+
+  /**
+   * Compute distance matrix for sampled points with an offset based output format
+   *
+   * @param request the search matrix pairs request
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<Points.SearchMatrixOffsets> searchMatrixOffsetsAsync(
+      Points.SearchMatrixPoints request) {
+    return searchMatrixOffsetsAsync(request, null);
+  }
+
+  /**
+   * Compute distance matrix for sampled points with an offset based output format
+   *
+   * @param request the search matrix pairs request
+   * @param timeout the timeout for the call.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<Points.SearchMatrixOffsets> searchMatrixOffsetsAsync(
+      Points.SearchMatrixPoints request, @Nullable Duration timeout) {
+    Preconditions.checkArgument(
+        !request.getCollectionName().isEmpty(), "Collection name must not be empty");
+
+    logger.debug("Search matrix offsets on '{}'", request.getCollectionName());
+    ListenableFuture<Points.SearchMatrixOffsetsResponse> future =
+        getPoints(timeout).searchMatrixOffsets(request);
+    addLogFailureCallback(future, "Search matrix offsets");
+    return Futures.transform(
+        future, Points.SearchMatrixOffsetsResponse::getResult, MoreExecutors.directExecutor());
+  }
+
+  // endregion
 
   // region Snapshot Management
 

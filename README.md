@@ -34,14 +34,14 @@ To install the library, add the following lines to your build config file.
 <dependency>
   <groupId>io.qdrant</groupId>
   <artifactId>client</artifactId>
-  <version>1.11.0</version>
+  <version>1.12.0</version>
 </dependency>
 ```
 
 #### SBT
 
 ```sbt
-libraryDependencies += "io.qdrant" % "client" % "1.11.0"
+libraryDependencies += "io.qdrant" % "client" % "1.12.0"
 ```
 
 #### Gradle
