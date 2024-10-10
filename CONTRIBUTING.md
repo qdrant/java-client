@@ -56,7 +56,7 @@ By contributing, you agree that your contributions will be licensed under its Ap
 
 The client uses generated stubs from upstream Qdrant proto definitions, which are downloaded from [qdrant/qdrant](https://github.com/qdrant/qdrant/tree/master/lib/api/src/grpc/proto).
 
-The generated files do not form part of the checked in source code. Instead, they are generated
+The generated files do not form part of the checked-in source code. Instead, they are generated
 and emitted into the `build/generated/source directory`, and included in compilation.
 
 ### Pre-requisites
@@ -66,6 +66,8 @@ Ensure the following are installed and available in the `PATH`.
 - [Java 17](https://www.azul.com/downloads/?version=java-17-lts&package=jdk#zulu)
 - [Gradle](https://gradle.org/install/#with-a-package-manager).
 - [Docker](https://docs.docker.com/engine/install/) for tests.
+
+If you're using IntelliJ IDEA, see [this section](#intellij-idea) for steps to handle an IntelliSense issue.
 
 ### Steps
 
@@ -93,7 +95,9 @@ This will
 
 - Pull down all the dependencies for the build process and the project.
 - Run the default build task.
-- Run the integration tests. Make sure to have Docker running.
+- Run the integration tests. Ensure Docker running.
+
+If a Qdrant image with static tags like `dev` or `latest` already exists on your system, the tests will use it. You can remove these images before running the tests to fetch the most up-to-date versions.
 
 3. Implement new Qdrant methods in [`QdrantClient.java`](https://github.com/qdrant/java-client/blob/master/src/main/java/io/qdrant/client/QdrantClient.java) with associated tests in [src/test](https://github.com/qdrant/java-client/tree/master/src/test/java/io/qdrant/client).
 
@@ -115,3 +119,17 @@ Once the new Qdrant version is live:
 2. Merge the pull request.
 
 3. Publish a new release at <https://github.com/qdrant/java-client/releases>. The CI will then publish the library to [mvnrepository.com/artifact/io.qdrant/client](https://mvnrepository.com/artifact/io.qdrant/client) and the docs to <https://qdrant.github.io/java-client>.
+
+### IntelliJ IDEA
+
+If you're using [IntelliJ IDEA](https://www.jetbrains.com/idea/), IntelliSense may fail to work correctly due to large source files generated from proto-definitions.
+
+To resolve this, you can increase the file size limit by configuring IntelliJ IDEA as follows:
+
+1. In the top menu, navigate to `Help` -> `Edit Custom Properties`.
+
+2. Set the `idea.max.intellisense.filesize` properly to a higher value.
+
+![Screenshot 2024-10-02 at 11 13 06 PM](https://github.com/user-attachments/assets/7830d22c-4b63-4a03-8a8b-fbdd7acf3454)
+
+3. After saving the changes, restart the IDE to apply the new file size limit.
