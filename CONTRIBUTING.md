@@ -52,73 +52,84 @@ If you are modifying code, make sure it has no warnings when building.
 
 By contributing, you agree that your contributions will be licensed under its Apache License 2.0.
 
-# Building the solution
+## Preparing for a New Release
 
-The solution uses several open source software tools:
+The client uses generated stubs from upstream Qdrant proto definitions, which are downloaded from [qdrant/qdrant](https://github.com/qdrant/qdrant/tree/master/lib/api/src/grpc/proto).
 
-## Docker
+The generated files do not form part of the checked-in source code. Instead, they are generated
+and emitted into the `build/generated/source directory`, and included in compilation.
 
-Qdrant docker image is used to run integration tests. Be sure to
-[install docker](https://docs.docker.com/engine/install/) and have it running when running tests.
+### Pre-requisites
 
-## Gradle
+Ensure the following are installed and available in the `PATH`.
 
-[Gradle](https://docs.gradle.org/current/userguide/userguide.html) is used as the build automation tool for the solution.
-To get started after cloning the solution, it's best to run the gradlew wrapper script in the root
+- [Java 17](https://www.azul.com/downloads/?version=java-17-lts&package=jdk#zulu)
+- [Gradle](https://gradle.org/install/#with-a-package-manager).
+- [Docker](https://docs.docker.com/engine/install/) for tests.
 
-for Windows
+If you're using IntelliJ IDEA, see [this section](#intellij-idea) for steps to handle an IntelliSense issue.
 
-```
+### Steps
+
+1. Update the values in [gradle.properties](https://github.com/qdrant/java-client/blob/master/gradle.properties) as follows:
+
+- `packageVersion` - Bump it to the next minor version to be released.
+- `qdrantVersion` - Set it to `dev` to use the `dev` Docker image for testing.
+- `qdrantProtosVersion` - Set it to `dev` to use the `dev` branch for fetching the proto files.
+
+2. Download and generate the latest client stubs by running the following command from the project root:
+
+For Windows
+
+```bash
 .\gradlew.bat build
 ```
 
-for OSX/Linux
+For OSX/Linux
 
-```
+```bash
 ./gradlew build
 ```
 
 This will
 
-- Pull down all the dependencies for the build process as well as the solution
-- Run the default build task for the solution
+- Pull down all the dependencies for the build process and the project.
+- Run the default build task.
+- Run the integration tests. Ensure Docker running.
 
-You can also compile the solution within IntelliJ or other IDEs if you prefer.
+If a Qdrant image with static tags like `dev` or `latest` already exists on your system, the tests will use it. You can remove these images before running the tests to fetch the most up-to-date versions.
 
-## Tests
+3. Implement new Qdrant methods in [`QdrantClient.java`](https://github.com/qdrant/java-client/blob/master/src/main/java/io/qdrant/client/QdrantClient.java) with associated tests in [src/test](https://github.com/qdrant/java-client/tree/master/src/test/java/io/qdrant/client).
 
-jUnit5 tests are run as part of the default build task. These can also be run with
+Since the API reference is published at <https://qdrant.github.io/java-client>, the docstrings have to be appropriate.
 
-```
-./gradlew test
-```
+4. If there are any new complex/frequently used properties in the proto definitions, add factory classes in [`src/main`](https://github.com/qdrant/java-client/tree/master/src/main/java/io/qdrant/client) following the existing patterns.
 
-## Updating the client
+5. Submit your pull request and get those approvals.
 
-A large portion of the client is generated from the upstream qdrant proto definitions, which are
-downloaded locally as needed, based on the version defined by `qdrantProtosVersion` in gradle.properties
-in the root directory.
+### Releasing a New Version
 
-When a new qdrant version is released upstream, update the `qdrantProtosVersion` value to the new version,
-then run the build script
+Once the new Qdrant version is live:
 
-for Windows
+1. Update the values in [gradle.properties](https://github.com/qdrant/java-client/blob/master/gradle.properties) as follows and build as mentioned above:
 
-```
-.\gradlew.bat build
-```
+- `qdrantVersion` - Set it to the released Docker image version for testing.
+- `qdrantProtosVersion` - Set it to the released version of the Qdrant source for fetching the proto files.
 
-for OSX/Linux
+2. Merge the pull request.
 
-```
-./gradlew build
-```
+3. Publish a new release at <https://github.com/qdrant/java-client/releases>. The CI will then publish the library to [mvnrepository.com/artifact/io.qdrant/client](https://mvnrepository.com/artifact/io.qdrant/client) and the docs to <https://qdrant.github.io/java-client>.
 
-A specific version of the qdrant docker image can be targeted by modifying the `qdrantVersion`
-in gradle.properties.
+### IntelliJ IDEA
 
-The generated files do not form part of the checked in source code. Instead, they are generated
-and emitted into the build/generated/source directory, and included in compilation.
+If you're using [IntelliJ IDEA](https://www.jetbrains.com/idea/), IntelliSense may fail to work correctly due to large source files generated from proto-definitions.
 
-If upstream changes to proto definitions change the API of generated code, you may need
-to fix compilation errors in code that relies on that generated code.
+To resolve this, you can increase the file size limit by configuring IntelliJ IDEA as follows:
+
+1. In the top menu, navigate to `Help` -> `Edit Custom Properties`.
+
+2. Set the `idea.max.intellisense.filesize` properly to a higher value.
+
+![Screenshot 2024-10-02 at 11 13 06 PM](https://github.com/user-attachments/assets/7830d22c-4b63-4a03-8a8b-fbdd7acf3454)
+
+3. After saving the changes, restart the IDE to apply the new file size limit.
