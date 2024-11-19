@@ -2159,6 +2159,9 @@ public class QdrantClient implements AutoCloseable {
       case Datetime:
         requestBuilder.setFieldType(FieldType.FieldTypeDatetime);
         break;
+      case Uuid:
+        requestBuilder.setFieldType(FieldType.FieldTypeUuid);
+        break;
       default:
         throw new IllegalArgumentException("Invalid schemaType: '" + schemaType + "'");
     }
