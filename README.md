@@ -55,8 +55,8 @@ implementation 'io.qdrant:client:1.11.0'
 
 ## 📖 Documentation
 
+- Usage examples are available throughout the [Qdrant documentation](https://qdrant.tech/documentation/quick-start/) and [API Reference](https://api.qdrant.tech/).
 - [JavaDoc Reference](https://qdrant.github.io/java-client/)
-- Usage examples are available throughout the [Qdrant documentation](https://qdrant.tech/documentation/quick-start/)
 
 ## 🔌 Getting started
 
