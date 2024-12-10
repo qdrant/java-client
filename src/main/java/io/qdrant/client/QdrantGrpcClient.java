@@ -174,7 +174,10 @@ public class QdrantGrpcClient implements AutoCloseable {
     }
 
     Builder(String host, int port, boolean useTransportLayerSecurity) {
-      this.channel = createChannel(host, port, useTransportLayerSecurity);
+      String clientVersion = Builder.class.getPackage().getImplementationVersion();
+      String javaVersion = System.getProperty("java.version");
+      String userAgent = "java-client/" + clientVersion + " java/" + javaVersion;
+      this.channel = createChannel(host, port, useTransportLayerSecurity, userAgent);
       this.shutdownChannelOnClose = true;
     }
 
@@ -222,7 +225,7 @@ public class QdrantGrpcClient implements AutoCloseable {
     }
 
     private static ManagedChannel createChannel(
-        String host, int port, boolean useTransportLayerSecurity) {
+        String host, int port, boolean useTransportLayerSecurity, String userAgent) {
       ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress(host, port);
 
       if (useTransportLayerSecurity) {
@@ -230,6 +233,8 @@ public class QdrantGrpcClient implements AutoCloseable {
       } else {
         channelBuilder.usePlaintext();
       }
+
+      channelBuilder.userAgent(userAgent);
 
       return channelBuilder.build();
     }
