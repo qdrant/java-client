@@ -74,7 +74,7 @@ jar {
 		// add git revision and commit time to jar manifest
 		jar.manifest.attributes['X-Git-Revision'] = git.head().id
 		jar.manifest.attributes['X-Git-Commit-Time'] = git.head().dateTime.withZoneSameLocal(ZoneOffset.UTC)
-		jar.manifest.attributes['X-Client-Version'] = project.version
+		jar.manifest.attributes['Implementation-Version'] = packageVersion
 		git.close()
 	}
 }
