@@ -12,8 +12,11 @@ import io.qdrant.client.grpc.QdrantGrpc;
 import io.qdrant.client.grpc.QdrantGrpc.QdrantFutureStub;
 import io.qdrant.client.grpc.SnapshotsGrpc;
 import io.qdrant.client.grpc.SnapshotsGrpc.SnapshotsFutureStub;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,8 +177,24 @@ public class QdrantGrpcClient implements AutoCloseable {
     }
 
     Builder(String host, int port, boolean useTransportLayerSecurity) {
-      this.channel = createChannel(host, port, useTransportLayerSecurity);
+      String clientVersion = getClientVersion();
+      String javaVersion = System.getProperty("java.version");
+      String userAgent = "java-client/" + clientVersion + " java/" + javaVersion;
+      this.channel = createChannel(host, port, useTransportLayerSecurity, userAgent);
       this.shutdownChannelOnClose = true;
+    }
+
+    private String getClientVersion() {
+      String clientVersion = "Unknown";
+      try {
+        Manifest manifest =
+            new Manifest(Builder.class.getResourceAsStream("/META-INF/MANIFEST.MF"));
+        Attributes attributes = manifest.getMainAttributes();
+        clientVersion = attributes.getValue("X-Qdrant-Version");
+      } catch (IOException e) {
+        logger.warn("Failed to read client version from manifest", e);
+      }
+      return clientVersion;
     }
 
     /**
@@ -222,7 +241,7 @@ public class QdrantGrpcClient implements AutoCloseable {
     }
 
     private static ManagedChannel createChannel(
-        String host, int port, boolean useTransportLayerSecurity) {
+        String host, int port, boolean useTransportLayerSecurity, String userAgent) {
       ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress(host, port);
 
       if (useTransportLayerSecurity) {
@@ -230,6 +249,8 @@ public class QdrantGrpcClient implements AutoCloseable {
       } else {
         channelBuilder.usePlaintext();
       }
+
+      channelBuilder.userAgent(userAgent);
 
       return channelBuilder.build();
     }
