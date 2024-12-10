@@ -190,7 +190,7 @@ public class QdrantGrpcClient implements AutoCloseable {
         Manifest manifest =
             new Manifest(Builder.class.getResourceAsStream("/META-INF/MANIFEST.MF"));
         Attributes attributes = manifest.getMainAttributes();
-        clientVersion = attributes.getValue("X-Qdrant-Version");
+        clientVersion = attributes.getValue("X-Client-Version");
       } catch (IOException e) {
         logger.warn("Failed to read client version from manifest", e);
       }
