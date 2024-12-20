@@ -4,13 +4,10 @@ import io.grpc.CallCredentials;
 import io.grpc.Deadline;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.qdrant.client.grpc.CollectionsGrpc;
+import io.qdrant.client.grpc.*;
 import io.qdrant.client.grpc.CollectionsGrpc.CollectionsFutureStub;
-import io.qdrant.client.grpc.PointsGrpc;
 import io.qdrant.client.grpc.PointsGrpc.PointsFutureStub;
-import io.qdrant.client.grpc.QdrantGrpc;
 import io.qdrant.client.grpc.QdrantGrpc.QdrantFutureStub;
-import io.qdrant.client.grpc.SnapshotsGrpc;
 import io.qdrant.client.grpc.SnapshotsGrpc.SnapshotsFutureStub;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +42,7 @@ public class QdrantGrpcClient implements AutoCloseable {
    * @return a new instance of {@link Builder}
    */
   public static Builder newBuilder(ManagedChannel channel) {
-    return new Builder(channel, false);
+    return new Builder(channel, false, true);
   }
 
   /**
@@ -56,7 +53,21 @@ public class QdrantGrpcClient implements AutoCloseable {
    * @return a new instance of {@link Builder}
    */
   public static Builder newBuilder(ManagedChannel channel, boolean shutdownChannelOnClose) {
-    return new Builder(channel, shutdownChannelOnClose);
+    return new Builder(channel, shutdownChannelOnClose, true);
+  }
+
+  /**
+   * Creates a new builder to build a client.
+   *
+   * @param channel The channel for communication.
+   * @param shutdownChannelOnClose Whether the channel is shutdown on client close.
+   * @param checkCompatibility Whether to check compatibility between client's and server's
+   *     versions.
+   * @return a new instance of {@link Builder}
+   */
+  public static Builder newBuilder(
+      ManagedChannel channel, boolean shutdownChannelOnClose, boolean checkCompatibility) {
+    return new Builder(channel, shutdownChannelOnClose, checkCompatibility);
   }
 
   /**
@@ -66,7 +77,7 @@ public class QdrantGrpcClient implements AutoCloseable {
    * @return a new instance of {@link Builder}
    */
   public static Builder newBuilder(String host) {
-    return new Builder(host, 6334, true);
+    return new Builder(host, 6334, true, true);
   }
 
   /**
@@ -77,7 +88,7 @@ public class QdrantGrpcClient implements AutoCloseable {
    * @return a new instance of {@link Builder}
    */
   public static Builder newBuilder(String host, int port) {
-    return new Builder(host, port, true);
+    return new Builder(host, port, true, true);
   }
 
   /**
@@ -90,7 +101,23 @@ public class QdrantGrpcClient implements AutoCloseable {
    * @return a new instance of {@link Builder}
    */
   public static Builder newBuilder(String host, int port, boolean useTransportLayerSecurity) {
-    return new Builder(host, port, useTransportLayerSecurity);
+    return new Builder(host, port, useTransportLayerSecurity, true);
+  }
+
+  /**
+   * Creates a new builder to build a client.
+   *
+   * @param host The host to connect to.
+   * @param port The port to connect to.
+   * @param useTransportLayerSecurity Whether the client uses Transport Layer Security (TLS) to
+   *     secure communications. Running without TLS should only be used for testing purposes.
+   * @param checkCompatibility Whether to check compatibility between client's and server's
+   *     versions.
+   * @return a new instance of {@link Builder}
+   */
+  public static Builder newBuilder(
+      String host, int port, boolean useTransportLayerSecurity, boolean checkCompatibility) {
+    return new Builder(host, port, useTransportLayerSecurity, checkCompatibility);
   }
 
   /**
@@ -168,17 +195,24 @@ public class QdrantGrpcClient implements AutoCloseable {
     @Nullable private CallCredentials callCredentials;
     @Nullable private Duration timeout;
 
-    Builder(ManagedChannel channel, boolean shutdownChannelOnClose) {
+    Builder(ManagedChannel channel, boolean shutdownChannelOnClose, boolean checkCompatibility) {
       this.channel = channel;
       this.shutdownChannelOnClose = shutdownChannelOnClose;
+      String clientVersion = Builder.class.getPackage().getImplementationVersion();
+      if (checkCompatibility) {
+        checkVersionsCompatibility(clientVersion);
+      }
     }
 
-    Builder(String host, int port, boolean useTransportLayerSecurity) {
+    Builder(String host, int port, boolean useTransportLayerSecurity, boolean checkCompatibility) {
       String clientVersion = Builder.class.getPackage().getImplementationVersion();
       String javaVersion = System.getProperty("java.version");
       String userAgent = "java-client/" + clientVersion + " java/" + javaVersion;
       this.channel = createChannel(host, port, useTransportLayerSecurity, userAgent);
       this.shutdownChannelOnClose = true;
+      if (checkCompatibility) {
+        checkVersionsCompatibility(clientVersion);
+      }
     }
 
     /**
@@ -237,6 +271,27 @@ public class QdrantGrpcClient implements AutoCloseable {
       channelBuilder.userAgent(userAgent);
 
       return channelBuilder.build();
+    }
+
+    private void checkVersionsCompatibility(String clientVersion) {
+      try {
+        String serverVersion =
+            QdrantGrpc.newBlockingStub(this.channel)
+                .healthCheck(QdrantOuterClass.HealthCheckRequest.getDefaultInstance())
+                .getVersion();
+        if (!VersionsCompatibilityChecker.isCompatible(clientVersion, serverVersion)) {
+          System.out.println(
+              "Qdrant client version "
+                  + clientVersion
+                  + " is incompatible with server version "
+                  + serverVersion
+                  + ". Major versions should match and minor version difference must not exceed 1. "
+                  + "Set check_version=False to skip version check.");
+        }
+      } catch (Exception e) {
+        System.out.println(
+            "Failed to obtain server version. Unable to check client-server compatibility. Set checkCompatibility=False to skip version check.");
+      }
     }
   }
 }
