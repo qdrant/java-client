@@ -43,9 +43,7 @@ public class VersionsCompatibilityCheckerTest {
     Method method =
         VersionsCompatibilityChecker.class.getDeclaredMethod("parseVersion", String.class);
     method.setAccessible(true);
-    assertThrows(
-        InvocationTargetException.class,
-        () -> method.invoke(null, versionStr));
+    assertThrows(InvocationTargetException.class, () -> method.invoke(null, versionStr));
   }
 
   private static Stream<Object[]> versionCompatibilityProvider() {
