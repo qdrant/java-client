@@ -286,12 +286,12 @@ public class QdrantGrpcClient implements AutoCloseable {
                   + " is incompatible with server version "
                   + serverVersion
                   + ". Major versions should match and minor version difference must not exceed 1. "
-                  + "Set check_version=False to skip version check.";
+                  + "Set checkCompatibility=false to skip version check.";
           logger.warn(logMessage);
         }
       } catch (Exception e) {
         logger.warn(
-            "Failed to obtain server version. Unable to check client-server compatibility. Set checkCompatibility=False to skip version check.");
+            "Failed to obtain server version. Unable to check client-server compatibility. Set checkCompatibility=false to skip version check.");
       }
     }
   }
