@@ -12,17 +12,16 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class VersionsCompatibilityCheckerTest {
   private static Stream<Object[]> validVersionProvider() {
     return Stream.of(
-        new Object[] {"1.2.3", 1, 2, "3"},
-        new Object[] {"1.2.3-alpha", 1, 2, "3-alpha"},
-        new Object[] {"1.2", 1, 2, ""},
-        new Object[] {"1", 1, 0, ""},
-        new Object[] {"1.", 1, 0, ""});
+        new Object[] {"1.2.3", 1, 2},
+        new Object[] {"1.2.3-alpha", 1, 2},
+        new Object[] {"1.2", 1, 2},
+        new Object[] {"1", 1, 0},
+        new Object[] {"1.", 1, 0});
   }
 
   @ParameterizedTest
   @MethodSource("validVersionProvider")
-  public void testParseVersion_validVersion(
-      String versionStr, int expectedMajor, int expectedMinor, String expectedRest)
+  public void testParseVersion_validVersion(String versionStr, int expectedMajor, int expectedMinor)
       throws Exception {
     Method method =
         VersionsCompatibilityChecker.class.getDeclaredMethod("parseVersion", String.class);
@@ -30,7 +29,6 @@ public class VersionsCompatibilityCheckerTest {
     Version version = (Version) method.invoke(null, versionStr);
     assertEquals(expectedMajor, version.getMajor());
     assertEquals(expectedMinor, version.getMinor());
-    assertEquals(expectedRest, version.getRest());
   }
 
   private static Stream<String> invalidVersionProvider() {
