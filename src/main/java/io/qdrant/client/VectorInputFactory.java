@@ -143,7 +143,7 @@ public final class VectorInputFactory {
    * @param object An instance of {@link InferenceObject}
    * @return a new instance of {@link VectorInput}
    */
-  public static VectorInput vectorInpu(InferenceObject object) {
+  public static VectorInput vectorInput(InferenceObject object) {
     return VectorInput.newBuilder().setObject(object).build();
   }
 }
