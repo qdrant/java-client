@@ -52,7 +52,7 @@ import io.qdrant.client.grpc.Points.SearchPointGroups;
 import io.qdrant.client.grpc.Points.SearchPoints;
 import io.qdrant.client.grpc.Points.UpdateResult;
 import io.qdrant.client.grpc.Points.UpdateStatus;
-import io.qdrant.client.grpc.Points.Vectors;
+import io.qdrant.client.grpc.Points.VectorsOutput;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -111,7 +111,7 @@ class PointsTest {
     assertEquals(ImmutableSet.of("foo", "bar", "date"), point.getPayloadMap().keySet());
     assertEquals(value("goodbye"), point.getPayloadMap().get("foo"));
     assertEquals(value(2), point.getPayloadMap().get("bar"));
-    assertEquals(Vectors.getDefaultInstance(), point.getVectors());
+    assertEquals(VectorsOutput.getDefaultInstance(), point.getVectors());
   }
 
   @Test
@@ -125,7 +125,8 @@ class PointsTest {
     RetrievedPoint point = points.get(0);
     assertEquals(id(8), point.getId());
     assertTrue(point.getPayloadMap().isEmpty());
-    assertEquals(Vectors.VectorsOptionsCase.VECTOR, point.getVectors().getVectorsOptionsCase());
+    assertEquals(
+        VectorsOutput.VectorsOptionsCase.VECTOR, point.getVectors().getVectorsOptionsCase());
   }
 
   @Test
