@@ -10,6 +10,7 @@ import io.qdrant.client.grpc.Points.GeoPoint;
 import io.qdrant.client.grpc.Points.GeoPolygon;
 import io.qdrant.client.grpc.Points.GeoRadius;
 import io.qdrant.client.grpc.Points.HasIdCondition;
+import io.qdrant.client.grpc.Points.HasVectorCondition;
 import io.qdrant.client.grpc.Points.IsEmptyCondition;
 import io.qdrant.client.grpc.Points.IsNullCondition;
 import io.qdrant.client.grpc.Points.Match;
@@ -389,6 +390,18 @@ public final class ConditionFactory {
   public static Condition datetimeRange(String field, DatetimeRange datetimeRange) {
     return Condition.newBuilder()
         .setField(FieldCondition.newBuilder().setKey(field).setDatetimeRange(datetimeRange).build())
+        .build();
+  }
+
+  /**
+   * Matches records where a value for the given vector is present.
+   *
+   * @param vector The name of the vector.
+   * @return a new instance of {@link Condition}
+   */
+  public static Condition hasVector(String vector) {
+    return Condition.newBuilder()
+        .setHasVector(HasVectorCondition.newBuilder().setHasVector(vector).build())
         .build();
   }
 }
