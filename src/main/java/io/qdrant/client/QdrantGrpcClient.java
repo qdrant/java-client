@@ -269,6 +269,7 @@ public class QdrantGrpcClient implements AutoCloseable {
       }
 
       channelBuilder.userAgent(userAgent);
+      channelBuilder.intercept(new ResourceExhaustedInterceptor());
 
       return channelBuilder.build();
     }
