@@ -4,9 +4,6 @@ import static io.qdrant.client.PointIdFactory.id;
 
 import com.google.common.primitives.Floats;
 import io.qdrant.client.grpc.Points.DenseVector;
-import io.qdrant.client.grpc.Points.Document;
-import io.qdrant.client.grpc.Points.Image;
-import io.qdrant.client.grpc.Points.InferenceObject;
 import io.qdrant.client.grpc.Points.MultiDenseVector;
 import io.qdrant.client.grpc.Points.PointId;
 import io.qdrant.client.grpc.Points.SparseVector;
