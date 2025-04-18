@@ -188,4 +188,4 @@ List<ScoredPoint> points = client.searchAsync(SearchPoints.newBuilder()
 
 ## ⚖️ LICENSE
 
-Apache 2.0 © [2024](https://github.com/qdrant/java-client/blob/master/LICENSE)
+[Apache 2.0](https://github.com/qdrant/java-client/blob/master/LICENSE)
