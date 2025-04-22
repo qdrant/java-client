@@ -5,6 +5,7 @@ import static io.qdrant.client.VectorInputFactory.vectorInput;
 
 import io.qdrant.client.grpc.Points.ContextInput;
 import io.qdrant.client.grpc.Points.DiscoverInput;
+import io.qdrant.client.grpc.Points.Formula;
 import io.qdrant.client.grpc.Points.Fusion;
 import io.qdrant.client.grpc.Points.OrderBy;
 import io.qdrant.client.grpc.Points.PointId;
@@ -78,6 +79,16 @@ public final class QueryFactory {
    */
   public static Query orderBy(OrderBy orderBy) {
     return Query.newBuilder().setOrderBy(orderBy).build();
+  }
+
+  /**
+   * Creates a {@link Query} for score boosting using an arbitrary formula.
+   *
+   * @param formula An instance of {@link Formula}
+   * @return a new instance of {@link Query}
+   */
+  public static Query formula(Formula formula) {
+    return Query.newBuilder().setFormula(formula).build();
   }
 
   // region Nearest search queries
