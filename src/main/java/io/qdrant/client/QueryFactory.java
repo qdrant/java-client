@@ -5,8 +5,10 @@ import static io.qdrant.client.VectorInputFactory.vectorInput;
 
 import io.qdrant.client.grpc.Points.ContextInput;
 import io.qdrant.client.grpc.Points.DiscoverInput;
+import io.qdrant.client.grpc.Points.Document;
 import io.qdrant.client.grpc.Points.Formula;
 import io.qdrant.client.grpc.Points.Fusion;
+import io.qdrant.client.grpc.Points.InferenceObject;
 import io.qdrant.client.grpc.Points.OrderBy;
 import io.qdrant.client.grpc.Points.PointId;
 import io.qdrant.client.grpc.Points.Query;
@@ -157,7 +159,7 @@ public final class QueryFactory {
   /**
    * Creates a {@link Query} from a {@link UUID}
    *
-   * @param id The pint id
+   * @param id The point id
    * @return a new instance of {@link Query}
    */
   public static Query nearest(UUID id) {
@@ -167,11 +169,41 @@ public final class QueryFactory {
   /**
    * Creates a {@link Query} from a {@link PointId}
    *
-   * @param id The pint id
+   * @param id The point id
    * @return a new instance of {@link Query}
    */
   public static Query nearest(PointId id) {
     return Query.newBuilder().setNearest(vectorInput(id)).build();
+  }
+
+  /**
+   * Creates a {@link Query} from a {@link Document}
+   *
+   * @param document The document to vectorize and query against.
+   * @return a new instance of {@link Query}
+   */
+  public static Query nearest(Document document) {
+    return Query.newBuilder().setNearest(vectorInput(document)).build();
+  }
+
+  /**
+   * Creates a {@link Query} from an image for cloud inference.
+   *
+   * @param image The image to vectorize and query against.
+   * @return a new instance of {@link Query}
+   */
+  public static Query nearest(io.qdrant.client.grpc.Points.Image image) {
+    return Query.newBuilder().setNearest(vectorInput(image)).build();
+  }
+
+  /**
+   * Creates a {@link Query} from an {@link InferenceObject}
+   *
+   * @param object The inference object to vectorize and query against.
+   * @return a new instance of {@link Query}
+   */
+  public static Query nearest(InferenceObject object) {
+    return Query.newBuilder().setNearest(vectorInput(object)).build();
   }
 
   /**
