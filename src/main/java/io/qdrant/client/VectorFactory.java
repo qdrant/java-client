@@ -1,6 +1,9 @@
 package io.qdrant.client;
 
 import com.google.common.primitives.Floats;
+import io.qdrant.client.grpc.Points.Document;
+import io.qdrant.client.grpc.Points.Image;
+import io.qdrant.client.grpc.Points.InferenceObject;
 import io.qdrant.client.grpc.Points.SparseIndices;
 import io.qdrant.client.grpc.Points.Vector;
 import java.util.ArrayList;
@@ -43,6 +46,36 @@ public final class VectorFactory {
         .addAllData(vector)
         .setIndices(SparseIndices.newBuilder().addAllData(indices).build())
         .build();
+  }
+
+  /**
+   * Creates a vector from a document for cloud inference.
+   *
+   * @param document The document to vectorize.
+   * @return A new instance of {@link Vector}
+   */
+  public static Vector vector(Document document) {
+    return Vector.newBuilder().setDocument(document).build();
+  }
+
+  /**
+   * Creates a vector from an image for cloud inference.
+   *
+   * @param image The image to vectorize.
+   * @return A new instance of {@link Vector}
+   */
+  public static Vector vector(Image image) {
+    return Vector.newBuilder().setImage(image).build();
+  }
+
+  /**
+   * Creates a vector from an inference object.
+   *
+   * @param object The inference object to vectorize.
+   * @return A new instance of {@link Vector}
+   */
+  public static Vector vector(InferenceObject object) {
+    return Vector.newBuilder().setObject(object).build();
   }
 
   /**

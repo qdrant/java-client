@@ -4,6 +4,9 @@ import static io.qdrant.client.PointIdFactory.id;
 
 import com.google.common.primitives.Floats;
 import io.qdrant.client.grpc.Points.DenseVector;
+import io.qdrant.client.grpc.Points.Document;
+import io.qdrant.client.grpc.Points.Image;
+import io.qdrant.client.grpc.Points.InferenceObject;
 import io.qdrant.client.grpc.Points.MultiDenseVector;
 import io.qdrant.client.grpc.Points.PointId;
 import io.qdrant.client.grpc.Points.SparseVector;
@@ -114,33 +117,33 @@ public final class VectorInputFactory {
     return VectorInput.newBuilder().setId(id).build();
   }
 
-  // /**
-  //  * Creates a {@link VectorInput} from a {@link Document}
-  //  *
-  //  * @param document An instance of {@link Document}
-  //  * @return a new instance of {@link VectorInput}
-  //  */
-  // public static VectorInput vectorInput(Document document) {
-  //   return VectorInput.newBuilder().setDocument(document).build();
-  // }
+  /**
+   * Creates a {@link VectorInput} from a {@link Document}
+   *
+   * @param document An instance of {@link Document}
+   * @return a new instance of {@link VectorInput}
+   */
+  public static VectorInput vectorInput(Document document) {
+    return VectorInput.newBuilder().setDocument(document).build();
+  }
 
-  // /**
-  //  * Creates a {@link VectorInput} from a an {@link Image}
-  //  *
-  //  * @param image An instance of {@link Image}
-  //  * @return a new instance of {@link VectorInput}
-  //  */
-  // public static VectorInput vectorInput(Image image) {
-  //   return VectorInput.newBuilder().setImage(image).build();
-  // }
+  /**
+   * Creates a {@link VectorInput} from a an {@link Image}
+   *
+   * @param image An instance of {@link Image}
+   * @return a new instance of {@link VectorInput}
+   */
+  public static VectorInput vectorInput(Image image) {
+    return VectorInput.newBuilder().setImage(image).build();
+  }
 
-  // /**
-  //  * Creates a {@link VectorInput} from a {@link InferenceObject}
-  //  *
-  //  * @param object An instance of {@link InferenceObject}
-  //  * @return a new instance of {@link VectorInput}
-  //  */
-  // public static VectorInput vectorInput(InferenceObject object) {
-  //   return VectorInput.newBuilder().setObject(object).build();
-  // }
+  /**
+   * Creates a {@link VectorInput} from a {@link InferenceObject}
+   *
+   * @param object An instance of {@link InferenceObject}
+   * @return a new instance of {@link VectorInput}
+   */
+  public static VectorInput vectorInput(InferenceObject object) {
+    return VectorInput.newBuilder().setObject(object).build();
+  }
 }
