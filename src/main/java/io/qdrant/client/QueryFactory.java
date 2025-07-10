@@ -8,7 +8,10 @@ import io.qdrant.client.grpc.Points.DiscoverInput;
 import io.qdrant.client.grpc.Points.Document;
 import io.qdrant.client.grpc.Points.Formula;
 import io.qdrant.client.grpc.Points.Fusion;
+import io.qdrant.client.grpc.Points.Image;
 import io.qdrant.client.grpc.Points.InferenceObject;
+import io.qdrant.client.grpc.Points.Mmr;
+import io.qdrant.client.grpc.Points.NearestInputWithMmr;
 import io.qdrant.client.grpc.Points.OrderBy;
 import io.qdrant.client.grpc.Points.PointId;
 import io.qdrant.client.grpc.Points.Query;
@@ -192,7 +195,7 @@ public final class QueryFactory {
    * @param image The image to vectorize and query against.
    * @return a new instance of {@link Query}
    */
-  public static Query nearest(io.qdrant.client.grpc.Points.Image image) {
+  public static Query nearest(Image image) {
     return Query.newBuilder().setNearest(vectorInput(image)).build();
   }
 
@@ -204,6 +207,19 @@ public final class QueryFactory {
    */
   public static Query nearest(InferenceObject object) {
     return Query.newBuilder().setNearest(vectorInput(object)).build();
+  }
+
+  /**
+   * Creates a {@link Query} for re-ranking points with MMR (Maximum Marginal Relevance).
+   *
+   * @param nearest The vector input for nearest search.
+   * @param mmr The MMR configuration.
+   * @return a new instance of {@link Query}
+   */
+  public static Query nearest(VectorInput nearest, Mmr mmr) {
+    return Query.newBuilder()
+        .setNearestWithMmr(NearestInputWithMmr.newBuilder().setNearest(nearest).setMmr(mmr).build())
+        .build();
   }
 
   /**
