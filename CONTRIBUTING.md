@@ -115,6 +115,7 @@ Once the new Qdrant version is live:
 
 - `qdrantVersion` - Set it to the released Docker image version for testing.
 - `qdrantProtosVersion` - Set it to the released version of the Qdrant source for fetching the proto files.
+- Update the package version references in the README.md.
 
 2. Merge the pull request.
 

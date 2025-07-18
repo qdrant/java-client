@@ -109,6 +109,23 @@ public final class ConditionFactory {
   }
 
   /**
+   * Match records where the given field matches the given phrase.
+   *
+   * @param field The name of the field
+   * @param phrase The phrase to match
+   * @return a new instance of {@link Condition}
+   */
+  public static Condition matchPhrase(String field, String phrase) {
+    return Condition.newBuilder()
+        .setField(
+            FieldCondition.newBuilder()
+                .setKey(field)
+                .setMatch(Match.newBuilder().setPhrase(phrase).build())
+                .build())
+        .build();
+  }
+
+  /**
    * Match records where the given field matches the given boolean value.
    *
    * @param field The name of the field
