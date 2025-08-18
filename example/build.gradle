@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'io.qdrant.example'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Qdrant Java client
+    implementation 'io.qdrant:client:1.15.0'
+    
+    // gRPC dependencies - use the same version as Qdrant client
+    implementation 'io.grpc:grpc-netty-shaded:1.65.1'
+    implementation 'io.grpc:grpc-protobuf:1.65.1'
+    implementation 'io.grpc:grpc-stub:1.65.1'
+    implementation 'io.grpc:grpc-services:1.65.1'
+    
+    // Protobuf runtime
+    implementation 'com.google.protobuf:protobuf-java:3.25.4'
+    
+    // Logging
+    implementation 'org.slf4j:slf4j-simple:2.0.14'
+}
+
+application {
+    mainClass = 'io.qdrant.example.QdrantExample'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+// Create a proper fat jar and merge service descriptor files (required by gRPC)
+shadowJar {
+    mergeServiceFiles()
+    archiveBaseName.set('app')
+    archiveClassifier.set('all')
+}
+
+// Keep the plain jar minimal (no dependency unpacking)
+jar {
+    manifest {
+        attributes 'Main-Class': 'io.qdrant.example.QdrantExample'
+    }
+}

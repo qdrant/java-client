@@ -1,0 +1,8 @@
+.git
+.gradle
+build/
+!build/libs/*.jar
+*.md
+gradlew
+gradlew.bat
+gradle/
