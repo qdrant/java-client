@@ -12,7 +12,6 @@ public class QdrantExample {
             QdrantClient client = new QdrantClient(QdrantGrpcClient.newBuilder("localhost", 6334, false)
             .build());
                         
-                        
             // Create a simple collection
             String collectionName = "example_collection";
 
