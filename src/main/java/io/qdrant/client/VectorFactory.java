@@ -1,10 +1,12 @@
 package io.qdrant.client;
 
 import com.google.common.primitives.Floats;
+import io.qdrant.client.grpc.Points.DenseVector;
 import io.qdrant.client.grpc.Points.Document;
 import io.qdrant.client.grpc.Points.Image;
 import io.qdrant.client.grpc.Points.InferenceObject;
-import io.qdrant.client.grpc.Points.SparseIndices;
+import io.qdrant.client.grpc.Points.MultiDenseVector;
+import io.qdrant.client.grpc.Points.SparseVector;
 import io.qdrant.client.grpc.Points.Vector;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +23,9 @@ public final class VectorFactory {
    * @return A new instance of {@link Vector}
    */
   public static Vector vector(List<Float> values) {
-    return Vector.newBuilder().addAllData(values).build();
+    return Vector.newBuilder()
+        .setDense(DenseVector.newBuilder().addAllData(values).build())
+        .build();
   }
 
   /**
@@ -31,7 +35,9 @@ public final class VectorFactory {
    * @return A new instance of {@link Vector}
    */
   public static Vector vector(float... values) {
-    return Vector.newBuilder().addAllData(Floats.asList(values)).build();
+    return Vector.newBuilder()
+        .setDense(DenseVector.newBuilder().addAllData(Floats.asList(values)).build())
+        .build();
   }
 
   /**
@@ -43,8 +49,7 @@ public final class VectorFactory {
    */
   public static Vector vector(List<Float> vector, List<Integer> indices) {
     return Vector.newBuilder()
-        .addAllData(vector)
-        .setIndices(SparseIndices.newBuilder().addAllData(indices).build())
+        .setSparse(SparseVector.newBuilder().addAllValues(vector).addAllIndices(indices).build())
         .build();
   }
 
@@ -85,10 +90,13 @@ public final class VectorFactory {
    * @return A new instance of {@link Vector}
    */
   public static Vector multiVector(List<List<Float>> vectors) {
-    int vectorSize = vectors.size();
-    List<Float> flatVector = vectors.stream().flatMap(List::stream).collect(Collectors.toList());
-
-    return Vector.newBuilder().addAllData(flatVector).setVectorsCount(vectorSize).build();
+    List<DenseVector> denseVectors =
+        vectors.stream()
+            .map(v -> DenseVector.newBuilder().addAllData(v).build())
+            .collect(Collectors.toList());
+    return Vector.newBuilder()
+        .setMultiDense(MultiDenseVector.newBuilder().addAllVectors(denseVectors).build())
+        .build();
   }
 
   /**
@@ -98,15 +106,12 @@ public final class VectorFactory {
    * @return A new instance of {@link Vector}
    */
   public static Vector multiVector(float[][] vectors) {
-    int vectorSize = vectors.length;
-
-    List<Float> flatVector = new ArrayList<>();
+    List<DenseVector> denseVectors = new ArrayList<>();
     for (float[] vector : vectors) {
-      for (float value : vector) {
-        flatVector.add(value);
-      }
+      denseVectors.add(DenseVector.newBuilder().addAllData(Floats.asList(vector)).build());
     }
-
-    return Vector.newBuilder().addAllData(flatVector).setVectorsCount(vectorSize).build();
+    return Vector.newBuilder()
+        .setMultiDense(MultiDenseVector.newBuilder().addAllVectors(denseVectors).build())
+        .build();
   }
 }
