@@ -116,9 +116,11 @@ import io.qdrant.client.grpc.SnapshotsService.ListSnapshotsRequest;
 import io.qdrant.client.grpc.SnapshotsService.ListSnapshotsResponse;
 import io.qdrant.client.grpc.SnapshotsService.SnapshotDescription;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -127,7 +129,8 @@ import org.slf4j.LoggerFactory;
 /** Client for the Qdrant vector database. */
 public class QdrantClient implements AutoCloseable {
   private static final Logger logger = LoggerFactory.getLogger(QdrantClient.class);
-  private final QdrantGrpcClient grpcClient;
+  private final List<QdrantGrpcClient> grpcClients;
+  private final AtomicInteger nextClientIndex = new AtomicInteger(0);
 
   /**
    * Creates a new instance of {@link QdrantClient}
@@ -135,7 +138,74 @@ public class QdrantClient implements AutoCloseable {
    * @param grpcClient The low-level gRPC client to use.
    */
   public QdrantClient(QdrantGrpcClient grpcClient) {
-    this.grpcClient = grpcClient;
+    this.grpcClients = new ArrayList<>(1);
+    this.grpcClients.add(grpcClient);
+  }
+
+  /**
+   * Creates a new instance of {@link QdrantClient} with connection pooling. Creates multiple
+   * independent gRPC connections with the same configuration.
+   *
+   * @param host The host to connect to.
+   * @param port The port to connect to.
+   * @param useTransportLayerSecurity Whether to use TLS.
+   * @param poolSize The number of gRPC clients to create in the pool. Must be at least 1.
+   * @param apiKey The API key for authentication.
+   * @param timeout The default timeout for requests.
+   */
+  public QdrantClient(
+      String host,
+      int port,
+      boolean useTransportLayerSecurity,
+      int poolSize,
+      @Nullable String apiKey,
+      @Nullable Duration timeout) {
+    if (poolSize <= 0) {
+      throw new IllegalArgumentException("Pool size must be at least 1");
+    }
+
+    this.grpcClients = new ArrayList<>(poolSize);
+
+    // Create clients for the pool - each with its own independent connection
+    for (int i = 0; i < poolSize; i++) {
+      // For the first client, check compatibility. For others, skip to avoid redundant checks
+      boolean checkCompatibility = (i == 0);
+      QdrantGrpcClient.Builder builder =
+          QdrantGrpcClient.newBuilder(host, port, useTransportLayerSecurity, checkCompatibility);
+
+      if (apiKey != null) {
+        builder.withApiKey(apiKey);
+      }
+      if (timeout != null) {
+        builder.withTimeout(timeout);
+      }
+
+      this.grpcClients.add(builder.build());
+    }
+  }
+
+  /**
+   * Creates a new instance of {@link QdrantClient} with connection pooling. Creates multiple
+   * independent gRPC connections with the same configuration.
+   *
+   * @param host The host to connect to.
+   * @param port The port to connect to.
+   * @param useTransportLayerSecurity Whether to use TLS.
+   * @param poolSize The number of gRPC clients to create in the pool. Must be at least 1.
+   */
+  public QdrantClient(String host, int port, boolean useTransportLayerSecurity, int poolSize) {
+    this(host, port, useTransportLayerSecurity, poolSize, null, null);
+  }
+
+  /**
+   * Creates a new instance of {@link QdrantClient} with default connection pooling (pool size = 3).
+   *
+   * @param host The host to connect to.
+   * @param port The port to connect to.
+   * @param useTransportLayerSecurity Whether to use TLS.
+   */
+  public QdrantClient(String host, int port, boolean useTransportLayerSecurity) {
+    this(host, port, useTransportLayerSecurity, 3);
   }
 
   /**
@@ -147,10 +217,17 @@ public class QdrantClient implements AutoCloseable {
    *       where functionality may not yet be exposed by the higher level client.
    * </ul>
    *
-   * @return The low-level gRPC client
+   * @return The low-level gRPC client. If connection pooling is enabled, returns the next client in
+   *     round-robin fashion.
    */
   public QdrantGrpcClient grpcClient() {
-    return grpcClient;
+    if (grpcClients.size() == 1) {
+      return grpcClients.get(0);
+    }
+
+    // Atomically increment and wrap around the counter for round-robin selection
+    int index = nextClientIndex.getAndIncrement() % grpcClients.size();
+    return grpcClients.get(index);
   }
 
   /**
@@ -171,8 +248,10 @@ public class QdrantClient implements AutoCloseable {
   public ListenableFuture<HealthCheckReply> healthCheckAsync(@Nullable Duration timeout) {
     QdrantFutureStub qdrant =
         timeout != null
-            ? this.grpcClient.qdrant().withDeadlineAfter(timeout.toMillis(), TimeUnit.MILLISECONDS)
-            : this.grpcClient.qdrant();
+            ? this.grpcClient()
+                .qdrant()
+                .withDeadlineAfter(timeout.toMillis(), TimeUnit.MILLISECONDS)
+            : this.grpcClient().qdrant();
     return qdrant.healthCheck(HealthCheckRequest.getDefaultInstance());
   }
 
@@ -3083,7 +3162,14 @@ public class QdrantClient implements AutoCloseable {
 
   @Override
   public void close() {
-    grpcClient.close();
+    // Close all clients in the pool
+    for (QdrantGrpcClient client : grpcClients) {
+      try {
+        client.close();
+      } catch (Exception e) {
+        logger.warn("Failed to close gRPC client in pool", e);
+      }
+    }
   }
 
   private <V> void addLogFailureCallback(ListenableFuture<V> future, String message) {
@@ -3103,19 +3189,21 @@ public class QdrantClient implements AutoCloseable {
 
   private CollectionsGrpc.CollectionsFutureStub getCollections(@Nullable Duration timeout) {
     return timeout != null
-        ? this.grpcClient.collections().withDeadlineAfter(timeout.toMillis(), TimeUnit.MILLISECONDS)
-        : this.grpcClient.collections();
+        ? this.grpcClient()
+            .collections()
+            .withDeadlineAfter(timeout.toMillis(), TimeUnit.MILLISECONDS)
+        : this.grpcClient().collections();
   }
 
   private PointsGrpc.PointsFutureStub getPoints(@Nullable Duration timeout) {
     return timeout != null
-        ? this.grpcClient.points().withDeadlineAfter(timeout.toMillis(), TimeUnit.MILLISECONDS)
-        : this.grpcClient.points();
+        ? this.grpcClient().points().withDeadlineAfter(timeout.toMillis(), TimeUnit.MILLISECONDS)
+        : this.grpcClient().points();
   }
 
   private SnapshotsGrpc.SnapshotsFutureStub getSnapshots(@Nullable Duration timeout) {
     return timeout != null
-        ? this.grpcClient.snapshots().withDeadlineAfter(timeout.toMillis(), TimeUnit.MILLISECONDS)
-        : this.grpcClient.snapshots();
+        ? this.grpcClient().snapshots().withDeadlineAfter(timeout.toMillis(), TimeUnit.MILLISECONDS)
+        : this.grpcClient().snapshots();
   }
 }
