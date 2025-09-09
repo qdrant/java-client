@@ -209,6 +209,19 @@ public class QdrantClient implements AutoCloseable {
   }
 
   /**
+   * Creates a new instance of {@link QdrantClient} with a custom list of gRPC clients for pooling.
+   *
+   * @param grpcClients The list of gRPC clients to use for pooling. Must not be null or empty.
+   */
+  public QdrantClient(List<QdrantGrpcClient> grpcClients) {
+    if (grpcClients == null || grpcClients.isEmpty()) {
+      throw new IllegalArgumentException("gRPC clients list cannot be null or empty");
+    }
+
+    this.grpcClients = new ArrayList<>(grpcClients);
+  }
+
+  /**
    * Gets the low-level gRPC client. This is exposed to
    *
    * <ul>
@@ -217,8 +230,7 @@ public class QdrantClient implements AutoCloseable {
    *       where functionality may not yet be exposed by the higher level client.
    * </ul>
    *
-   * @return The low-level gRPC client. If connection pooling is enabled, returns the next client in
-   *     round-robin fashion.
+   * @return The low-level gRPC client in a round-robin fashion.
    */
   public QdrantGrpcClient grpcClient() {
     if (grpcClients.size() == 1) {
