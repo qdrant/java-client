@@ -126,6 +126,23 @@ public final class ConditionFactory {
   }
 
   /**
+   * Match records where the given field matches any word in the text.
+   *
+   * @param field The name of the field
+   * @param textAny The text to match
+   * @return a new instance of {@link Condition}
+   */
+  public static Condition matchTextAny(String field, String textAny) {
+    return Condition.newBuilder()
+        .setField(
+            FieldCondition.newBuilder()
+                .setKey(field)
+                .setMatch(Match.newBuilder().setTextAny(textAny).build())
+                .build())
+        .build();
+  }
+
+  /**
    * Match records where the given field matches the given boolean value.
    *
    * @param field The name of the field
