@@ -1216,6 +1216,16 @@ public class QdrantClient implements AutoCloseable {
    * Update named vectors for point.
    *
    * @param request The update point vectors request
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<UpdateResult> updateVectorsAsync(UpdatePointVectors request) {
+    return updateVectorsAsync(request, null);
+  }
+
+  /**
+   * Update named vectors for point.
+   *
+   * @param request The update point vectors request
    * @param timeout The timeout for the call.
    * @return a new instance of {@link ListenableFuture}
    */
