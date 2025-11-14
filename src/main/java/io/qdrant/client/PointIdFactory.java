@@ -1,6 +1,6 @@
 package io.qdrant.client;
 
-import io.qdrant.client.grpc.Points.PointId;
+import io.qdrant.client.grpc.Common.PointId;
 import java.util.UUID;
 
 /** Convenience methods for constructing {@link PointId} */

@@ -1,6 +1,6 @@
 package io.qdrant.client;
 
-import io.qdrant.client.grpc.Points.Condition;
+import io.qdrant.client.grpc.Common.Condition;
 import io.qdrant.client.grpc.Points.DecayParamsExpression;
 import io.qdrant.client.grpc.Points.DivExpression;
 import io.qdrant.client.grpc.Points.Expression;

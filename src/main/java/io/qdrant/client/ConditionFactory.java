@@ -1,25 +1,25 @@
 package io.qdrant.client;
 
-import io.qdrant.client.grpc.Points.Condition;
-import io.qdrant.client.grpc.Points.DatetimeRange;
-import io.qdrant.client.grpc.Points.FieldCondition;
-import io.qdrant.client.grpc.Points.Filter;
-import io.qdrant.client.grpc.Points.GeoBoundingBox;
-import io.qdrant.client.grpc.Points.GeoLineString;
-import io.qdrant.client.grpc.Points.GeoPoint;
-import io.qdrant.client.grpc.Points.GeoPolygon;
-import io.qdrant.client.grpc.Points.GeoRadius;
-import io.qdrant.client.grpc.Points.HasIdCondition;
-import io.qdrant.client.grpc.Points.HasVectorCondition;
-import io.qdrant.client.grpc.Points.IsEmptyCondition;
-import io.qdrant.client.grpc.Points.IsNullCondition;
-import io.qdrant.client.grpc.Points.Match;
-import io.qdrant.client.grpc.Points.NestedCondition;
-import io.qdrant.client.grpc.Points.PointId;
-import io.qdrant.client.grpc.Points.Range;
-import io.qdrant.client.grpc.Points.RepeatedIntegers;
-import io.qdrant.client.grpc.Points.RepeatedStrings;
-import io.qdrant.client.grpc.Points.ValuesCount;
+import io.qdrant.client.grpc.Common.Condition;
+import io.qdrant.client.grpc.Common.DatetimeRange;
+import io.qdrant.client.grpc.Common.FieldCondition;
+import io.qdrant.client.grpc.Common.Filter;
+import io.qdrant.client.grpc.Common.GeoBoundingBox;
+import io.qdrant.client.grpc.Common.GeoLineString;
+import io.qdrant.client.grpc.Common.GeoPoint;
+import io.qdrant.client.grpc.Common.GeoPolygon;
+import io.qdrant.client.grpc.Common.GeoRadius;
+import io.qdrant.client.grpc.Common.HasIdCondition;
+import io.qdrant.client.grpc.Common.HasVectorCondition;
+import io.qdrant.client.grpc.Common.IsEmptyCondition;
+import io.qdrant.client.grpc.Common.IsNullCondition;
+import io.qdrant.client.grpc.Common.Match;
+import io.qdrant.client.grpc.Common.NestedCondition;
+import io.qdrant.client.grpc.Common.PointId;
+import io.qdrant.client.grpc.Common.Range;
+import io.qdrant.client.grpc.Common.RepeatedIntegers;
+import io.qdrant.client.grpc.Common.RepeatedStrings;
+import io.qdrant.client.grpc.Common.ValuesCount;
 import java.util.List;
 
 /** Convenience methods for constructing {@link Condition} */

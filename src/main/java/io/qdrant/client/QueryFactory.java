@@ -3,6 +3,7 @@ package io.qdrant.client;
 import static io.qdrant.client.VectorInputFactory.multiVectorInput;
 import static io.qdrant.client.VectorInputFactory.vectorInput;
 
+import io.qdrant.client.grpc.Common.PointId;
 import io.qdrant.client.grpc.Points.ContextInput;
 import io.qdrant.client.grpc.Points.DiscoverInput;
 import io.qdrant.client.grpc.Points.Document;
@@ -13,7 +14,6 @@ import io.qdrant.client.grpc.Points.InferenceObject;
 import io.qdrant.client.grpc.Points.Mmr;
 import io.qdrant.client.grpc.Points.NearestInputWithMmr;
 import io.qdrant.client.grpc.Points.OrderBy;
-import io.qdrant.client.grpc.Points.PointId;
 import io.qdrant.client.grpc.Points.Query;
 import io.qdrant.client.grpc.Points.RecommendInput;
 import io.qdrant.client.grpc.Points.Rrf;
