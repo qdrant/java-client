@@ -10,6 +10,8 @@ import com.google.common.util.concurrent.MoreExecutors;
 import io.qdrant.client.grpc.Collections.AliasDescription;
 import io.qdrant.client.grpc.Collections.AliasOperations;
 import io.qdrant.client.grpc.Collections.ChangeAliases;
+import io.qdrant.client.grpc.Collections.CollectionClusterInfoRequest;
+import io.qdrant.client.grpc.Collections.CollectionClusterInfoResponse;
 import io.qdrant.client.grpc.Collections.CollectionDescription;
 import io.qdrant.client.grpc.Collections.CollectionExistsRequest;
 import io.qdrant.client.grpc.Collections.CollectionExistsResponse;
@@ -35,6 +37,8 @@ import io.qdrant.client.grpc.Collections.PayloadSchemaType;
 import io.qdrant.client.grpc.Collections.RenameAlias;
 import io.qdrant.client.grpc.Collections.ShardKey;
 import io.qdrant.client.grpc.Collections.UpdateCollection;
+import io.qdrant.client.grpc.Collections.UpdateCollectionClusterSetupRequest;
+import io.qdrant.client.grpc.Collections.UpdateCollectionClusterSetupResponse;
 import io.qdrant.client.grpc.Collections.VectorParams;
 import io.qdrant.client.grpc.Collections.VectorParamsMap;
 import io.qdrant.client.grpc.Collections.VectorsConfig;
@@ -401,6 +405,35 @@ public class QdrantClient implements AutoCloseable {
   }
 
   /**
+   * Gets detailed information about a collection's cluster setup.
+   *
+   * @param collectionName The name of the collection.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<CollectionClusterInfoResponse> getCollectionClusterInfoAsync(
+      String collectionName) {
+    return getCollectionClusterInfoAsync(collectionName, null);
+  }
+
+  /**
+   * Gets detailed information about a collection's cluster setup.
+   *
+   * @param collectionName The name of the collection.
+   * @param timeout The timeout for the call.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<CollectionClusterInfoResponse> getCollectionClusterInfoAsync(
+      String collectionName, @Nullable Duration timeout) {
+    logger.debug("Get collection cluster info for '{}'", collectionName);
+    CollectionClusterInfoRequest request =
+        CollectionClusterInfoRequest.newBuilder().setCollectionName(collectionName).build();
+    ListenableFuture<CollectionClusterInfoResponse> future =
+        getCollections(timeout).collectionClusterInfo(request);
+    addLogFailureCallback(future, "Get collection cluster info");
+    return future;
+  }
+
+  /**
    * Deletes a collection and all its associated data.
    *
    * @param collectionName The name of the collection
@@ -505,6 +538,47 @@ public class QdrantClient implements AutoCloseable {
           if (!response.getResult()) {
             logger.error("Collection '{}' could not be updated", collectionName);
             throw new QdrantException("Collection '" + collectionName + "' could not be updated");
+          }
+          return response;
+        },
+        MoreExecutors.directExecutor());
+  }
+
+  /**
+   * Update cluster setup for a collection
+   *
+   * @param updateCollectionClusterSetup The update parameters.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<UpdateCollectionClusterSetupResponse> updateCollectionClusterSetupAsync(
+      UpdateCollectionClusterSetupRequest updateCollectionClusterSetup) {
+    return updateCollectionClusterSetupAsync(updateCollectionClusterSetup, null);
+  }
+
+  /**
+   * Update cluster setup for a collection
+   *
+   * @param updateCollectionClusterSetup The update parameters.
+   * @param timeout The timeout for the call.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<UpdateCollectionClusterSetupResponse> updateCollectionClusterSetupAsync(
+      UpdateCollectionClusterSetupRequest updateCollectionClusterSetup,
+      @Nullable Duration timeout) {
+    String collectionName = updateCollectionClusterSetup.getCollectionName();
+    Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
+    logger.debug("Update collection cluster setup'{}'", collectionName);
+
+    ListenableFuture<UpdateCollectionClusterSetupResponse> future =
+        getCollections(timeout).updateCollectionClusterSetup(updateCollectionClusterSetup);
+    addLogFailureCallback(future, "Update collection");
+    return Futures.transform(
+        future,
+        response -> {
+          if (!response.getResult()) {
+            logger.error("Cluster setup of collection '{}' could not be updated", collectionName);
+            throw new QdrantException(
+                "Cluster setup of collection '" + collectionName + "' could not be updated");
           }
           return response;
         },
