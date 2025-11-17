@@ -3,6 +3,7 @@ package io.qdrant.client;
 import static io.qdrant.client.VectorInputFactory.multiVectorInput;
 import static io.qdrant.client.VectorInputFactory.vectorInput;
 
+import io.qdrant.client.grpc.Common.PointId;
 import io.qdrant.client.grpc.Points.ContextInput;
 import io.qdrant.client.grpc.Points.DiscoverInput;
 import io.qdrant.client.grpc.Points.Document;
@@ -13,9 +14,9 @@ import io.qdrant.client.grpc.Points.InferenceObject;
 import io.qdrant.client.grpc.Points.Mmr;
 import io.qdrant.client.grpc.Points.NearestInputWithMmr;
 import io.qdrant.client.grpc.Points.OrderBy;
-import io.qdrant.client.grpc.Points.PointId;
 import io.qdrant.client.grpc.Points.Query;
 import io.qdrant.client.grpc.Points.RecommendInput;
+import io.qdrant.client.grpc.Points.Rrf;
 import io.qdrant.client.grpc.Points.Sample;
 import io.qdrant.client.grpc.Points.VectorInput;
 import java.util.List;
@@ -63,6 +64,16 @@ public final class QueryFactory {
    */
   public static Query fusion(Fusion fusion) {
     return Query.newBuilder().setFusion(fusion).build();
+  }
+
+  /**
+   * Creates a {@link Query} for reciprocal rank fusion (RRF).
+   *
+   * @param rrf An instance of {@link Rrf}
+   * @return a new instance of {@link Query}
+   */
+  public static Query rrf(Rrf rrf) {
+    return Query.newBuilder().setRrf(rrf).build();
   }
 
   /**

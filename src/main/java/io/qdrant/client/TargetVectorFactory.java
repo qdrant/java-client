@@ -1,6 +1,6 @@
 package io.qdrant.client;
 
-import io.qdrant.client.grpc.Points.PointId;
+import io.qdrant.client.grpc.Common.PointId;
 import io.qdrant.client.grpc.Points.TargetVector;
 import io.qdrant.client.grpc.Points.Vector;
 import io.qdrant.client.grpc.Points.VectorExample;

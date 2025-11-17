@@ -9,8 +9,8 @@ import io.grpc.InsecureChannelCredentials;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import io.qdrant.client.grpc.QdrantOuterClass.HealthCheckReply;
-import io.qdrant.client.grpc.QdrantOuterClass.HealthCheckRequest;
+import io.qdrant.client.grpc.Collections.ListCollectionsRequest;
+import io.qdrant.client.grpc.Collections.ListCollectionsResponse;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
@@ -44,15 +44,14 @@ public class ApiKeyTest {
 
   @Test
   public void client_with_api_key_can_connect() throws ExecutionException, InterruptedException {
-    HealthCheckReply healthCheckReply;
+    ListCollectionsResponse listCollectionsResponse;
     try (QdrantGrpcClient grpcClient =
         QdrantGrpcClient.newBuilder(channel).withApiKey("password!").build()) {
-      healthCheckReply =
-          grpcClient.qdrant().healthCheck(HealthCheckRequest.getDefaultInstance()).get();
+      listCollectionsResponse =
+          grpcClient.collections().list(ListCollectionsRequest.getDefaultInstance()).get();
     }
 
-    assertNotNull(healthCheckReply.getTitle());
-    assertNotNull(healthCheckReply.getVersion());
+    assertNotNull(listCollectionsResponse.getCollectionsList());
   }
 
   @Test
@@ -61,7 +60,8 @@ public class ApiKeyTest {
       ExecutionException executionException =
           assertThrows(
               ExecutionException.class,
-              () -> grpcClient.qdrant().healthCheck(HealthCheckRequest.getDefaultInstance()).get());
+              () ->
+                  grpcClient.collections().list(ListCollectionsRequest.getDefaultInstance()).get());
       Throwable cause = executionException.getCause();
       assertEquals(StatusRuntimeException.class, cause.getClass());
       StatusRuntimeException statusRuntimeException = (StatusRuntimeException) cause;
