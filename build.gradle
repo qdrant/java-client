@@ -88,8 +88,8 @@ def jUnitVersion = '5.10.2'
 dependencies {
 	errorprone "com.uber.nullaway:nullaway:0.10.18"
 
-	implementation "io.grpc:grpc-protobuf:${grpcVersion}"
-	implementation "io.grpc:grpc-stub:${grpcVersion}"
+	api "io.grpc:grpc-protobuf:${grpcVersion}"
+	api "io.grpc:grpc-stub:${grpcVersion}"
 	implementation "org.slf4j:slf4j-api:${slf4jVersion}"
 
 	compileOnly "org.apache.tomcat:annotations-api:6.0.53"
