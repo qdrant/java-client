@@ -1,5 +1,5 @@
 # Use OpenJDK 11 as base image
-FROM openjdk:11-jdk-slim AS build
+FROM eclipse-temurin:11-jdk AS build
 
 # Set working directory
 WORKDIR /app
@@ -24,7 +24,7 @@ COPY . .
 RUN gradle --no-daemon clean shadowJar
 
 # Create a runtime image
-FROM openjdk:11-jre-slim
+FROM eclipse-temurin:11-jre
 
 WORKDIR /app
 
