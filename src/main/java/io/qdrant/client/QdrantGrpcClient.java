@@ -192,16 +192,14 @@ public class QdrantGrpcClient implements AutoCloseable {
   public static class Builder {
     private final ManagedChannel channel;
     private final boolean shutdownChannelOnClose;
+    private final boolean checkCompatibility;
     @Nullable private CallCredentials callCredentials;
     @Nullable private Duration timeout;
 
     Builder(ManagedChannel channel, boolean shutdownChannelOnClose, boolean checkCompatibility) {
       this.channel = channel;
       this.shutdownChannelOnClose = shutdownChannelOnClose;
-      String clientVersion = Builder.class.getPackage().getImplementationVersion();
-      if (checkCompatibility) {
-        checkVersionsCompatibility(clientVersion);
-      }
+      this.checkCompatibility = checkCompatibility;
     }
 
     Builder(String host, int port, boolean useTransportLayerSecurity, boolean checkCompatibility) {
@@ -210,9 +208,7 @@ public class QdrantGrpcClient implements AutoCloseable {
       String userAgent = "java-client/" + clientVersion + " java/" + javaVersion;
       this.channel = createChannel(host, port, useTransportLayerSecurity, userAgent);
       this.shutdownChannelOnClose = true;
-      if (checkCompatibility) {
-        checkVersionsCompatibility(clientVersion);
-      }
+      this.checkCompatibility = checkCompatibility;
     }
 
     /**
@@ -255,6 +251,10 @@ public class QdrantGrpcClient implements AutoCloseable {
      * @return a new instance of {@link QdrantGrpcClient}
      */
     public QdrantGrpcClient build() {
+      if (checkCompatibility) {
+        String clientVersion = Builder.class.getPackage().getImplementationVersion();
+        checkVersionsCompatibility(clientVersion);
+      }
       return new QdrantGrpcClient(channel, shutdownChannelOnClose, callCredentials, timeout);
     }
 
@@ -277,6 +277,7 @@ public class QdrantGrpcClient implements AutoCloseable {
       try {
         String serverVersion =
             QdrantGrpc.newBlockingStub(this.channel)
+                .withCallCredentials(this.callCredentials)
                 .healthCheck(QdrantOuterClass.HealthCheckRequest.getDefaultInstance())
                 .getVersion();
         if (!VersionsCompatibilityChecker.isCompatible(clientVersion, serverVersion)) {
