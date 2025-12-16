@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
     // Qdrant Java client
-    implementation 'io.qdrant:client:1.16.1'
+    implementation 'io.qdrant:client:1.16.2'
     
     // gRPC dependencies - use the same version as Qdrant client
     implementation 'io.grpc:grpc-netty-shaded:1.65.1'
