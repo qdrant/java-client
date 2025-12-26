@@ -39,4 +39,40 @@ class QdrantClientTest {
   void canAccessChannelOnGrpcClient() {
     Assertions.assertTrue(client.grpcClient().channel().authority().startsWith("localhost"));
   }
+
+  @Test
+  void connectionPoolingCreatesMultipleConnections() {
+    String host = QDRANT_CONTAINER.getHost();
+    int port = QDRANT_CONTAINER.getGrpcPort();
+
+    QdrantClient pooledClient = new QdrantClient(host, port, false, 3);
+
+    try {
+      QdrantGrpcClient client1 = pooledClient.grpcClient();
+      QdrantGrpcClient client2 = pooledClient.grpcClient();
+      QdrantGrpcClient client3 = pooledClient.grpcClient();
+      QdrantGrpcClient client4 = pooledClient.grpcClient(); // Should wrap around to first
+
+      Assertions.assertSame(client1, client4); // Should wrap around to first client
+
+      // Verify that different clients have different channels (true connection pooling)
+      Assertions.assertNotSame(client1.channel(), client2.channel());
+      Assertions.assertNotSame(client2.channel(), client3.channel());
+    } finally {
+      pooledClient.close();
+    }
+  }
+
+  @Test
+  void defaultConnectionPoolingWorks() {
+    String host = QDRANT_CONTAINER.getHost();
+    int port = QDRANT_CONTAINER.getGrpcPort();
+    QdrantClient defaultClient = new QdrantClient(host, port, false);
+
+    try {
+      Assertions.assertNotNull(defaultClient.grpcClient());
+    } finally {
+      defaultClient.close();
+    }
+  }
 }
