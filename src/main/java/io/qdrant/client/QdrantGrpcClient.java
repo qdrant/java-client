@@ -121,6 +121,28 @@ public class QdrantGrpcClient implements AutoCloseable {
   }
 
   /**
+   * Creates a new builder to build a client.
+   *
+   * @param host The host to connect to.
+   * @param port The port to connect to.
+   * @param useTransportLayerSecurity Whether the client uses Transport Layer Security (TLS) to
+   *     secure communications. Running without TLS should only be used for testing purposes.
+   * @param checkCompatibility Whether to check compatibility between client's and server's
+   *     versions.
+   * @param skipTlsCheck Whether to skip TLS certificate verification. Setting this to true disables
+   *     certificate validation and should only be used for testing or trusted environments.
+   * @return a new instance of {@link Builder}
+   */
+  public static Builder newBuilder(
+      String host,
+      int port,
+      boolean useTransportLayerSecurity,
+      boolean checkCompatibility,
+      boolean skipTlsCheck) {
+    return new Builder(host, port, useTransportLayerSecurity, checkCompatibility, skipTlsCheck);
+  }
+
+  /**
    * Gets the channel
    *
    * @return the channel
@@ -203,10 +225,19 @@ public class QdrantGrpcClient implements AutoCloseable {
     }
 
     Builder(String host, int port, boolean useTransportLayerSecurity, boolean checkCompatibility) {
+      this(host, port, useTransportLayerSecurity, checkCompatibility, false);
+    }
+
+    Builder(
+        String host,
+        int port,
+        boolean useTransportLayerSecurity,
+        boolean checkCompatibility,
+        boolean skipTlsCheck) {
       String clientVersion = Builder.class.getPackage().getImplementationVersion();
       String javaVersion = System.getProperty("java.version");
       String userAgent = "java-client/" + clientVersion + " java/" + javaVersion;
-      this.channel = createChannel(host, port, useTransportLayerSecurity, userAgent);
+      this.channel = createChannel(host, port, useTransportLayerSecurity, skipTlsCheck, userAgent);
       this.shutdownChannelOnClose = true;
       this.checkCompatibility = checkCompatibility;
     }
@@ -259,11 +290,19 @@ public class QdrantGrpcClient implements AutoCloseable {
     }
 
     private static ManagedChannel createChannel(
-        String host, int port, boolean useTransportLayerSecurity, String userAgent) {
+        String host,
+        int port,
+        boolean useTransportLayerSecurity,
+        boolean skipTlsCheck,
+        String userAgent) {
       ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress(host, port);
 
       if (useTransportLayerSecurity) {
-        channelBuilder.useTransportSecurity();
+        if (skipTlsCheck) {
+          TlsSkipVerifyChannelBuilder.build(channelBuilder);
+        } else {
+          channelBuilder.useTransportSecurity();
+        }
       } else {
         channelBuilder.usePlaintext();
       }
