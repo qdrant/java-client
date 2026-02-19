@@ -16,6 +16,7 @@ import io.qdrant.client.grpc.Points.NearestInputWithMmr;
 import io.qdrant.client.grpc.Points.OrderBy;
 import io.qdrant.client.grpc.Points.Query;
 import io.qdrant.client.grpc.Points.RecommendInput;
+import io.qdrant.client.grpc.Points.RelevanceFeedbackInput;
 import io.qdrant.client.grpc.Points.Rrf;
 import io.qdrant.client.grpc.Points.Sample;
 import io.qdrant.client.grpc.Points.VectorInput;
@@ -251,6 +252,16 @@ public final class QueryFactory {
    */
   public static Query sample(Sample sample) {
     return Query.newBuilder().setSample(sample).build();
+  }
+
+  /**
+   * Creates a {@link Query} for search with feedback from some oracle.
+   *
+   * @param relevanceFeedback An instance of {@link RelevanceFeedbackInput}
+   * @return A new instance of {@link Query}
+   */
+  public static Query relevanceFeedback(RelevanceFeedbackInput relevanceFeedback) {
+    return Query.newBuilder().setRelevanceFeedback(relevanceFeedback).build();
   }
 
   // endregion

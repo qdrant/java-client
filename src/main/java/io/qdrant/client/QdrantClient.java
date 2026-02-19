@@ -32,10 +32,13 @@ import io.qdrant.client.grpc.Collections.ListAliasesResponse;
 import io.qdrant.client.grpc.Collections.ListCollectionAliasesRequest;
 import io.qdrant.client.grpc.Collections.ListCollectionsRequest;
 import io.qdrant.client.grpc.Collections.ListCollectionsResponse;
+import io.qdrant.client.grpc.Collections.ListShardKeysRequest;
+import io.qdrant.client.grpc.Collections.ListShardKeysResponse;
 import io.qdrant.client.grpc.Collections.PayloadIndexParams;
 import io.qdrant.client.grpc.Collections.PayloadSchemaType;
 import io.qdrant.client.grpc.Collections.RenameAlias;
 import io.qdrant.client.grpc.Collections.ShardKey;
+import io.qdrant.client.grpc.Collections.ShardKeyDescription;
 import io.qdrant.client.grpc.Collections.UpdateCollection;
 import io.qdrant.client.grpc.Collections.UpdateCollectionClusterSetupRequest;
 import io.qdrant.client.grpc.Collections.UpdateCollectionClusterSetupResponse;
@@ -924,6 +927,37 @@ public class QdrantClient implements AutoCloseable {
           return response;
         },
         MoreExecutors.directExecutor());
+  }
+
+  /**
+   * List the shard keys of a collection.
+   *
+   * @param collectionName The name of the collection to list shard keys for.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<List<ShardKeyDescription>> listShardKeysAsync(String collectionName) {
+    return listShardKeysAsync(collectionName, null);
+  }
+
+  /**
+   * List the shard keys of a collection.
+   *
+   * @param collectionName The name of the collection to list shard keys for.
+   * @param timeout The timeout for the call.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<List<ShardKeyDescription>> listShardKeysAsync(
+      String collectionName, @Nullable Duration timeout) {
+    Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
+    logger.debug("List shard keys for '{}'", collectionName);
+
+    ListenableFuture<ListShardKeysResponse> future =
+        getCollections(timeout)
+            .listShardKeys(
+                ListShardKeysRequest.newBuilder().setCollectionName(collectionName).build());
+    addLogFailureCallback(future, "List Shard Keys");
+    return Futures.transform(
+        future, response -> response.getShardKeysList(), MoreExecutors.directExecutor());
   }
 
   // endregion

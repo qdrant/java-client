@@ -25,6 +25,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Set Docker API version
+        run: echo "api.version=1.44" > $HOME/.docker-java.properties
+
       - name: Build
         uses: gradle/gradle-build-action@v2
         with:
@@ -69,6 +72,9 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: Set Docker API version
+        run: echo "api.version=1.44" > $HOME/.docker-java.properties
 
       - name: Publish package
         uses: gradle/gradle-build-action@v2
