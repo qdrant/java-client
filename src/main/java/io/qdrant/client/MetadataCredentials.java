@@ -41,7 +41,7 @@ public class MetadataCredentials extends CallCredentials {
             }
             applier.apply(metadata);
           } catch (Throwable e) {
-            applier.fail(Status.UNAUTHENTICATED.withCause(e));
+            applier.fail(Status.INTERNAL.withCause(e));
           }
         });
   }
