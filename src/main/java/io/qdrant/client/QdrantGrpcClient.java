@@ -1,6 +1,8 @@
 package io.qdrant.client;
 
 import io.grpc.CallCredentials;
+import io.grpc.Channel;
+import io.grpc.ClientInterceptors;
 import io.grpc.Deadline;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -21,6 +23,7 @@ public class QdrantGrpcClient implements AutoCloseable {
   private static final Logger logger = LoggerFactory.getLogger(QdrantGrpcClient.class);
   @Nullable private final CallCredentials callCredentials;
   private final ManagedChannel channel;
+  private final Channel interceptedChannel;
   private final boolean shutdownChannelOnClose;
   @Nullable private final Duration timeout;
 
@@ -31,6 +34,8 @@ public class QdrantGrpcClient implements AutoCloseable {
       @Nullable Duration timeout) {
     this.callCredentials = callCredentials;
     this.channel = channel;
+    this.interceptedChannel =
+        ClientInterceptors.intercept(channel, RequestHeaders.newInterceptor());
     this.shutdownChannelOnClose = shutdownChannelOnClose;
     this.timeout = timeout;
   }
@@ -136,7 +141,7 @@ public class QdrantGrpcClient implements AutoCloseable {
    * @return a new instance of {@link QdrantFutureStub}
    */
   public QdrantGrpc.QdrantFutureStub qdrant() {
-    return QdrantGrpc.newFutureStub(channel)
+    return QdrantGrpc.newFutureStub(interceptedChannel)
         .withCallCredentials(callCredentials)
         .withDeadline(
             timeout != null ? Deadline.after(timeout.toMillis(), TimeUnit.MILLISECONDS) : null);
@@ -148,7 +153,7 @@ public class QdrantGrpcClient implements AutoCloseable {
    * @return a new instance of {@link PointsFutureStub}
    */
   public PointsFutureStub points() {
-    return PointsGrpc.newFutureStub(channel)
+    return PointsGrpc.newFutureStub(interceptedChannel)
         .withCallCredentials(callCredentials)
         .withDeadline(
             timeout != null ? Deadline.after(timeout.toMillis(), TimeUnit.MILLISECONDS) : null);
@@ -160,7 +165,7 @@ public class QdrantGrpcClient implements AutoCloseable {
    * @return a new instance of {@link CollectionsFutureStub}
    */
   public CollectionsFutureStub collections() {
-    return CollectionsGrpc.newFutureStub(channel)
+    return CollectionsGrpc.newFutureStub(interceptedChannel)
         .withCallCredentials(callCredentials)
         .withDeadline(
             timeout != null ? Deadline.after(timeout.toMillis(), TimeUnit.MILLISECONDS) : null);
@@ -172,7 +177,7 @@ public class QdrantGrpcClient implements AutoCloseable {
    * @return a new instance of {@link SnapshotsFutureStub}
    */
   public SnapshotsFutureStub snapshots() {
-    return SnapshotsGrpc.newFutureStub(channel)
+    return SnapshotsGrpc.newFutureStub(interceptedChannel)
         .withCallCredentials(callCredentials)
         .withDeadline(
             timeout != null ? Deadline.after(timeout.toMillis(), TimeUnit.MILLISECONDS) : null);
