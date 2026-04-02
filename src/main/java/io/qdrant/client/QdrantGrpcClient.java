@@ -10,6 +10,7 @@ import io.qdrant.client.grpc.PointsGrpc.PointsFutureStub;
 import io.qdrant.client.grpc.QdrantGrpc.QdrantFutureStub;
 import io.qdrant.client.grpc.SnapshotsGrpc.SnapshotsFutureStub;
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -193,8 +194,10 @@ public class QdrantGrpcClient implements AutoCloseable {
     private final ManagedChannel channel;
     private final boolean shutdownChannelOnClose;
     private final boolean checkCompatibility;
+    @Nullable private String apiKey;
     @Nullable private CallCredentials callCredentials;
     @Nullable private Duration timeout;
+    @Nullable private Map<String, String> headers;
 
     Builder(ManagedChannel channel, boolean shutdownChannelOnClose, boolean checkCompatibility) {
       this.channel = channel;
@@ -218,7 +221,7 @@ public class QdrantGrpcClient implements AutoCloseable {
      * @return this
      */
     public Builder withApiKey(String apiKey) {
-      this.callCredentials = new ApiKeyCredentials(apiKey);
+      this.apiKey = apiKey;
       return this;
     }
 
@@ -237,11 +240,25 @@ public class QdrantGrpcClient implements AutoCloseable {
      * Sets the credential data that will be propagated to the server via request metadata for each
      * RPC.
      *
+     * <p>Note: If both {@link #withApiKey(String)} / {@link #withHeaders(Map)} and this method are
+     * used, this method takes precedence and the API key and headers will be ignored.
+     *
      * @param callCredentials The call credentials to use.
      * @return this
      */
     public Builder withCallCredentials(@Nullable CallCredentials callCredentials) {
       this.callCredentials = callCredentials;
+      return this;
+    }
+
+    /**
+     * Sets custom headers to send with every gRPC request.
+     *
+     * @param headers The headers to send.
+     * @return this
+     */
+    public Builder withHeaders(Map<String, String> headers) {
+      this.headers = headers;
       return this;
     }
 
@@ -255,7 +272,13 @@ public class QdrantGrpcClient implements AutoCloseable {
         String clientVersion = Builder.class.getPackage().getImplementationVersion();
         checkVersionsCompatibility(clientVersion);
       }
-      return new QdrantGrpcClient(channel, shutdownChannelOnClose, callCredentials, timeout);
+
+      CallCredentials credentials = this.callCredentials;
+      if (credentials == null && (apiKey != null || headers != null)) {
+        credentials = new MetadataCredentials(apiKey, headers);
+      }
+
+      return new QdrantGrpcClient(channel, shutdownChannelOnClose, credentials, timeout);
     }
 
     private static ManagedChannel createChannel(
