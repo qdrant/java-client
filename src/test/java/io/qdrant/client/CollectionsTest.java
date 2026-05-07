@@ -18,6 +18,9 @@ import io.qdrant.client.grpc.Collections.CreateCollection;
 import io.qdrant.client.grpc.Collections.Distance;
 import io.qdrant.client.grpc.Collections.VectorParams;
 import io.qdrant.client.grpc.Collections.VectorsConfig;
+import io.qdrant.client.grpc.Points.CreateVectorNameRequest;
+import io.qdrant.client.grpc.Points.DeleteVectorNameRequest;
+import io.qdrant.client.grpc.Points.DenseVectorCreationConfig;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -263,5 +266,54 @@ class CollectionsTest {
 
     List<String> aliases = client.listCollectionAliasesAsync(testName).get();
     assertTrue(aliases.isEmpty());
+  }
+
+  @Test
+  public void createAndDeleteVector() throws ExecutionException, InterruptedException {
+    CreateCollection createCollection = getCreateCollection(testName);
+    client.createCollectionAsync(createCollection).get();
+
+    client
+        .createVectorNameAsync(
+            CreateVectorNameRequest.newBuilder()
+                .setCollectionName(testName)
+                .setVectorName("vector_1")
+                .setDenseConfig(
+                    DenseVectorCreationConfig.newBuilder()
+                        .setSize(8)
+                        .setDistance(Distance.Cosine)
+                        .build())
+                .setWait(true)
+                .build())
+        .get();
+
+    assertTrue(
+        client
+            .getCollectionInfoAsync(testName)
+            .get()
+            .getConfig()
+            .getParams()
+            .getVectorsConfig()
+            .getParamsMap()
+            .containsMap("vector_1"));
+
+    client
+        .deleteVectorNameAsync(
+            DeleteVectorNameRequest.newBuilder()
+                .setCollectionName(testName)
+                .setVectorName("vector_1")
+                .setWait(true)
+                .build())
+        .get();
+
+    assertFalse(
+        client
+            .getCollectionInfoAsync(testName)
+            .get()
+            .getConfig()
+            .getParams()
+            .getVectorsConfig()
+            .getParamsMap()
+            .containsMap("vector_1"));
   }
 }

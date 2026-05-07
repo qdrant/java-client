@@ -55,10 +55,12 @@ import io.qdrant.client.grpc.Points.ClearPayloadPoints;
 import io.qdrant.client.grpc.Points.CountPoints;
 import io.qdrant.client.grpc.Points.CountResponse;
 import io.qdrant.client.grpc.Points.CreateFieldIndexCollection;
+import io.qdrant.client.grpc.Points.CreateVectorNameRequest;
 import io.qdrant.client.grpc.Points.DeleteFieldIndexCollection;
 import io.qdrant.client.grpc.Points.DeletePayloadPoints;
 import io.qdrant.client.grpc.Points.DeletePointVectors;
 import io.qdrant.client.grpc.Points.DeletePoints;
+import io.qdrant.client.grpc.Points.DeleteVectorNameRequest;
 import io.qdrant.client.grpc.Points.DiscoverBatchPoints;
 import io.qdrant.client.grpc.Points.DiscoverBatchResponse;
 import io.qdrant.client.grpc.Points.DiscoverPoints;
@@ -2344,6 +2346,60 @@ public class QdrantClient implements AutoCloseable {
     ListenableFuture<PointsOperationResponse> future =
         getPoints(timeout).deleteFieldIndex(requestBuilder.build());
     addLogFailureCallback(future, "Delete payload field index");
+    return Futures.transform(
+        future, PointsOperationResponse::getResult, MoreExecutors.directExecutor());
+  }
+
+  /**
+   * Creates a new named vector on a collection.
+   *
+   * @param request The create vector name request.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<UpdateResult> createVectorNameAsync(CreateVectorNameRequest request) {
+    return createVectorNameAsync(request, null);
+  }
+
+  /**
+   * Creates a new named vector on a collection.
+   *
+   * @param request The create vector name request.
+   * @param timeout The timeout for the call.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<UpdateResult> createVectorNameAsync(
+      CreateVectorNameRequest request, @Nullable Duration timeout) {
+    logger.debug(
+        "Create vector name '{}' in '{}'", request.getVectorName(), request.getCollectionName());
+    ListenableFuture<PointsOperationResponse> future = getPoints(timeout).createVectorName(request);
+    addLogFailureCallback(future, "Create vector name");
+    return Futures.transform(
+        future, PointsOperationResponse::getResult, MoreExecutors.directExecutor());
+  }
+
+  /**
+   * Deletes a named vector from a collection.
+   *
+   * @param request The delete vector name request.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<UpdateResult> deleteVectorNameAsync(DeleteVectorNameRequest request) {
+    return deleteVectorNameAsync(request, null);
+  }
+
+  /**
+   * Deletes a named vector from a collection.
+   *
+   * @param request The delete vector name request.
+   * @param timeout The timeout for the call.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<UpdateResult> deleteVectorNameAsync(
+      DeleteVectorNameRequest request, @Nullable Duration timeout) {
+    logger.debug(
+        "Delete vector name '{}' in '{}'", request.getVectorName(), request.getCollectionName());
+    ListenableFuture<PointsOperationResponse> future = getPoints(timeout).deleteVectorName(request);
+    addLogFailureCallback(future, "Delete vector name");
     return Futures.transform(
         future, PointsOperationResponse::getResult, MoreExecutors.directExecutor());
   }
