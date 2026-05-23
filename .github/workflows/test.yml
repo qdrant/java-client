@@ -31,13 +31,13 @@ jobs:
         run: echo "api.version=1.44" > $HOME/.docker-java.properties
 
       - name: Build
-        uses: gradle/gradle-build-action@a8f75513eafdebd8141bd1cd4e30fcd194af8dfa # v2.12.0
+        uses: gradle/gradle-build-action@ac2d340dc04d9e1113182899e983b5400c17cda1 # v3.5.0
         with:
           gradle-version: 8.5
           arguments: build --info
 
       - name: Test
-        uses: gradle/gradle-build-action@a8f75513eafdebd8141bd1cd4e30fcd194af8dfa # v2.12.0
+        uses: gradle/gradle-build-action@ac2d340dc04d9e1113182899e983b5400c17cda1 # v3.5.0
         with:
           gradle-version: 8.5
           arguments: test --info
