@@ -63,7 +63,7 @@ and emitted into the `build/generated/source directory`, and included in compila
 
 Ensure the following are installed and available in the `PATH`.
 
-- [Java 17](https://www.azul.com/downloads/?version=java-17-lts&package=jdk#zulu)
+- [Java 21](https://www.azul.com/downloads/?version=java-21-lts&package=jdk#zulu)
 - [Gradle](https://gradle.org/install/#with-a-package-manager).
 - [Docker](https://docs.docker.com/engine/install/) for tests.
 

@@ -163,6 +163,10 @@ extractIncludeProto {
 	dependsOn downloadProtos
 }
 
+processProtoResources {
+	dependsOn downloadProtos
+}
+
 protobuf {
 	protoc { artifact = "com.google.protobuf:protoc:${protocVersion}" }
 	plugins {
