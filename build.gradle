@@ -18,7 +18,7 @@ plugins {
 	id 'signing'
 	id 'maven-publish'
 
-	id 'com.google.protobuf' version '0.9.4'
+	id 'com.google.protobuf' version '0.10.0'
 	id 'net.ltgt.errorprone' version '5.1.0'
 	id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
 	id 'com.diffplug.spotless' version '6.22.0'
@@ -79,14 +79,14 @@ jar {
 	}
 }
 
-def grpcVersion = '1.75.0'
+def grpcVersion = '1.81.0'
 def protocVersion = '3.25.5'
-def slf4jVersion = '2.0.14'
-def testcontainersVersion = '1.20.1'
+def slf4jVersion = '2.0.18'
+def testcontainersVersion = '1.21.4'
 def jUnitVersion = '5.10.2'
 
 dependencies {
-	errorprone "com.uber.nullaway:nullaway:0.10.18"
+	errorprone "com.uber.nullaway:nullaway:0.13.6"
 
 	api "io.grpc:grpc-protobuf:${grpcVersion}"
 	api "io.grpc:grpc-stub:${grpcVersion}"
@@ -94,7 +94,7 @@ dependencies {
 
 	compileOnly "org.apache.tomcat:annotations-api:6.0.53"
 
-	errorprone "com.google.errorprone:error_prone_core:2.29.2"
+	errorprone "com.google.errorprone:error_prone_core:2.49.0"
 
 	runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}"
 
