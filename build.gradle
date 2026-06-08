@@ -83,7 +83,7 @@ def grpcVersion = '1.81.0'
 def protocVersion = '3.25.5'
 def slf4jVersion = '2.0.18'
 def testcontainersVersion = '1.21.4'
-def jUnitVersion = '5.10.2'
+def jUnitVersion = '6.1.0'
 
 dependencies {
 	errorprone "com.uber.nullaway:nullaway:0.13.6"
@@ -107,6 +107,7 @@ dependencies {
 	testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
 
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${jUnitVersion}"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher:${jUnitVersion}"
 }
 
 tasks.register('downloadProtos') {
@@ -190,6 +191,12 @@ sourceSets {
 			srcDirs 'build/generated/source/proto/main/java'
 		}
 	}
+}
+
+// JUnit 6 requires Java 17, while the library itself targets Java 8
+compileTestJava {
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
 }
 
 test {
