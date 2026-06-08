@@ -19,7 +19,7 @@ plugins {
 	id 'maven-publish'
 
 	id 'com.google.protobuf' version '0.9.4'
-	id 'net.ltgt.errorprone' version '3.1.0'
+	id 'net.ltgt.errorprone' version '5.1.0'
 	id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
 	id 'com.diffplug.spotless' version '6.22.0'
 }
