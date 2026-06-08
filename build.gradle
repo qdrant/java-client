@@ -107,6 +107,7 @@ dependencies {
 	testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
 
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${jUnitVersion}"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher:${jUnitVersion}"
 }
 
 tasks.register('downloadProtos') {
@@ -186,6 +187,12 @@ sourceSets {
 			srcDirs 'build/generated/source/proto/main/java'
 		}
 	}
+}
+
+// JUnit 6 requires Java 17, while the library itself targets Java 8
+compileTestJava {
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
 }
 
 test {
