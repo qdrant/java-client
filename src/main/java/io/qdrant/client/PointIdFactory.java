@@ -8,7 +8,7 @@ public final class PointIdFactory {
   private PointIdFactory() {}
 
   /**
-   * Creates a point id from a {@link long}
+   * Creates a point id from a {@code long}
    *
    * @param id The id
    * @return a new instance of {@link PointId}

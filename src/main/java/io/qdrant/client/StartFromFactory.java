@@ -9,7 +9,7 @@ public final class StartFromFactory {
   private StartFromFactory() {}
 
   /**
-   * Creates a {@link StartFrom} value from a {@link float}
+   * Creates a {@link StartFrom} value from a {@code float}
    *
    * @param value The value
    * @return a new instance of {@link StartFrom}
@@ -19,7 +19,7 @@ public final class StartFromFactory {
   }
 
   /**
-   * Creates a {@link StartFrom} value from a {@link int}
+   * Creates a {@link StartFrom} value from a {@code int}
    *
    * @param value The value
    * @return a new instance of {@link StartFrom}

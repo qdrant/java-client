@@ -22,7 +22,7 @@ public final class ValueFactory {
   }
 
   /**
-   * Creates a value from a {@link long}
+   * Creates a value from a {@code long}
    *
    * @param value The value
    * @return a new instance of {@link io.qdrant.client.grpc.JsonWithInt.Value}
@@ -32,7 +32,7 @@ public final class ValueFactory {
   }
 
   /**
-   * Creates a value from a {@link double}
+   * Creates a value from a {@code double}
    *
    * @param value The value
    * @return a new instance of {@link io.qdrant.client.grpc.JsonWithInt.Value}
@@ -42,7 +42,7 @@ public final class ValueFactory {
   }
 
   /**
-   * Creates a value from a {@link boolean}
+   * Creates a value from a {@code boolean}
    *
    * @param value The value
    * @return a new instance of {@link io.qdrant.client.grpc.JsonWithInt.Value}

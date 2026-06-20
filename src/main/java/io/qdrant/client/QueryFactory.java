@@ -162,7 +162,7 @@ public final class QueryFactory {
   }
 
   /**
-   * Creates a {@link Query} from a {@link long}
+   * Creates a {@link Query} from a {@code long}
    *
    * @param id The point id
    * @return a new instance of {@link Query}

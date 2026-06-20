@@ -88,7 +88,7 @@ public final class VectorInputFactory {
   }
 
   /**
-   * Creates a {@link VectorInput} from a {@link long}
+   * Creates a {@link VectorInput} from a {@code long}
    *
    * @param id The point id
    * @return a new instance of {@link VectorInput}
