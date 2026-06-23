@@ -273,14 +273,14 @@ public class QdrantGrpcClient implements AutoCloseable {
      * @return a new instance of {@link QdrantGrpcClient}
      */
     public QdrantGrpcClient build() {
-      if (checkCompatibility) {
-        String clientVersion = Builder.class.getPackage().getImplementationVersion();
-        checkVersionsCompatibility(clientVersion);
-      }
-
       CallCredentials credentials = this.callCredentials;
       if (credentials == null && (apiKey != null || headers != null)) {
         credentials = new MetadataCredentials(apiKey, headers);
+      }
+
+      if (checkCompatibility) {
+        String clientVersion = Builder.class.getPackage().getImplementationVersion();
+        checkVersionsCompatibility(clientVersion, credentials);
       }
 
       return new QdrantGrpcClient(channel, shutdownChannelOnClose, credentials, timeout);
@@ -301,11 +301,12 @@ public class QdrantGrpcClient implements AutoCloseable {
       return channelBuilder.build();
     }
 
-    private void checkVersionsCompatibility(String clientVersion) {
+    private void checkVersionsCompatibility(
+        String clientVersion, @Nullable CallCredentials credentials) {
       try {
         String serverVersion =
             QdrantGrpc.newBlockingStub(this.channel)
-                .withCallCredentials(this.callCredentials)
+                .withCallCredentials(credentials)
                 .healthCheck(QdrantOuterClass.HealthCheckRequest.getDefaultInstance())
                 .getVersion();
         if (!VersionsCompatibilityChecker.isCompatible(clientVersion, serverVersion)) {
