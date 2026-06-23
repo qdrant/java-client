@@ -19,11 +19,6 @@ import org.mockito.MockedStatic;
 /**
  * Unit tests for the version compatibility check performed by {@link
  * QdrantGrpcClient.Builder#build()}.
- *
- * <p>Regression coverage: the check must authenticate with the credentials configured via {@link
- * QdrantGrpcClient.Builder#withApiKey(String)}. Previously the check was issued before those
- * credentials were resolved, so against an auth-required server (e.g. Qdrant Cloud) it failed with
- * {@code "Failed to obtain server version"}.
  */
 class QdrantGrpcClientCompatibilityTest {
 
@@ -42,7 +37,6 @@ class QdrantGrpcClientCompatibilityTest {
       when(stub.withCallCredentials(any())).thenReturn(stub);
       when(stub.healthCheck(any())).thenReturn(reply);
 
-      // checkCompatibility = true so build() runs the version check.
       QdrantGrpcClient client =
           QdrantGrpcClient.newBuilder(channel, false, true).withApiKey("my-api-key").build();
       client.close();
