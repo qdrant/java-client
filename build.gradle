@@ -79,7 +79,7 @@ jar {
 	}
 }
 
-def grpcVersion = '1.82.0'
+def grpcVersion = '1.82.1'
 def protocVersion = '3.25.5'
 def slf4jVersion = '2.0.18'
 def testcontainersVersion = '1.21.4'
