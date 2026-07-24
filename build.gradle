@@ -83,7 +83,7 @@ def grpcVersion = '1.82.2'
 def protocVersion = '3.25.5'
 def slf4jVersion = '2.0.18'
 def testcontainersVersion = '1.21.4'
-def jUnitVersion = '6.1.1'
+def jUnitVersion = '6.1.2'
 
 dependencies {
 	errorprone "com.uber.nullaway:nullaway:0.13.7"
