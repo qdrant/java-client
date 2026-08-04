@@ -19,6 +19,7 @@ import io.qdrant.client.grpc.Common.PointId;
 import io.qdrant.client.grpc.Common.Range;
 import io.qdrant.client.grpc.Common.RepeatedIntegers;
 import io.qdrant.client.grpc.Common.RepeatedStrings;
+import io.qdrant.client.grpc.Common.SliceCondition;
 import io.qdrant.client.grpc.Common.ValuesCount;
 import java.util.List;
 
@@ -138,6 +139,25 @@ public final class ConditionFactory {
             FieldCondition.newBuilder()
                 .setKey(field)
                 .setMatch(Match.newBuilder().setTextAny(textAny).build())
+                .build())
+        .build();
+  }
+
+  /**
+   * Match records where the given field starts with the given keyword prefix.
+   *
+   * <p>The field must have a keyword index with prefix matching enabled.
+   *
+   * @param field The name of the field
+   * @param prefix The keyword prefix to match
+   * @return a new instance of {@link Condition}
+   */
+  public static Condition matchPrefix(String field, String prefix) {
+    return Condition.newBuilder()
+        .setField(
+            FieldCondition.newBuilder()
+                .setKey(field)
+                .setMatch(Match.newBuilder().setPrefix(prefix).build())
                 .build())
         .build();
   }
@@ -424,6 +444,19 @@ public final class ConditionFactory {
   public static Condition datetimeRange(String field, DatetimeRange datetimeRange) {
     return Condition.newBuilder()
         .setField(FieldCondition.newBuilder().setKey(field).setDatetimeRange(datetimeRange).build())
+        .build();
+  }
+
+  /**
+   * Selects one deterministic slice of the point ID space.
+   *
+   * @param total The total number of disjoint slices. Must be at least 1
+   * @param index The slice to select. Must be less than {@code total}
+   * @return a new instance of {@link Condition}
+   */
+  public static Condition slice(int total, int index) {
+    return Condition.newBuilder()
+        .setSlice(SliceCondition.newBuilder().setTotal(total).setIndex(index).build())
         .build();
   }
 
