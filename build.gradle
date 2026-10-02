@@ -81,12 +81,12 @@ jar {
 
 def grpcVersion = '1.84.0'
 def protocVersion = '3.25.5'
-def slf4jVersion = '2.0.19'
+def slf4jVersion = '2.0.20'
 def testcontainersVersion = '1.21.4'
 def jUnitVersion = '6.1.3'
 
 dependencies {
-	errorprone "com.uber.nullaway:nullaway:0.14.1"
+	errorprone "com.uber.nullaway:nullaway:0.14.2"
 
 	api "io.grpc:grpc-protobuf:${grpcVersion}"
 	api "io.grpc:grpc-stub:${grpcVersion}"
@@ -101,7 +101,7 @@ dependencies {
 	testImplementation "io.grpc:grpc-testing:${grpcVersion}"
 	testImplementation "org.junit.jupiter:junit-jupiter-api:${jUnitVersion}"
 	testImplementation "org.junit.jupiter:junit-jupiter-params:${jUnitVersion}"
-	testImplementation "org.mockito:mockito-core:5.23.0"
+	testImplementation "org.mockito:mockito-core:5.24.0"
 	testImplementation "org.slf4j:slf4j-nop:${slf4jVersion}"
 	testImplementation "org.testcontainers:qdrant:${testcontainersVersion}"
 	testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
