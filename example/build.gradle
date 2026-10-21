@@ -13,13 +13,13 @@ repositories {
 
 dependencies {
     // Qdrant Java client
-    implementation 'io.qdrant:client:1.19.0'
+    implementation 'io.qdrant:client:1.20.0'
     
     // gRPC dependencies - use the same version as Qdrant client
-    implementation 'io.grpc:grpc-netty-shaded:1.65.1'
-    implementation 'io.grpc:grpc-protobuf:1.65.1'
-    implementation 'io.grpc:grpc-stub:1.65.1'
-    implementation 'io.grpc:grpc-services:1.65.1'
+    implementation 'io.grpc:grpc-netty-shaded:1.84.2'
+    implementation 'io.grpc:grpc-protobuf:1.84.2'
+    implementation 'io.grpc:grpc-stub:1.84.2'
+    implementation 'io.grpc:grpc-services:1.84.2'
     
     // Protobuf runtime
     implementation 'com.google.protobuf:protobuf-java:3.25.4'

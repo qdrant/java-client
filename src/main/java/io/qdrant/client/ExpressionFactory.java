@@ -5,6 +5,8 @@ import io.qdrant.client.grpc.Points.DecayParamsExpression;
 import io.qdrant.client.grpc.Points.DivExpression;
 import io.qdrant.client.grpc.Points.Expression;
 import io.qdrant.client.grpc.Points.GeoDistance;
+import io.qdrant.client.grpc.Points.MaxExpression;
+import io.qdrant.client.grpc.Points.MinExpression;
 import io.qdrant.client.grpc.Points.MultExpression;
 import io.qdrant.client.grpc.Points.PowExpression;
 import io.qdrant.client.grpc.Points.SumExpression;
@@ -201,5 +203,35 @@ public final class ExpressionFactory {
    */
   public static Expression linDecay(DecayParamsExpression decay) {
     return Expression.newBuilder().setLinDecay(decay).build();
+  }
+
+  /**
+   * Creates an {@link Expression} representing inverse hyperbolic cosine.
+   *
+   * @param expr The expression to apply acosh() to
+   * @return a new instance of {@link Expression}
+   */
+  public static Expression acosh(Expression expr) {
+    return Expression.newBuilder().setAcosh(expr).build();
+  }
+
+  /**
+   * Creates an {@link Expression} for the maximum of values.
+   *
+   * @param max The maximum expression
+   * @return a new instance of {@link Expression}
+   */
+  public static Expression max(MaxExpression max) {
+    return Expression.newBuilder().setMax(max).build();
+  }
+
+  /**
+   * Creates an {@link Expression} for the minimum of values.
+   *
+   * @param min The minimum expression
+   * @return a new instance of {@link Expression}
+   */
+  public static Expression min(MinExpression min) {
+    return Expression.newBuilder().setMin(min).build();
   }
 }

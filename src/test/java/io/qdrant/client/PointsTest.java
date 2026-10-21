@@ -2,17 +2,28 @@ package io.qdrant.client;
 
 import static io.qdrant.client.ConditionFactory.hasId;
 import static io.qdrant.client.ConditionFactory.matchKeyword;
+import static io.qdrant.client.ConditionFactory.matchSubstring;
+import static io.qdrant.client.ConditionFactory.matchText;
+import static io.qdrant.client.ExpressionFactory.acosh;
+import static io.qdrant.client.ExpressionFactory.constant;
+import static io.qdrant.client.ExpressionFactory.max;
+import static io.qdrant.client.ExpressionFactory.min;
+import static io.qdrant.client.ExpressionFactory.sum;
+import static io.qdrant.client.ExpressionFactory.variable;
 import static io.qdrant.client.PointIdFactory.id;
+import static io.qdrant.client.QueryFactory.formula;
 import static io.qdrant.client.QueryFactory.fusion;
 import static io.qdrant.client.QueryFactory.nearest;
 import static io.qdrant.client.QueryFactory.orderBy;
 import static io.qdrant.client.QueryFactory.sample;
+import static io.qdrant.client.QueryFactory.text;
 import static io.qdrant.client.TargetVectorFactory.targetVector;
 import static io.qdrant.client.ValueFactory.value;
 import static io.qdrant.client.VectorFactory.vector;
 import static io.qdrant.client.VectorsFactory.vectors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.grpc.Grpc;
@@ -22,14 +33,25 @@ import io.qdrant.client.grpc.Collections;
 import io.qdrant.client.grpc.Collections.CollectionInfo;
 import io.qdrant.client.grpc.Collections.CreateCollection;
 import io.qdrant.client.grpc.Collections.Distance;
+import io.qdrant.client.grpc.Collections.FloatIndexParams;
+import io.qdrant.client.grpc.Collections.PayloadIndexParams;
 import io.qdrant.client.grpc.Collections.PayloadSchemaType;
+import io.qdrant.client.grpc.Collections.TextIndexParams;
+import io.qdrant.client.grpc.Collections.TextScoringParams;
+import io.qdrant.client.grpc.Collections.TextScoringType;
+import io.qdrant.client.grpc.Collections.TokenizerType;
 import io.qdrant.client.grpc.Collections.VectorParams;
 import io.qdrant.client.grpc.Collections.VectorsConfig;
 import io.qdrant.client.grpc.Common.Filter;
 import io.qdrant.client.grpc.Points;
 import io.qdrant.client.grpc.Points.BatchResult;
+import io.qdrant.client.grpc.Points.Bm25Params;
 import io.qdrant.client.grpc.Points.DiscoverPoints;
+import io.qdrant.client.grpc.Points.Expression;
+import io.qdrant.client.grpc.Points.Formula;
 import io.qdrant.client.grpc.Points.Fusion;
+import io.qdrant.client.grpc.Points.MaxExpression;
+import io.qdrant.client.grpc.Points.MinExpression;
 import io.qdrant.client.grpc.Points.PointGroup;
 import io.qdrant.client.grpc.Points.PointStruct;
 import io.qdrant.client.grpc.Points.PointVectors;
@@ -50,6 +72,8 @@ import io.qdrant.client.grpc.Points.ScrollPoints;
 import io.qdrant.client.grpc.Points.ScrollResponse;
 import io.qdrant.client.grpc.Points.SearchPointGroups;
 import io.qdrant.client.grpc.Points.SearchPoints;
+import io.qdrant.client.grpc.Points.SumExpression;
+import io.qdrant.client.grpc.Points.TextQuery;
 import io.qdrant.client.grpc.Points.UpdateResult;
 import io.qdrant.client.grpc.Points.UpdateStatus;
 import io.qdrant.client.grpc.Points.VectorsOutput;
@@ -780,6 +804,210 @@ class PointsTest {
   }
 
   @Test
+  public void queryFormula() throws ExecutionException, InterruptedException {
+    createAndSeedCollection(testName);
+
+    Expression score = variable("$score");
+    List<ScoredPoint> points =
+        client
+            .queryAsync(
+                QueryPoints.newBuilder()
+                    .setCollectionName(testName)
+                    .addPrefetch(PrefetchQuery.newBuilder().setQuery(nearest(3.5f, 4.5f)).build())
+                    .setQuery(
+                        formula(
+                            Formula.newBuilder()
+                                .setExpression(
+                                    sum(
+                                        SumExpression.newBuilder()
+                                            .addSum(
+                                                max(
+                                                    MaxExpression.newBuilder()
+                                                        .addMax(score)
+                                                        .addMax(constant(2))
+                                                        .build()))
+                                            .addSum(
+                                                min(
+                                                    MinExpression.newBuilder()
+                                                        .addMin(score)
+                                                        .addMin(constant(0))
+                                                        .build()))
+                                            .addSum(acosh(constant(1)))
+                                            .build()))
+                                .build()))
+                    .build())
+            .get();
+
+    assertEquals(2, points.size());
+    points.forEach(point -> assertEquals(2.0f, point.getScore(), 1e-6f));
+  }
+
+  @Test
+  public void queryText() throws ExecutionException, InterruptedException {
+    client
+        .createCollectionAsync(
+            testName, VectorParams.newBuilder().setDistance(Distance.Dot).setSize(4).build())
+        .get();
+
+    UpdateResult result =
+        client
+            .createPayloadIndexAsync(
+                testName,
+                "title",
+                PayloadSchemaType.Text,
+                PayloadIndexParams.newBuilder()
+                    .setTextIndexParams(
+                        TextIndexParams.newBuilder()
+                            .setTokenizer(TokenizerType.Word)
+                            .setScoring(
+                                TextScoringParams.newBuilder()
+                                    .setType(TextScoringType.Bm25)
+                                    .build())
+                            .build())
+                    .build(),
+                true,
+                null,
+                null)
+            .get();
+    assertEquals(UpdateStatus.Completed, result.getStatus());
+
+    client
+        .upsertAsync(
+            testName,
+            ImmutableList.of(
+                textPoint(1, "title", "vector search engine"),
+                textPoint(2, "title", "search search search"),
+                textPoint(3, "title", "relational database")))
+        .get();
+
+    List<ScoredPoint> points =
+        client
+            .queryAsync(
+                QueryPoints.newBuilder()
+                    .setCollectionName(testName)
+                    .setQuery(text("vector search"))
+                    .setUsing("title")
+                    .build())
+            .get();
+
+    assertEquals(2, points.size());
+    assertEquals(id(1), points.get(0).getId());
+    assertEquals(id(2), points.get(1).getId());
+
+    List<ScoredPoint> tuned =
+        client
+            .queryAsync(
+                QueryPoints.newBuilder()
+                    .setCollectionName(testName)
+                    .setQuery(
+                        text(
+                            TextQuery.newBuilder()
+                                .setQuery("vector search")
+                                .setBm25(Bm25Params.newBuilder().setK(2.0f).setB(0.5f).build())
+                                .build()))
+                    .setUsing("title")
+                    .build())
+            .get();
+
+    assertEquals(2, tuned.size());
+    assertNotEquals(points.get(0).getScore(), tuned.get(0).getScore());
+  }
+
+  @Test
+  public void scrollWithSubstringMatch() throws ExecutionException, InterruptedException {
+    client
+        .createCollectionAsync(
+            testName, VectorParams.newBuilder().setDistance(Distance.Dot).setSize(4).build())
+        .get();
+
+    client
+        .createPayloadIndexAsync(testName, "sku", PayloadSchemaType.Keyword, null, true, null, null)
+        .get();
+    client
+        .upsertAsync(
+            testName,
+            ImmutableList.of(textPoint(1, "sku", "AB-1234-XY"), textPoint(2, "sku", "CD-5678-XY")))
+        .get();
+
+    List<RetrievedPoint> points =
+        client
+            .scrollAsync(
+                ScrollPoints.newBuilder()
+                    .setCollectionName(testName)
+                    .setFilter(Filter.newBuilder().addMust(matchSubstring("sku", "1234")).build())
+                    .build())
+            .get()
+            .getResultList();
+
+    assertEquals(1, points.size());
+    assertEquals(id(1), points.get(0).getId());
+  }
+
+  @Test
+  public void scrollWithCodeTokenizer() throws ExecutionException, InterruptedException {
+    client
+        .createCollectionAsync(
+            testName, VectorParams.newBuilder().setDistance(Distance.Dot).setSize(4).build())
+        .get();
+
+    client
+        .createPayloadIndexAsync(
+            testName,
+            "source",
+            PayloadSchemaType.Text,
+            PayloadIndexParams.newBuilder()
+                .setTextIndexParams(
+                    TextIndexParams.newBuilder().setTokenizer(TokenizerType.Code).build())
+                .build(),
+            true,
+            null,
+            null)
+        .get();
+    client
+        .upsertAsync(
+            testName,
+            ImmutableList.of(
+                textPoint(10, "source", "fn getUserName() {}"),
+                textPoint(11, "source", "fn deleteFile() {}")))
+        .get();
+
+    List<RetrievedPoint> points =
+        client
+            .scrollAsync(
+                ScrollPoints.newBuilder()
+                    .setCollectionName(testName)
+                    .setFilter(
+                        Filter.newBuilder().addMust(matchText("source", "get_user_name")).build())
+                    .build())
+            .get()
+            .getResultList();
+
+    assertEquals(1, points.size());
+    assertEquals(id(10), points.get(0).getId());
+  }
+
+  @Test
+  public void createNestedFieldIndex() throws ExecutionException, InterruptedException {
+    createAndSeedCollection(testName);
+
+    UpdateResult result =
+        client
+            .createPayloadIndexAsync(
+                testName,
+                "offers[].price",
+                PayloadSchemaType.Float,
+                PayloadIndexParams.newBuilder()
+                    .setFloatIndexParams(FloatIndexParams.newBuilder().setNested("offers").build())
+                    .build(),
+                true,
+                null,
+                null)
+            .get();
+
+    assertEquals(UpdateStatus.Completed, result.getStatus());
+  }
+
+  @Test
   public void queryGroups() throws ExecutionException, InterruptedException {
     createAndSeedCollection(testName);
 
@@ -927,5 +1155,13 @@ class PointsTest {
                         .build()))
             .get();
     assertEquals(UpdateStatus.Completed, result.getStatus());
+  }
+
+  private static PointStruct textPoint(long id, String field, String text) {
+    return PointStruct.newBuilder()
+        .setId(id(id))
+        .setVectors(vectors(0.1f, 0.2f, 0.3f, 0.4f))
+        .putPayload(field, value(text))
+        .build();
   }
 }
