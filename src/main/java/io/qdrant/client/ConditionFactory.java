@@ -163,6 +163,23 @@ public final class ConditionFactory {
   }
 
   /**
+   * Match records where the given field contains the given substring.
+   *
+   * @param field The name of the field
+   * @param substring The substring to match
+   * @return a new instance of {@link Condition}
+   */
+  public static Condition matchSubstring(String field, String substring) {
+    return Condition.newBuilder()
+        .setField(
+            FieldCondition.newBuilder()
+                .setKey(field)
+                .setMatch(Match.newBuilder().setSubstring(substring).build())
+                .build())
+        .build();
+  }
+
+  /**
    * Match records where the given field matches the given boolean value.
    *
    * @param field The name of the field

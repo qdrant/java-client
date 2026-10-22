@@ -16,6 +16,8 @@ import io.qdrant.client.grpc.Collections.CollectionInfo;
 import io.qdrant.client.grpc.Collections.CollectionStatus;
 import io.qdrant.client.grpc.Collections.CreateCollection;
 import io.qdrant.client.grpc.Collections.Distance;
+import io.qdrant.client.grpc.Collections.IdTrackerParams;
+import io.qdrant.client.grpc.Collections.Memory;
 import io.qdrant.client.grpc.Collections.VectorParams;
 import io.qdrant.client.grpc.Collections.VectorsConfig;
 import io.qdrant.client.grpc.Points.CreateVectorNameRequest;
@@ -138,6 +140,29 @@ class CollectionsTest {
                         .build())
                 .build())
         .get();
+  }
+
+  @Test
+  public void createCollection_with_id_tracker() throws ExecutionException, InterruptedException {
+    client
+        .createCollectionAsync(
+            CreateCollection.newBuilder()
+                .setCollectionName(testName)
+                .setVectorsConfig(
+                    VectorsConfig.newBuilder()
+                        .setParams(
+                            VectorParams.newBuilder()
+                                .setDistance(Distance.Cosine)
+                                .setSize(4)
+                                .build())
+                        .build())
+                .setIdTracker(IdTrackerParams.newBuilder().setMemory(Memory.Cached).build())
+                .build())
+        .get();
+
+    CollectionInfo collectionInfo = client.getCollectionInfoAsync(testName).get();
+    assertEquals(Memory.Cached, collectionInfo.getConfig().getParams().getIdTracker().getMemory());
+    assertTrue(collectionInfo.hasCreatedAt());
   }
 
   @Test

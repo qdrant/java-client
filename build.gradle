@@ -147,7 +147,7 @@ tasks.register('downloadProtos') {
 							def fileName = Paths.get(entry.getName()).getFileName().toString()
 							def dest = java.nio.file.Path.of(outputDirectory, fileName)
 							logger.debug("writing {} to {}", fileName, dest)
-							Files.write(dest, lines, StandardOpenOption.CREATE)
+							Files.write(dest, lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
 						}
 					}
 				}

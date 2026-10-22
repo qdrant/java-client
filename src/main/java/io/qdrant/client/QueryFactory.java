@@ -19,6 +19,7 @@ import io.qdrant.client.grpc.Points.RecommendInput;
 import io.qdrant.client.grpc.Points.RelevanceFeedbackInput;
 import io.qdrant.client.grpc.Points.Rrf;
 import io.qdrant.client.grpc.Points.Sample;
+import io.qdrant.client.grpc.Points.TextQuery;
 import io.qdrant.client.grpc.Points.VectorInput;
 import java.util.List;
 import java.util.UUID;
@@ -106,6 +107,26 @@ public final class QueryFactory {
    */
   public static Query formula(Formula formula) {
     return Query.newBuilder().setFormula(formula).build();
+  }
+
+  /**
+   * Creates a {@link Query} for BM25 text search.
+   *
+   * @param query The text to search for
+   * @return a new instance of {@link Query}
+   */
+  public static Query text(String query) {
+    return text(TextQuery.newBuilder().setQuery(query).build());
+  }
+
+  /**
+   * Creates a {@link Query} for BM25 text search.
+   *
+   * @param text An instance of {@link TextQuery}
+   * @return a new instance of {@link Query}
+   */
+  public static Query text(TextQuery text) {
+    return Query.newBuilder().setText(text).build();
   }
 
   // region Nearest search queries
