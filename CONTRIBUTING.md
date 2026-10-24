@@ -107,6 +107,16 @@ Since the API reference is published at <https://qdrant.github.io/java-client>, 
 
 5. Submit your pull request and get those approvals.
 
+### Qdrant Serverless
+
+[`QdrantServerlessClient`](https://github.com/qdrant/java-client/blob/master/src/main/java/io/qdrant/client/QdrantServerlessClient.java) uses a copy of the [serverless collections proto](https://github.com/qdrant/qdrant-cloud-public-api/blob/main/proto/qdrant/serverless/collections.proto) in `src/main/proto`. To update it:
+
+```bash
+./gradlew syncServerlessProto
+```
+
+Its tests run against a live serverless space when `QDRANT_SERVERLESS_URL` and `QDRANT_SERVERLESS_API_KEY` are set, and are skipped otherwise.
+
 ### Releasing a New Version
 
 Once the new Qdrant version is live:
