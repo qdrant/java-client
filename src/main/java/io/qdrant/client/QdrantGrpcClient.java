@@ -288,6 +288,11 @@ public class QdrantGrpcClient implements AutoCloseable {
 
     private static ManagedChannel createChannel(
         String host, int port, boolean useTransportLayerSecurity, String userAgent) {
+      if (host.indexOf(':') >= 0 && !host.startsWith("[")) {
+        // Bare IPv6 literal: gRPC parses the channel target as a URI, so the host
+        // must be bracketed (e.g. "[fd00::1]").
+        host = "[" + host + "]";
+      }
       ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress(host, port);
 
       if (useTransportLayerSecurity) {
