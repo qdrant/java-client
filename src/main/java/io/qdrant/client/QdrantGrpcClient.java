@@ -11,6 +11,8 @@ import io.qdrant.client.grpc.CollectionsGrpc.CollectionsFutureStub;
 import io.qdrant.client.grpc.PointsGrpc.PointsFutureStub;
 import io.qdrant.client.grpc.QdrantGrpc.QdrantFutureStub;
 import io.qdrant.client.grpc.SnapshotsGrpc.SnapshotsFutureStub;
+import io.qdrant.client.grpc.serverless.CollectionsServiceGrpc;
+import io.qdrant.client.grpc.serverless.CollectionsServiceGrpc.CollectionsServiceFutureStub;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -178,6 +180,18 @@ public class QdrantGrpcClient implements AutoCloseable {
    */
   public SnapshotsFutureStub snapshots() {
     return SnapshotsGrpc.newFutureStub(interceptedChannel)
+        .withCallCredentials(callCredentials)
+        .withDeadline(
+            timeout != null ? Deadline.after(timeout.toMillis(), TimeUnit.MILLISECONDS) : null);
+  }
+
+  /**
+   * Gets the client for Qdrant Serverless collections
+   *
+   * @return a new instance of {@link CollectionsServiceFutureStub}
+   */
+  public CollectionsServiceFutureStub serverlessCollections() {
+    return CollectionsServiceGrpc.newFutureStub(interceptedChannel)
         .withCallCredentials(callCredentials)
         .withDeadline(
             timeout != null ? Deadline.after(timeout.toMillis(), TimeUnit.MILLISECONDS) : null);

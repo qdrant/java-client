@@ -2857,8 +2857,31 @@ public class QdrantClient implements AutoCloseable {
       requestBuilder.setFilter(filter);
     }
 
+    return countAsync(requestBuilder.build(), timeout);
+  }
+
+  /**
+   * Count the points in a collection.
+   *
+   * @param request The count request.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<Long> countAsync(CountPoints request) {
+    return countAsync(request, null);
+  }
+
+  /**
+   * Count the points in a collection.
+   *
+   * @param request The count request.
+   * @param timeout The timeout for the call.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<Long> countAsync(CountPoints request, @Nullable Duration timeout) {
+    String collectionName = request.getCollectionName();
+    Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
     logger.debug("Count on '{}'", collectionName);
-    ListenableFuture<CountResponse> future = getPoints(timeout).count(requestBuilder.build());
+    ListenableFuture<CountResponse> future = getPoints(timeout).count(request);
     addLogFailureCallback(future, "Count");
     return Futures.transform(
         future, response -> response.getResult().getCount(), MoreExecutors.directExecutor());
@@ -2943,9 +2966,34 @@ public class QdrantClient implements AutoCloseable {
       requestBuilder.setReadConsistency(readConsistency);
     }
 
+    return queryBatchAsync(requestBuilder.build(), timeout);
+  }
+
+  /**
+   * Universally query points in batch. Covers all capabilities of search, recommend, discover,
+   * filters. Also enables hybrid and multi-stage queries.
+   *
+   * @param request The batch query request.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<List<BatchResult>> queryBatchAsync(QueryBatchPoints request) {
+    return queryBatchAsync(request, null);
+  }
+
+  /**
+   * Universally query points in batch. Covers all capabilities of search, recommend, discover,
+   * filters. Also enables hybrid and multi-stage queries.
+   *
+   * @param request The batch query request.
+   * @param timeout The timeout for the call.
+   * @return a new instance of {@link ListenableFuture}
+   */
+  public ListenableFuture<List<BatchResult>> queryBatchAsync(
+      QueryBatchPoints request, @Nullable Duration timeout) {
+    String collectionName = request.getCollectionName();
+    Preconditions.checkArgument(!collectionName.isEmpty(), "Collection name must not be empty");
     logger.debug("Query batch on '{}'", collectionName);
-    ListenableFuture<QueryBatchResponse> future =
-        getPoints(timeout).queryBatch(requestBuilder.build());
+    ListenableFuture<QueryBatchResponse> future = getPoints(timeout).queryBatch(request);
     addLogFailureCallback(future, "Query batch");
     return Futures.transform(
         future, QueryBatchResponse::getResultList, MoreExecutors.directExecutor());
@@ -3261,6 +3309,10 @@ public class QdrantClient implements AutoCloseable {
   }
 
   private <V> void addLogFailureCallback(ListenableFuture<V> future, String message) {
+    addLogFailureCallback(logger, future, message);
+  }
+
+  static <V> void addLogFailureCallback(Logger logger, ListenableFuture<V> future, String message) {
     Futures.addCallback(
         future,
         new FutureCallback<V>() {

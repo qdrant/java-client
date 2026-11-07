@@ -16,6 +16,9 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    env:
+      QDRANT_SERVERLESS_URL: ${{ secrets.QDRANT_SERVERLESS_URL }}
+      QDRANT_SERVERLESS_API_KEY: ${{ secrets.QDRANT_SERVERLESS_API_KEY }}
 
     steps:
       - name: Checkout
