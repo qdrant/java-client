@@ -156,6 +156,44 @@ tasks.register('downloadProtos') {
 	}
 }
 
+tasks.register('syncServerlessProto') {
+	def protoFile = file('src/main/proto/serverless_collections.proto')
+	outputs.file(protoFile)
+	outputs.upToDateWhen { false }
+
+	doLast {
+		def url = 'https://raw.githubusercontent.com/qdrant/qdrant-cloud-public-api/main/proto/qdrant/serverless/collections.proto'
+		String source
+		try (def httpClient = HttpClients.createDefault()) {
+			def response = httpClient.execute(new HttpGet(url))
+			if (response.getStatusLine().getStatusCode() != 200) {
+				throw new GradleException("failed to download ${url}: ${response.getStatusLine()}")
+			}
+			source = response.getEntity().getContent().getText('UTF-8')
+		}
+
+		// buf.validate is server-side only and would need an extra proto dependency. Only plain
+		// single-option lists are stripped. Anything else is left in place and fails the check.
+		def javaPackage = 'option java_package = "io.qdrant.client.grpc.serverless";'
+		source = source
+			.replace('import "buf/validate/validate.proto";\n', '')
+			.replaceAll(/\s*\[\(buf\.validate\.[^\[\]"',]*\]/, '')
+			.replace('package qdrant.serverless;\n', "package qdrant.serverless;\n\n${javaPackage}\n")
+		if (source.contains('buf.validate') || source.contains('buf/validate') || !source.contains(javaPackage)) {
+			throw new GradleException('unexpected serverless proto, update syncServerlessProto')
+		}
+
+		def header = '''\
+// Source: https://github.com/qdrant/qdrant-cloud-public-api/blob/main/proto/qdrant/serverless/collections.proto
+// Renamed because the protobuf registry already has the regular qdrant "collections.proto".
+// buf.validate options are stripped: they are server-side only.
+// Regenerate with: ./gradlew syncServerlessProto
+'''
+		protoFile.parentFile.mkdirs()
+		protoFile.text = header + '\n' + source
+	}
+}
+
 processResources {
 	dependsOn downloadProtos
 }
