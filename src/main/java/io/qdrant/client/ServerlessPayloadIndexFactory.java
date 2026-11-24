@@ -59,30 +59,60 @@ public final class ServerlessPayloadIndexFactory {
   }
 
   /**
-   * Creates a float index.
+   * Creates a float index with default options.
    *
    * @return a new instance of {@link PayloadIndexConfig}
    */
   public static PayloadIndexConfig floatIndex() {
-    return PayloadIndexConfig.newBuilder().setFloat(FloatIndex.getDefaultInstance()).build();
+    return floatIndex(FloatIndex.getDefaultInstance());
+  }
+
+  /**
+   * Creates a float index.
+   *
+   * @param index The float index options.
+   * @return a new instance of {@link PayloadIndexConfig}
+   */
+  public static PayloadIndexConfig floatIndex(FloatIndex index) {
+    return PayloadIndexConfig.newBuilder().setFloat(index).build();
+  }
+
+  /**
+   * Creates a UUID index with default options.
+   *
+   * @return a new instance of {@link PayloadIndexConfig}
+   */
+  public static PayloadIndexConfig uuid() {
+    return uuid(UuidIndex.getDefaultInstance());
   }
 
   /**
    * Creates a UUID index.
    *
+   * @param index The UUID index options.
    * @return a new instance of {@link PayloadIndexConfig}
    */
-  public static PayloadIndexConfig uuid() {
-    return PayloadIndexConfig.newBuilder().setUuid(UuidIndex.getDefaultInstance()).build();
+  public static PayloadIndexConfig uuid(UuidIndex index) {
+    return PayloadIndexConfig.newBuilder().setUuid(index).build();
+  }
+
+  /**
+   * Creates a datetime index with default options.
+   *
+   * @return a new instance of {@link PayloadIndexConfig}
+   */
+  public static PayloadIndexConfig datetime() {
+    return datetime(DatetimeIndex.getDefaultInstance());
   }
 
   /**
    * Creates a datetime index.
    *
+   * @param index The datetime index options.
    * @return a new instance of {@link PayloadIndexConfig}
    */
-  public static PayloadIndexConfig datetime() {
-    return PayloadIndexConfig.newBuilder().setDatetime(DatetimeIndex.getDefaultInstance()).build();
+  public static PayloadIndexConfig datetime(DatetimeIndex index) {
+    return PayloadIndexConfig.newBuilder().setDatetime(index).build();
   }
 
   /**
@@ -105,21 +135,41 @@ public final class ServerlessPayloadIndexFactory {
   }
 
   /**
-   * Creates a geo index.
+   * Creates a geo index with default options.
    *
    * @return a new instance of {@link PayloadIndexConfig}
    */
   public static PayloadIndexConfig geo() {
-    return PayloadIndexConfig.newBuilder().setGeo(GeoIndex.getDefaultInstance()).build();
+    return geo(GeoIndex.getDefaultInstance());
+  }
+
+  /**
+   * Creates a geo index.
+   *
+   * @param index The geo index options.
+   * @return a new instance of {@link PayloadIndexConfig}
+   */
+  public static PayloadIndexConfig geo(GeoIndex index) {
+    return PayloadIndexConfig.newBuilder().setGeo(index).build();
+  }
+
+  /**
+   * Creates a bool index with default options.
+   *
+   * @return a new instance of {@link PayloadIndexConfig}
+   */
+  public static PayloadIndexConfig bool() {
+    return bool(BoolIndex.getDefaultInstance());
   }
 
   /**
    * Creates a bool index.
    *
+   * @param index The bool index options.
    * @return a new instance of {@link PayloadIndexConfig}
    */
-  public static PayloadIndexConfig bool() {
-    return PayloadIndexConfig.newBuilder().setBool(BoolIndex.getDefaultInstance()).build();
+  public static PayloadIndexConfig bool(BoolIndex index) {
+    return PayloadIndexConfig.newBuilder().setBool(index).build();
   }
 
   /**

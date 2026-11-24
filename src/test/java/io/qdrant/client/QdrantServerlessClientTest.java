@@ -39,6 +39,8 @@ import io.qdrant.client.grpc.serverless.ServerlessCollections.PrecisionTier;
 import io.qdrant.client.grpc.serverless.ServerlessCollections.SparseVectorConfig;
 import io.qdrant.client.grpc.serverless.ServerlessCollections.StopwordsSet;
 import io.qdrant.client.grpc.serverless.ServerlessCollections.TextIndex;
+import io.qdrant.client.grpc.serverless.ServerlessCollections.TextScoringParams;
+import io.qdrant.client.grpc.serverless.ServerlessCollections.TextScoringType;
 import io.qdrant.client.grpc.serverless.ServerlessCollections.Tokenizer;
 import java.net.URI;
 import java.time.Duration;
@@ -118,6 +120,14 @@ class QdrantServerlessClientTest {
                 ServerlessPayloadIndexFactory.text(
                     TextIndex.newBuilder()
                         .setStemmer(ServerlessPayloadIndexFactory.disabledStemmer())
+                        .setScoring(TextScoringParams.newBuilder().setType(TextScoringType.BM25))
+                        .build()))
+            .putPayloadIndexes(
+                "source",
+                ServerlessPayloadIndexFactory.text(
+                    TextIndex.newBuilder()
+                        .setTokenizer(Tokenizer.CODE)
+                        .setScoring(TextScoringParams.getDefaultInstance())
                         .build()))
             .build();
 
