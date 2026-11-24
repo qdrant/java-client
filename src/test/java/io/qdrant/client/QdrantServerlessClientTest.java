@@ -15,7 +15,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import io.grpc.Status;
 import io.qdrant.client.grpc.Common.Filter;
 import io.qdrant.client.grpc.Points.CountPoints;
-import io.qdrant.client.grpc.Points.DeletePoints;
 import io.qdrant.client.grpc.Points.GetPoints;
 import io.qdrant.client.grpc.Points.PointStruct;
 import io.qdrant.client.grpc.Points.PointsIdsList;
@@ -26,7 +25,6 @@ import io.qdrant.client.grpc.Points.ScoredPoint;
 import io.qdrant.client.grpc.Points.SetPayloadPoints;
 import io.qdrant.client.grpc.Points.UpdateResult;
 import io.qdrant.client.grpc.Points.UpdateStatus;
-import io.qdrant.client.grpc.Points.UpsertPoints;
 import io.qdrant.client.grpc.serverless.ServerlessCollections.CollectionConfig;
 import io.qdrant.client.grpc.serverless.ServerlessCollections.CollectionSummary;
 import io.qdrant.client.grpc.serverless.ServerlessCollections.DenseVectorConfig;
@@ -172,23 +170,23 @@ class QdrantServerlessClientTest {
                 .build())
         .get();
 
-    client
-        .upsertAsync(
-            UpsertPoints.newBuilder()
-                .setCollectionName(collectionName)
-                .setWait(true)
-                .addPoints(
+    UpdateResult upsert =
+        client
+            .upsertAsync(
+                collectionName,
+                List.of(
                     PointStruct.newBuilder()
                         .setId(id(1))
                         .setVectors(vectors(1, 0, 0, 0))
-                        .putPayload("color", value("red")))
-                .addPoints(
+                        .putPayload("color", value("red"))
+                        .build(),
                     PointStruct.newBuilder()
                         .setId(id(2))
                         .setVectors(vectors(0, 1, 0, 0))
-                        .putPayload("color", value("blue")))
-                .build())
-        .get();
+                        .putPayload("color", value("blue"))
+                        .build()))
+            .get();
+    assertEquals(UpdateStatus.Completed, upsert.getStatus());
 
     // Reads can lag a few seconds behind writes.
     eventually(
@@ -241,17 +239,7 @@ class QdrantServerlessClientTest {
             .get();
     assertEquals(1, points.size());
 
-    UpdateResult delete =
-        client
-            .deleteAsync(
-                DeletePoints.newBuilder()
-                    .setCollectionName(collectionName)
-                    .setWait(true)
-                    .setPoints(
-                        PointsSelector.newBuilder()
-                            .setPoints(PointsIdsList.newBuilder().addIds(id(2))))
-                    .build())
-            .get();
+    UpdateResult delete = client.deleteAsync(collectionName, List.of(id(2))).get();
     assertEquals(UpdateStatus.Completed, delete.getStatus());
   }
 
