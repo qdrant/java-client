@@ -27,22 +27,20 @@ public class MetadataCredentials extends CallCredentials {
   @Override
   public void applyRequestMetadata(
       RequestInfo requestInfo, Executor appExecutor, MetadataApplier applier) {
-    appExecutor.execute(
-        () -> {
-          try {
-            Metadata metadata = new Metadata();
-            if (apiKey != null) {
-              metadata.put(Metadata.Key.of("api-key", Metadata.ASCII_STRING_MARSHALLER), apiKey);
-            }
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-              metadata.put(
-                  Metadata.Key.of(entry.getKey(), Metadata.ASCII_STRING_MARSHALLER),
-                  entry.getValue());
-            }
-            applier.apply(metadata);
-          } catch (Throwable e) {
-            applier.fail(Status.INTERNAL.withCause(e));
-          }
-        });
+    appExecutor.execute(() -> {
+      try {
+        Metadata metadata = new Metadata();
+        if (apiKey != null) {
+          metadata.put(Metadata.Key.of("api-key", Metadata.ASCII_STRING_MARSHALLER), apiKey);
+        }
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+          metadata.put(
+              Metadata.Key.of(entry.getKey(), Metadata.ASCII_STRING_MARSHALLER), entry.getValue());
+        }
+        applier.apply(metadata);
+      } catch (Throwable e) {
+        applier.fail(Status.INTERNAL.withCause(e));
+      }
+    });
   }
 }
