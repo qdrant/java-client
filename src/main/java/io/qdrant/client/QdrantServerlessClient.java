@@ -126,7 +126,7 @@ public class QdrantServerlessClient implements AutoCloseable {
   public ListenableFuture<CreateCollectionResponse> createCollectionAsync(
       String collectionName, DenseVectorConfig vector, @Nullable Duration timeout) {
     return createCollectionAsync(
-        collectionName, CollectionConfig.newBuilder().putDenseVectors("", vector).build(), timeout);
+        collectionName, ServerlessCollectionConfigFactory.defaultVector(vector).build(), timeout);
   }
 
   /**

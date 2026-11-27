@@ -163,9 +163,8 @@ class QdrantServerlessClientTest {
     client
         .createCollectionAsync(
             collectionName,
-            CollectionConfig.newBuilder()
-                .putDenseVectors(
-                    "", DenseVectorConfig.newBuilder().setSize(4).setDistance(Distance.DOT).build())
+            ServerlessCollectionConfigFactory.defaultVector(
+                    DenseVectorConfig.newBuilder().setSize(4).setDistance(Distance.DOT).build())
                 .putPayloadIndexes("color", ServerlessPayloadIndexFactory.keyword())
                 .build())
         .get();
