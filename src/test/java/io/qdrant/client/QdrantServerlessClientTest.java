@@ -189,30 +189,28 @@ class QdrantServerlessClientTest {
     assertEquals(UpdateStatus.Completed, upsert.getStatus());
 
     // Reads can lag a few seconds behind writes.
-    eventually(
-        () ->
-            client
-                    .countAsync(
-                        CountPoints.newBuilder()
-                            .setCollectionName(collectionName)
-                            .setExact(true)
-                            .setFilter(Filter.newBuilder().addMust(matchKeyword("color", "red")))
-                            .build())
-                    .get()
-                == 1);
+    eventually(() ->
+        client
+                .countAsync(
+                    CountPoints.newBuilder()
+                        .setCollectionName(collectionName)
+                        .setExact(true)
+                        .setFilter(Filter.newBuilder().addMust(matchKeyword("color", "red")))
+                        .build())
+                .get()
+            == 1);
 
-    eventually(
-        () -> {
-          List<ScoredPoint> hits =
-              client
-                  .queryAsync(
-                      QueryPoints.newBuilder()
-                          .setCollectionName(collectionName)
-                          .setQuery(nearest(1, 0, 0, 0))
-                          .build())
-                  .get();
-          return hits.size() == 2 && hits.get(0).getId().getNum() == 1;
-        });
+    eventually(() -> {
+      List<ScoredPoint> hits =
+          client
+              .queryAsync(
+                  QueryPoints.newBuilder()
+                      .setCollectionName(collectionName)
+                      .setQuery(nearest(1, 0, 0, 0))
+                      .build())
+              .get();
+      return hits.size() == 2 && hits.get(0).getId().getNum() == 1;
+    });
 
     PointsSelector first =
         PointsSelector.newBuilder().setPoints(PointsIdsList.newBuilder().addIds(id(1))).build();
